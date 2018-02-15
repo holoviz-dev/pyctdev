@@ -4,12 +4,17 @@ from setuptools import setup
 
 import versioneer
 
-setup(name = 'pyct',
-      description = 'pyviz common tasks',
-      version = versioneer.get_version(),
-      cmdclass = versioneer.get_cmdclass(),
-      license = 'BSD-3',
-      url = 'http://github.com/pyviz/pyct',
-      packages=['pyct'],
-      install_requires=['doit']
-      )
+setup_args = dict(
+    name = 'pyct',
+    description = 'pyviz common tasks',
+    version = versioneer.get_version(),
+    cmdclass = versioneer.get_cmdclass(),
+    license = 'BSD-3',
+    url = 'http://github.com/pyviz/pyct',
+    packages=['pyct'],
+    python_requires=">=3",
+    install_requires=['doit']
+)
+
+if __name__ == "__main__":
+    setup(**setup_args)
