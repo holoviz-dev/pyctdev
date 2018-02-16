@@ -3,7 +3,7 @@ language: python
 
 stages:
   - lint
-#  - test
+  - test
   # python packages always built for master, but only deployed for a
   # ^v tag
   #
@@ -29,6 +29,10 @@ jobs:
       - pip install tox
     script:
       - tox -e $TOX_ENV
+
+  - <<: *default
+    stage: lint
+    env: TOX_ENV=lint
 
   - <<: *default
     stage: pypi_package

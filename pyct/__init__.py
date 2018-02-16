@@ -2,12 +2,8 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-
-import glob
 import platform
 import os
-import sys
-import zipfile
 try:
     from urllib.request import urlretrieve
 except ImportError:
