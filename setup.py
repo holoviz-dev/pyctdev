@@ -12,7 +12,7 @@ setup_args = dict(
     license = 'BSD-3',
     url = 'http://github.com/pyviz/pyct',
     packages=['pyct'],
-    python_requires=">=3",
+    python_requires=">=2.7",
     install_requires=['doit']
 )
 
