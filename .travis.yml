@@ -9,6 +9,7 @@ stages:
   #
   # conda dev package always built and uploaded for master; regular
   # conda package only uploaded for a ^v tag.
+  # TODO: decide what to do on dev channel for releases; a 'post0'?
   #
   - name: pypi_package
     if: (branch = master AND type != pull_request) OR (tag =~ ^v)
@@ -44,19 +45,22 @@ jobs:
 
   - &conda_default
     stage: conda_dev_package
-    install:
-      - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      - bash miniconda.sh -b -p $HOME/miniconda
+    before_install:
+      #######################
+      ## install miniconda ##
+      - easy_install --user doit==0.29.0 pyct
+      - ~/.local/bin/doit install_miniconda
+      - rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - conda config --set always_yes yes --set changeps1 no
-      - conda update conda
-      - conda install anaconda-client conda-build
-      - conda build -c conda-forge conda.recipe/      
+      #######################
+      - conda install -c pyviz/label/dev pyct
+      - doit ci_configure_conda
+    install:
+      - doit build_conda_package
     script:
-      # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
-      - anaconda --token $CONDA_UPLOAD_TOKEN upload --user pyviz --label dev `conda build --output conda.recipe`
-
+      - doit --token=$CONDA_UPLOAD_TOKEN upload_conda_package
+ 
   - <<: *conda_default
     stage: conda_package
     script:
-      - anaconda --token $CONDA_UPLOAD_TOKEN upload --user pyviz `conda build --output conda.recipe`
+      - doit --token=$CONDA_UPLOAD_TOKEN --label=main upload_conda_package

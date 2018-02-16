@@ -13,6 +13,8 @@ try:
 except ImportError:
     from urllib import urlretrieve
 
+DOIT_CONFIG = {'verbosity': 2}
+    
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
     "Linux": "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh",
@@ -62,12 +64,26 @@ def task_ci_configure_conda():
                     'conda install -y anaconda-client conda-build']
         }
 
+
+from doit.action import CmdAction
+
 def task_build_conda_package():
-    return {
-        'actions': ['conda build conda.recipe']}
+    
+    def thing(channel):
+        return "conda build %s conda.recipe"%(" ".join(['-c %s'%c for c in channel]))
+
+    channel = {
+        'name':'channel',
+        'long':'channel',
+        'short': 'c',
+        'type':list,
+        'default':[]}
+
+    return {'actions': [CmdAction(thing)],
+            'params': [channel]}
 
 def task_upload_conda_package():
-      # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
+    # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
 
     label = {
         'name':'label',
@@ -83,7 +99,8 @@ def task_upload_conda_package():
         'default':''}
     
     return {
-        'actions': ['anaconda --token %(token)s upload --user pyviz --label %(label)s `conda build --output conda.recipe`']
+        'actions': ['anaconda --token %(token)s upload --user pyviz --label %(label)s `conda build --output conda.recipe`'],
+        'params':[label,token]}
     
 
 def task_create_env():
