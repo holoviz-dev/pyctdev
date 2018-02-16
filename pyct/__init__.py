@@ -56,6 +56,36 @@ def task_install_miniconda():
             'START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -p %(location)s"]
         }
 
+def task_ci_configure_conda():
+    return {
+        'actions': ['conda update conda',
+                    'conda install -y anaconda-client conda-build']
+        }
+
+def task_build_conda_package():
+    return {
+        'actions': ['conda build conda.recipe']}
+
+def task_upload_conda_package():
+      # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
+
+    label = {
+        'name':'label',
+        'long':'label',
+        'type':str,
+        'default':'dev'}
+
+    # should be required, when I figure out params
+    token = {
+        'name':'token',
+        'long':'token',
+        'type':str,
+        'default':''}
+    
+    return {
+        'actions': ['anaconda --token %(token)s upload --user pyviz --label %(label)s `conda build --output conda.recipe`']
+    
+
 def task_create_env():
     python = {
         'name':'python',
