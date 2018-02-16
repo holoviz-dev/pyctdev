@@ -3,7 +3,7 @@ language: python
 
 stages:
   - lint
-#  - test  
+#  - test
   # python packages always built for master, but only deployed for a
   # ^v tag
   #
@@ -45,21 +45,18 @@ jobs:
 
   - &conda_default
     stage: conda_dev_package
+    python: 3.6
     before_install:
-      #######################
-      ## install miniconda ##
-      - easy_install --user doit==0.29.0 pyct
-      - ~/.local/bin/doit install_miniconda
-      - rm -f .doit.db
+      - pip install pyct
+      - doit install_miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
-      #######################
       - conda install -c pyviz/label/dev pyct
       - doit ci_configure_conda
     install:
       - doit build_conda_package
     script:
       - doit --token=$CONDA_UPLOAD_TOKEN upload_conda_package
- 
+
   - <<: *conda_default
     stage: conda_package
     script:
