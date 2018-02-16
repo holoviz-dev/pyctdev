@@ -60,7 +60,7 @@ def task_install_miniconda():
 
 def task_ci_configure_conda():
     return {
-        'actions': ['conda update conda',
+        'actions': ['conda update -y conda',
                     'conda install -y anaconda-client conda-build']
         }
 
