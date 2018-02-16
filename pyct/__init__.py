@@ -81,11 +81,15 @@ def task_build_conda_package():
 def task_upload_conda_package():
     # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
 
+    def thing(label):
+        return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe`'
+    
     label = {
         'name':'label',
         'long':'label',
-        'type':str,
-        'default':'dev'}
+        'short':'l',
+        'type':list,
+        'default':[]}
 
     # should be required, when I figure out params
     token = {
@@ -93,10 +97,9 @@ def task_upload_conda_package():
         'long':'token',
         'type':str,
         'default':''}
-    
-    return {
-        'actions': ['anaconda --token %(token)s upload --user pyviz --label %(label)s `conda build --output conda.recipe`'],
-        'params':[label,token]}
+
+    return {'actions': [CmdAction(thing)],
+            'params': [label,token]}
     
 
 def task_create_env():
