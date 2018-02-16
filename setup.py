@@ -7,7 +7,7 @@ import versioneer
 setup_args = dict(
     name = 'pyct',
     description = 'pyviz common tasks',
-    version = versioneer.get_version(),
+    version = versioneer.get_version().lstrip('v'),
     cmdclass = versioneer.get_cmdclass(),
     license = 'BSD-3',
     url = 'http://github.com/pyviz/pyct',
