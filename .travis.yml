@@ -65,4 +65,4 @@ jobs:
   - <<: *conda_default
     stage: conda_package
     script:
-      - doit --token=$CONDA_UPLOAD_TOKEN --label=main upload_conda_package
+      - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN --label=main
