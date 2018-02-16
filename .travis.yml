@@ -4,17 +4,10 @@ language: python
 stages:
   - lint
   - test
-  # python packages always built for master, but only deployed for a
-  # ^v tag
-  #
-  # conda dev package always built and uploaded for master; regular
-  # conda package only uploaded for a ^v tag.
-  # TODO: decide what to do on dev channel for releases; a 'post0'?
-  #
   - name: pypi_package
     if: (branch = master AND type != pull_request) OR (tag =~ ^v)
   - name: conda_dev_package
-    if: (branch = master AND type != pull_request) OR (tag =~ ^v)
+    if: (branch = master AND type != pull_request)
   - name: conda_package
     if: tag =~ ^v
 
@@ -65,4 +58,4 @@ jobs:
   - <<: *conda_default
     stage: conda_package
     script:
-      - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN --label=main
+      - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN --label=main,dev
