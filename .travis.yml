@@ -32,7 +32,7 @@ jobs:
 
   - <<: *default
     stage: lint
-    env: TOX_ENV=lint
+    env: TOX_ENV=flake8
 
   - <<: *default
     stage: pypi_package
