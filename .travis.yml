@@ -51,7 +51,7 @@ jobs:
       - conda config --set always_yes yes --set changeps1 no
       - conda update conda
       - conda install anaconda-client conda-build
-      - conda build conda.recipe/      
+      - conda build -c conda-forge conda.recipe/      
     script:
       # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
       - anaconda --token $CONDA_UPLOAD_TOKEN upload --user pyviz --label dev `conda build --output conda.recipe`
