@@ -54,9 +54,9 @@ jobs:
       - rm -f .doit.db
       - doit ci_configure_conda
     install:
-      - doit build_conda_package
+      - doit build_conda_package --channel conda-forge
     script:
-      - doit --token=$CONDA_UPLOAD_TOKEN upload_conda_package
+      - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN
 
   - <<: *conda_default
     stage: conda_package
