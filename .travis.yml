@@ -2,7 +2,7 @@ sudo: false
 language: python
 
 stages:
-#  - lint
+  - lint
 #  - test  
   # python packages always built for master, but only deployed for a
   # ^v tag
@@ -19,6 +19,15 @@ stages:
 
 jobs:
   include:
+
+  - &default
+    stage: test
+    python: 3.6
+    env: TOX_ENV=py36
+    install:
+      - pip install tox
+    script:
+      - tox -e $TOX_ENV
 
   - <<: *default
     stage: pypi_package
