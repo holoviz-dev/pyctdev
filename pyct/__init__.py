@@ -71,20 +71,21 @@ def task_ci_configure_conda():
 
 from doit.action import CmdAction
 
+_channel_param = {
+    'name':'channel',
+    'long':'channel',
+    'short': 'c',
+    'type':list,
+    'default':[]
+}
+
 def task_build_conda_package():
 
     def thing(channel):
         return "conda build %s conda.recipe"%(" ".join(['-c %s'%c for c in channel]))
 
-    channel = {
-        'name':'channel',
-        'long':'channel',
-        'short': 'c',
-        'type':list,
-        'default':[]}
-
     return {'actions': [CmdAction(thing)],
-            'params': [channel]}
+            'params': [_channel_param]}
 
 def task_upload_conda_package():
     # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
@@ -176,20 +177,28 @@ def _get_dependencies(kinds):
             raise ValueError("unknown kind %s"%kind)
     return " ".join('"%s"'%dep for dep in deps)
 
-def task_conda_install_required_dependencies():
-    """Install required dependencies from setup.py using conda"""
-    return {'actions': ["conda install -y %s"%_get_dependencies(["install_requires"])]}
 
 # conda installs are independent tasks for speed (so conda gets all
 # deps to think about at once)
 
+def _thing(channel,kinds):
+    return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),
+                                     _get_dependencies(kinds))
+
+def task_conda_install_required_dependencies():
+    """Install required dependencies from setup.py using conda"""
+    return {'actions': [CmdAction(lambda channel: _thing(channel,["install_requires"]))],
+            'params': [_channel_param]}
+
 def task_conda_install_test_dependencies():
     """Install required and test dependencies from setup.py using conda"""
-    return {'actions':["conda install -y %s"%_get_dependencies(["install_requires","tests_require"])]}
+    return {'actions': [CmdAction(lambda channel: _thing(channel,["install_requires","tests_require"]))],
+            'params': [_channel_param]}
 
 def task_conda_install_all_dependencies():
     """Install all dependencies from setup.py using conda"""
-    return {'actions':["conda install -y %s"%_get_dependencies(["install_requires","tests_require","extras_require"])]}
+    return {'actions': [CmdAction(lambda channel: _thing(channel,["install_requires","tests_require","extras_require"]))],
+            'params': [_channel_param]}
 
 # TODO: merge with tox? can't use tox alone because of conda. Or drop tox?
 def task_unit_tests():
