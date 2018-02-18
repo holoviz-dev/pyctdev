@@ -1,3 +1,10 @@
+# Note: work in progress. Contains history of learning dodo. Many
+# tasks need improving...
+
+# TODO: decide what to do about config. E.g. could use individual tool
+# bits from setup.cfg, could have own config, could have no config,
+# ...
+
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
@@ -132,6 +139,10 @@ def task_develop_install():
 
 def task_conda_develop_install():
     """Python develop install with dependencies installed by conda only"""
+    # TODO: should this be python setup.py develop --no-deps?  In
+    # either case, what effect does no-deps have beyond not installing
+    # dependencies?  I noticed while developing a pytest plugin that
+    # with --no-deps, the plugin did not get registered...
     return {'actions':["pip install --no-deps -e ."],
             'task_dep':['conda_install_test_dependencies']}
 
@@ -170,3 +181,31 @@ def task_conda_install_test_dependencies():
 def task_conda_install_all_dependencies():
     """Install all dependencies from setup.py using conda"""
     return {'actions':["conda install -y %s"%_get_dependencies(["install_requires","tests_require","extras_require"])]}
+
+# TODO: merge with tox? can't use tox alone because of conda. Or drop tox?
+def task_unit_tests():
+    def thing(testrunner):
+        if testrunner == 'nose':
+            cmd = 'nosetests --verbose --nologcapture --with-doctest'
+        elif testrunner == 'pytest':
+            cmd = 'pytest -v'
+        else:
+            raise ValueError("Need to add support for %s in pyct"%testrunner)
+        return cmd
+
+    testrunner = {
+        'name':'testrunner',
+        'long':'testrunner',
+        'short':'t',
+        'type':str,
+        'default':'pytest'}
+
+    return {'actions': [CmdAction(thing)],
+            'params': [testrunner]}
+
+def task_all_tests():
+    return {'actions': [],
+            'task_dep': ['unit_tests']}
+
+#def task_lint():
+#    return {'actions': []
