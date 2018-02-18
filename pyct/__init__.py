@@ -1,5 +1,6 @@
 # Note: work in progress. Contains history of learning dodo. Many
-# tasks need improving...
+# tasks need improving. Just trying to collect/support everything
+# in one place to start off with...
 
 # TODO: decide what to do about config. E.g. could use individual tool
 # bits from setup.cfg, could have own config, could have no config,
@@ -137,6 +138,7 @@ def task_develop_install():
     """Python develop install"""
     return {'actions':["pip install -e ."]}
 
+# TODO: what do people who've installed dependencies via conda actually do?
 def task_conda_develop_install():
     """Python develop install with dependencies installed by conda only"""
     # TODO: should this be python setup.py develop --no-deps?  In
@@ -144,6 +146,11 @@ def task_conda_develop_install():
     # dependencies?  I noticed while developing a pytest plugin that
     # with --no-deps, the plugin did not get registered...
     return {'actions':["pip install --no-deps -e ."],
+            'task_dep':['conda_install_test_dependencies']}
+
+def task_conda_develop_install_alternate():
+    """Python develop install with dependencies installed by conda only, kind of"""
+    return {'actions':["pip install -e ."],
             'task_dep':['conda_install_test_dependencies']}
 
 
