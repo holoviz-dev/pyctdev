@@ -18,7 +18,7 @@ except ImportError:
     from urllib import urlretrieve
 
 DOIT_CONFIG = {'verbosity': 2}
-    
+
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
     "Linux": "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh",
@@ -72,7 +72,7 @@ def task_ci_configure_conda():
 from doit.action import CmdAction
 
 def task_build_conda_package():
-    
+
     def thing(channel):
         return "conda build %s conda.recipe"%(" ".join(['-c %s'%c for c in channel]))
 
@@ -91,13 +91,13 @@ def task_upload_conda_package():
 
     def thing(label):
         return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe`'
-    
+
     label = {
         'name':'label',
         'long':'label',
         'short':'l',
         'type':list,
-        'default':[]}
+        'default':['dev']}
 
     # should be required, when I figure out params
     token = {
@@ -108,7 +108,7 @@ def task_upload_conda_package():
 
     return {'actions': [CmdAction(thing)],
             'params': [label,token]}
-    
+
 
 # TODO: not sure this task buys much
 # TODO: should be called create_conda_env or similar; could have a standard python version
@@ -210,9 +210,18 @@ def task_unit_tests():
     return {'actions': [CmdAction(thing)],
             'params': [testrunner]}
 
-def task_all_tests():
-    return {'actions': [],
-            'task_dep': ['unit_tests']}
+#def task_all_tests():
+#    return {'actions': [],
+#            'task_dep': ['unit_tests','lint']}
 
-#def task_lint():
-#    return {'actions': []
+def task_lint():
+    return {'actions': ['flake8']}
+
+
+def task_nb_lint():
+    return {'actions': ['pytest --nbsmoke-lint examples']}
+
+def task_nb_test():
+    return {'actions': ['pytest --nbsmoke-run examples']}
+
+# TODO: 'nb verify' (links? see datashader and/or bokeh)
