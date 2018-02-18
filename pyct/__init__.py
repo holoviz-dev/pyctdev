@@ -102,6 +102,8 @@ def task_upload_conda_package():
             'params': [label,token]}
     
 
+# TODO: not sure this task buys much
+# TODO: should be called create_conda_env or similar; could have a standard python version
 def task_create_env():
     python = {
         'name':'python',
@@ -121,7 +123,50 @@ def task_create_env():
 
 
 def task_capture_conda_env():
+    """Report all information required to recreate current conda environment"""
     return {'actions':["conda info","conda list","conda env export"]}
 
 def task_develop_install():
-    return {'actions':["pip install --no-deps -e ."]}
+    """Python develop install"""
+    return {'actions':["pip install -e ."]}
+
+def task_conda_develop_install():
+    """Python develop install with dependencies installed by conda only"""
+    return {'actions':["pip install --no-deps -e ."],
+            'task_dep':['conda_install_test_dependencies']}
+
+
+def _get_dependencies(kinds):
+    try:
+        from setup import meta
+    except ImportError:
+        try:
+            from setup import setup_args as meta
+        except ImportError:
+            raise ImportError("Could not import setup metadata dict from setup.py (tried meta and setup_args)")
+
+    deps = []
+    for kind in kinds:
+        if kind in ('tests_require','install_requires'):
+            deps += meta.get(kind,[])
+        elif kind == 'extras_require':
+            for option in meta.get('extras_require',{}):
+                deps += meta['extras_require'][option]
+        else:
+            raise ValueError("unknown kind %s"%kind)
+    return " ".join('"%s"'%dep for dep in deps)
+
+def task_conda_install_required_dependencies():
+    """Install required dependencies from setup.py using conda"""
+    return {'actions': ["conda install -y %s"%_get_dependencies(["install_requires"])]}
+
+# conda installs are independent tasks for speed (so conda gets all
+# deps to think about at once)
+
+def task_conda_install_test_dependencies():
+    """Install required and test dependencies from setup.py using conda"""
+    return {'actions':["conda install -y %s"%_get_dependencies(["install_requires","tests_require"])]}
+
+def task_conda_install_all_dependencies():
+    """Install all dependencies from setup.py using conda"""
+    return {'actions':["conda install -y %s"%_get_dependencies(["install_requires","tests_require","extras_require"])]}
