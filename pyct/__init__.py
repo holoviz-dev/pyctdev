@@ -221,7 +221,7 @@ def task_lint():
 def task_nb_lint():
     return {'actions': ['pytest --nbsmoke-lint examples']}
 
-def task_nb_test():
+def task_nb_tests():
     return {'actions': ['pytest --nbsmoke-run examples']}
 
 # TODO: 'nb verify' (links? see datashader and/or bokeh)
