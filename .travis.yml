@@ -40,6 +40,8 @@ jobs:
       password:
         secure: $PYPIPWD
 
+  # TODO: like a conda developer
+
   - &conda_default
     stage: conda_dev_package
     python: 3.6
