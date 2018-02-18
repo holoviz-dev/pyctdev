@@ -121,14 +121,14 @@ def task_create_env():
         'type':str,
         'default':'3.6'}
 
-    env = {
+    name = {
         'name':'name',
         'long':'name',
         'type':str,
         'default':'test-environment'}
 
     return {
-        'params': [python,env],
+        'params': [python,name],
         'actions': ["conda create -y --name %(name)s python=%(python)s"]}
 
 
