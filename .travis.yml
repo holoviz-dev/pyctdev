@@ -4,6 +4,7 @@ language: python
 stages:
   - lint
   - test
+  - conda_test
   - name: pypi_package
     if: (branch = master AND type != pull_request) OR (tag =~ ^v)
   - name: conda_dev_package
@@ -63,5 +64,7 @@ jobs:
 
   - <<: *conda_default
     stage: conda_package
+    install:
+      - doit build_conda_package --channel conda-forge    
     script:
       - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
