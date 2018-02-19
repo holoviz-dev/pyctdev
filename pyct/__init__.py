@@ -91,8 +91,7 @@ def task_upload_conda_package():
     # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
 
     def thing(label):
-        if len(label)==0:
-            label = ['dev']
+        # TODO: fix backticks hack/windows
         return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe`'
 
     label = {
