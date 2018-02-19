@@ -141,21 +141,25 @@ def task_develop_install():
     """Python develop install"""
     return {'actions':["pip install -e ."]}
 
+# TODO: doit - how to share parameters with dependencies? Lots of awkwardness
+# here to work around that...
+
 # TODO: what do people who've installed dependencies via conda actually do?
 def task_conda_develop_install():
     """Python develop install with dependencies installed by conda only"""
+    d = _conda_install_x_dependencies(['install_requires','tests_require'])
     # TODO: should this be python setup.py develop --no-deps?  In
     # either case, what effect does no-deps have beyond not installing
     # dependencies?  I noticed while developing a pytest plugin that
     # with --no-deps, the plugin did not get registered...
-    return {'actions':["pip install --no-deps -e ."],
-            'task_dep':['conda_install_test_dependencies']}
+    d['actions'].append("pip install --no-deps -e .")
+    return d
 
 def task_conda_develop_install_alternate():
     """Python develop install with dependencies installed by conda only, kind of"""
-    return {'actions':["pip install -e ."],
-            'task_dep':['conda_install_test_dependencies']}
-
+    d = _conda_install_x_dependencies(['install_requires','tests_require'])
+    d['actions'].append("pip install -e .")
+    return d
 
 def _get_dependencies(kinds):
     try:
@@ -185,20 +189,22 @@ def _thing(channel,kinds):
     return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),
                                      _get_dependencies(kinds))
 
+def _conda_install_x_dependencies(kinds):
+    return {'actions': [CmdAction(lambda channel: _thing(channel,kinds))],
+            'params': [_channel_param]}
+
 def task_conda_install_required_dependencies():
     """Install required dependencies from setup.py using conda"""
-    return {'actions': [CmdAction(lambda channel: _thing(channel,["install_requires"]))],
-            'params': [_channel_param]}
+    return _conda_install_x_dependencies(['install_requires'])
 
 def task_conda_install_test_dependencies():
     """Install required and test dependencies from setup.py using conda"""
-    return {'actions': [CmdAction(lambda channel: _thing(channel,["install_requires","tests_require"]))],
-            'params': [_channel_param]}
+    return _conda_install_x_dependencies(['install_requires','tests_require'])
 
 def task_conda_install_all_dependencies():
     """Install all dependencies from setup.py using conda"""
-    return {'actions': [CmdAction(lambda channel: _thing(channel,["install_requires","tests_require","extras_require"]))],
-            'params': [_channel_param]}
+    return _conda_install_x_dependencies(["install_requires","tests_require","extras_require"])
+
 
 # TODO: merge with tox? can't use tox alone because of conda. Or drop tox?
 def task_unit_tests():

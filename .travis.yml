@@ -40,18 +40,22 @@ jobs:
       password:
         secure: $PYPIPWD
 
-  # TODO: like a conda developer
-
   - &conda_default
-    stage: conda_dev_package
+    # like a conda-using developer
+    stage: conda_test
     python: 3.6
     before_install:
-      - pip install pyct
-      - doit install_miniconda
+      - pip install pyct && doit install_miniconda && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       - conda install -y -c pyviz/label/dev -c conda-forge pyct
-      - rm -f .doit.db
       - doit ci_configure_conda
+    install:
+      - doit conda_develop_install --channel=conda-forge
+    script: true # it's true there are no tests yet
+
+  - <<: *conda_default
+    stage: conda_dev_package
+    python: 3.6
     install:
       - doit build_conda_package --channel conda-forge
     script:
