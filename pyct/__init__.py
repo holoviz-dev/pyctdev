@@ -82,10 +82,18 @@ _channel_param = {
 def task_build_conda_package():
 
     def thing(channel):
-        return "conda build %s conda.recipe"%(" ".join(['-c %s'%c for c in channel]))
+        return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
+                                                 "%(type)s")
 
+    type_param = {
+        'name':'type',
+        'long':'type',
+        'type':str,
+        'default':''
+    }
+    
     return {'actions': [CmdAction(thing)],
-            'params': [_channel_param]}
+            'params': [_channel_param,type_param]}
 
 def task_upload_conda_package():
     # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
