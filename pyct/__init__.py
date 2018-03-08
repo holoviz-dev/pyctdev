@@ -144,6 +144,10 @@ def task_capture_conda_env():
     """Report all information required to recreate current conda environment"""
     return {'actions':["conda info","conda list","conda env export"]}
 
+def task_capture_python_env():
+    """ """
+    return {'actions':["pip freeze"]}
+
 def task_develop_install():
     """Python develop install"""
     return {'actions':["pip install -e ."]}
