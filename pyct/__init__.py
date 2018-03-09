@@ -185,6 +185,9 @@ def _get_dependencies(kinds):
     for kind in kinds:
         if kind in ('tests_require','install_requires'):
             deps += meta.get(kind,[])
+            if kind == 'tests_require':
+                # pip doesn't support tests_require; we use extras_require['tests']
+                deps += meta.get('extras_require',{}).get('tests',[])
         elif kind == 'extras_require':
             for option in meta.get('extras_require',{}):
                 deps += meta['extras_require'][option]
