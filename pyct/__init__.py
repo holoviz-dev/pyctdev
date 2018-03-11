@@ -18,7 +18,10 @@ try:
 except ImportError:
     from urllib import urlretrieve
 
-DOIT_CONFIG = {'verbosity': 2}
+DOIT_CONFIG = {
+    'verbosity': 2,
+    'backend': 'sqlite3',
+}
 
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
@@ -58,8 +61,9 @@ def task_install_miniconda():
         'file_dep': [miniconda_installer],
         'uptodate': [lambda task,values: os.path.exists(task.options['location'])],
         'params': [location],
-        'actions': [
-            'START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -p %(location)s"]
+        'actions':
+            # TODO: check windows situation with update
+            ['START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -u -p %(location)s"]
         }
 
 def task_ci_configure_conda():
