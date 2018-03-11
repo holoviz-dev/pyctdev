@@ -12,6 +12,7 @@ del get_versions
 
 import platform
 import os
+import sys
 try:
     from urllib.request import urlretrieve
 except ImportError:
@@ -44,7 +45,6 @@ def task_download_miniconda():
             'uptodate': [True], # (as has no deps)
             'actions': [download_miniconda]}
 
-
 def task_install_miniconda():
     location = {
         'name':'location',
@@ -56,7 +56,7 @@ def task_install_miniconda():
     miniconda_installer = miniconda_url[platform.system()].split('/')[-1]
     return {
         'file_dep': [miniconda_installer],
-        'uptodate': [False], # will always run (could instead set target to file at installation location?)
+        'uptodate': [lambda task,values: os.path.exists(task.options['location'])],
         'params': [location],
         'actions': [
             'START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -p %(location)s"]
@@ -120,6 +120,12 @@ def task_upload_conda_package():
             'params': [label,token]}
 
 
+# TODO: caching...what about links? option to copy?
+
+
+
+
+
 # TODO: not sure this task buys much
 # TODO: should be called create_conda_env or similar; could have a standard python version
 def task_create_env():
@@ -137,6 +143,10 @@ def task_create_env():
 
     return {
         'params': [python,name],
+        # TODO: this assumes env created in default location...but
+        # apparently any conda has access to any other conda's
+        # environments (?!) plus those in ~/.conda/envs (?!)
+        'uptodate': [lambda task,values: os.path.exists(os.path.join(sys.prefix,"envs",task.options['name']))],
         'actions': ["conda create -y --name %(name)s python=%(python)s"]}
 
 
