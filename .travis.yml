@@ -42,7 +42,7 @@ jobs:
         secure: $PYPIPWD
 
   - <<: *default
-    stage: pypi_package_py2
+    stage: pypi_package
     python: 2.7
     install: true
     script: true
