@@ -93,7 +93,13 @@ def task_ci_configure_conda():
 
 
 def task_build_conda_package():
+    """
 
+    Note that whatever channels you supply at build time must be
+    supplied by users of the package at install time for users to get
+    the same(ish) dependencies as used at build time. (TODO: will be
+    able to improve this with conda 4.4.)
+    """
     def thing(channel):
         return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(type)s")
