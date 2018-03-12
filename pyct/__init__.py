@@ -82,10 +82,10 @@ _channel_param = {
 
 def task_ci_configure_conda():
     def thing1(channel):
-        return "conda update -y -c %s conda"%" ".join(['-c %s'%c for c in channel])
+        return "conda update -y %s conda"%" ".join(['-c %s'%c for c in channel])
 
     def thing2(channel):
-        return "conda install -y -c %s anaconda-client conda-build"%" ".join(['-c %s'%c for c in channel])
+        return "conda install -y %s anaconda-client conda-build"%" ".join(['-c %s'%c for c in channel])
     
     return {
         'actions': [CmdAction(thing1), CmdAction(thing2)],
