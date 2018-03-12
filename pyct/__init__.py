@@ -254,9 +254,10 @@ def task_conda_install_all_dependencies():
 def task_unit_tests():
     def thing(testrunner):
         if testrunner == 'nose':
+            # TODO: should be nosetests (with options in project setup.cfg)
             cmd = 'nosetests --verbose --nologcapture --with-doctest'
         elif testrunner == 'pytest':
-            cmd = 'pytest -v'
+            cmd = 'pytest'
         else:
             raise ValueError("Need to add support for %s in pyct"%testrunner)
         return cmd
