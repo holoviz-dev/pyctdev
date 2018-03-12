@@ -30,11 +30,12 @@ jobs:
 
   - <<: *default
     stage: pypi_package
+    python: 2.7
     install: true
     script: true
     deploy:
       provider: pypi
-      distributions: "sdist bdist_wheel"
+      distributions: "bdist_wheel"
       on:
         tags: true
       user: ceball
@@ -43,12 +44,11 @@ jobs:
 
   - <<: *default
     stage: pypi_package
-    python: 2.7
     install: true
     script: true
     deploy:
       provider: pypi
-      distributions: "bdist_wheel"
+      distributions: "sdist bdist_wheel"
       on:
         tags: true
       user: ceball
