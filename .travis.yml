@@ -41,6 +41,20 @@ jobs:
       password:
         secure: $PYPIPWD
 
+  - <<: *default
+    stage: pypi_package_py2
+    python: 2.7
+    install: true
+    script: true
+    deploy:
+      provider: pypi
+      distributions: "bdist_wheel"
+      on:
+        tags: true
+      user: ceball
+      password:
+        secure: $PYPIPWD
+
   - &conda_default
     # like a conda-using developer
     stage: conda_test
