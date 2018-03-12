@@ -6,6 +6,9 @@
 # bits from setup.cfg, could have own config, could have no config,
 # ...
 
+# TODO: add docs about tasks that must be run with the python you
+# intend...
+
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
@@ -49,6 +52,7 @@ def task_download_miniconda():
             'actions': [download_miniconda]}
 
 def task_install_miniconda():
+
     location = {
         'name':'location',
         'long':'location',
@@ -66,13 +70,6 @@ def task_install_miniconda():
             ['START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -u -p %(location)s"]
         }
 
-def task_ci_configure_conda():
-    return {
-        'actions': ['conda update -y conda',
-                    'conda install -y anaconda-client conda-build']
-        }
-
-
 from doit.action import CmdAction
 
 _channel_param = {
@@ -82,6 +79,18 @@ _channel_param = {
     'type':list,
     'default':[]
 }
+
+def task_ci_configure_conda():
+    def thing1(channel):
+        return "conda update -y -c %s conda"%" ".join(['-c %s'%c for c in channel])
+
+    def thing2(channel):
+        return "conda install -y -c %s anaconda-client conda-build"%" ".join(['-c %s'%c for c in channel])
+    
+    return {
+        'actions': [CmdAction(thing1), CmdAction(thing2)],
+        'params': [_channel_param]}
+
 
 def task_build_conda_package():
 
@@ -151,6 +160,7 @@ def task_create_env():
         # apparently any conda has access to any other conda's
         # environments (?!) plus those in ~/.conda/envs (?!)
         'uptodate': [lambda task,values: os.path.exists(os.path.join(sys.prefix,"envs",task.options['name']))],
+        # TODO: should add doit here
         'actions': ["conda create -y --name %(name)s python=%(python)s"]}
 
 
