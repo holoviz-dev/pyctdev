@@ -280,10 +280,16 @@ def task_lint():
     return {'actions': ['flake8']}
 
 
+# TODO: -k examples is to avoid running all the other tests as well if
+# --pyargs module is used as the default action (via setup.cfg)
+# because passing explicit list of files does not override that
+# option. Might be better to do use pytest markers?  I.e. to have
+# groups of tests, like "unit", "slow", maybe, or
+# "examples"/"notebooks". Need to investigate.
 def task_nb_lint():
-    return {'actions': ['pytest --nbsmoke-lint examples/**/*.ipynb']}
+    return {'actions': ['pytest --nbsmoke-lint -k "examples" examples/**/*.ipynb']}
 
 def task_nb_tests():
-    return {'actions': ['pytest --nbsmoke-run examples/**/*.ipynb']}
+    return {'actions': ['pytest --nbsmoke-run -k "examples" examples/**/*.ipynb']}
 
 # TODO: 'nb verify' (links? see datashader and/or bokeh)
