@@ -201,6 +201,7 @@ examples subpackage when packaging, datashader installs `examples` as
 a top-level package in site-packages, etc. Or e.g.  datashader ships
 tests in package, while hv does not.
 
+(multiple conda packages?)
 
 ## 12. Unify how various tools are run
 
@@ -276,10 +277,14 @@ Storing in one place, and it being the tag rather than in the git repo
 source code, makes it easier to automate various other 'release time'
 tasks.
 
-Be consistent with tags (either vX.Y.Z or X.Y.Z across all projects).
-
 Almost all pyviz projects will use autover via param.
 
+To do:
+
+  * Be consistent with tags (either vX.Y.Z or X.Y.Z across all projects).
+
+  * Have a standard versioning scheme post 1.0 (copy holoviews? I
+    don't understand how hv versions work but we could doc that here).
 
 
 ## 16. what release type tasks are automated on travis
