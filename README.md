@@ -18,12 +18,11 @@ tasks are, the doit+pyct approach could be improved, or an alternative
 tool could be used, or changes/additions to underlying tools could be
 proposed.
 
-There's an accompanying [background](backgrond.md) document with more
+There's an accompanying [background](background.md) document with more
 details, and explanations for choices. It's broken into the same
 sections, so can be read alongside this document.
 
-** Note: draft that will change/grow. Everything's up for
- discussion. **
+**Note: draft that will change/grow. Everything's up for discussion.**
 
 
 ## 0. What are all the tasks? How to run a task?
