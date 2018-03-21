@@ -145,8 +145,11 @@ def task_upload_conda_package():
 
 
 
-# TODO: not sure this task buys much
-# TODO: should be called create_conda_env or similar; could have a standard python version
+# TODO: not sure this task buys much (but allows to call create_env
+# even if env already exists, for updating).
+
+# TODO: should be called create_conda_env or similar; could have a
+# standard python version
 def task_create_env():
     python = {
         'name':'python',
@@ -165,6 +168,7 @@ def task_create_env():
         # TODO: this assumes env created in default location...but
         # apparently any conda has access to any other conda's
         # environments (?!) plus those in ~/.conda/envs (?!)
+        # TODO: consider using conda's api? https://github.com/conda/conda/issues/7059
         'uptodate': [lambda task,values: os.path.exists(os.path.join(sys.prefix,"envs",task.options['name']))],
         # TODO: should add doit here
         'actions': ["conda create -y --name %(name)s python=%(python)s"]}

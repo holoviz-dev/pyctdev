@@ -20,7 +20,8 @@ proposed.
 
 There's an accompanying [background](background.md) document with more
 details, and explanations for choices. It's broken into the same
-sections, so can be read alongside this document.
+sections, so can be read alongside this document. There's also an
+[instructions](instructions.md) document for setting up a new project.
 
 **Note: draft that will change/grow. Everything's up for discussion.**
 
@@ -259,6 +260,8 @@ and head towards using it more and more where possible.
 ### website
 
 nbsite for examples -> website.
+
+Basic 'up' checking is done by uptimerobot. An alert should be added for new pyviz sites.
 
 ### live docs
 
