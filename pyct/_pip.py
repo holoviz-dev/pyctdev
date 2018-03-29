@@ -24,8 +24,8 @@ def task_env_capture():
 
 
 def task_package_build():
-    """TODO: currently using travis integration"""
-    return {'actions':[]}
+    """Build pip package, then install and test all_quick in venv"""
+    return {'actions': ['tox -e all_quick']}
 
 def task_package_upload():
     """TODO: currently using travis integration"""

@@ -58,7 +58,7 @@ def task_test_examples():
 # TODO: add support for testing different environments e.g.  different
 # sets of dependencies (envs read from tox)
 
-## groups of tests
+## groups of tests (TODO: duplicating tox.ini)
 
 def task_test_quick():
     """Run quick tests"""
