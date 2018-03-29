@@ -20,12 +20,6 @@ requirements:
     - {{ dep }}
     {% endfor %}
 
-    {% for option in sdata.get('extras_require',{}) %}
-     {% for dep in sdata['extras_require'][option] %}
-    - {{ dep }}
-     {% endfor %}
-    {% endfor %}
-
 about:
   home: {{ sdata['url'] }}
   summary: {{ sdata['description'] }}
