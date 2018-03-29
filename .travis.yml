@@ -1,11 +1,10 @@
 sudo: false
-language: python
+language: generic
 
 stages:
-  - lint
+  - flakes
   - test
-  - conda_test
-  - name: pypi_package
+  - name: pip_package
     if: (branch = master AND type != pull_request) OR (tag =~ ^v)
   - name: conda_dev_package
     if: (branch = master AND type != pull_request) AND (NOT tag =~ ^v)
@@ -15,49 +14,25 @@ stages:
 jobs:
   include:
 
-  - &default
+  ########## TEST DEVELOPER INSTALL ##########  
+
+  ## pip
+  
+  - &pip_default
     stage: test
-    python: 3.6
-    env: TOX_ENV=py36
-    install: pip install tox
-    script: tox -e $TOX_ENV
+    env: PYENV_VERSION=3.6
+    install: doit develop_install
+    script: doit test_unit
 
-  - <<: *default
-    stage: lint
-    env: TOX_ENV=flakes
+  - <<: *pip_default
+    stage: flakes
+    script: doit test_flakes
 
-  - <<: *default
-    stage: pypi_package
-    python: 2.7
-    install: true
-    script: true
-    deploy:
-      provider: pypi
-      distributions: "bdist_wheel"
-      on:
-        tags: true
-      user: ceball
-      password:
-        secure: $PYPIPWD
-
-  - <<: *default
-    stage: pypi_package
-    install: true
-    script: true
-    deploy:
-      provider: pypi
-      distributions: "sdist bdist_wheel"
-      on:
-        tags: true
-      user: ceball
-      password:
-        secure: $PYPIPWD
+  ## conda
 
   - &conda_default
-    # like a conda-using developer
-    stage: conda_test
-    python: 3.6
-    env: PYCT_ECOSYSTEM=conda
+    stage: test
+    env: PYCT_ECOSYSTEM=conda PYENV_VERSION=3.6
     before_install:
       ## install miniconda (using git pyct)
       - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
@@ -67,11 +42,54 @@ jobs:
       ## install conda package to use for rest of tests
       - conda install -y --use-local -c conda-forge pyct
     install: doit develop_install -c conda-forge
-    script: true # it's true there are no tests yet
+    script: doit test_unit
+
+
+  ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
+
+  ##### pip
+
+  - &pip_pkg_default
+    stage: pip_package
+    env: PYENV_VERSION=3.6
+    before_install: pip install tox py2venv tox-pip-extensions
+    install: true
+    script: doit package_build
+    ###
+    # TODO: change to a doit command so not dependent on travis
+    deploy:
+      provider: pypi
+      distributions: "sdist bdist_wheel"
+      on:
+        tags: true
+      user: ceball
+      password:
+        secure: $PYPIPWD
+    ###    
+
+  - <<: *default
+    env: PYENV_VERSION=2.7
+    install: true
+    ###
+    # TODO: change to a doit command so not dependent on travis
+    # (duplicated from above just to avoid sdist second time...)
+    deploy:
+      provider: pypi
+      distributions: "bdist_wheel"
+      on:
+        tags: true
+      user: ceball
+      password:
+        secure: $PYPIPWD
+    ###    
+
+
+  ##### conda
+
+  # TODO: python2
 
   - <<: *conda_default
     stage: conda_dev_package
-    python: 3.6
     install: doit package_build -c conda-forge
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
 
