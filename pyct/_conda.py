@@ -178,7 +178,6 @@ def task_package_build():
 
 def task_package_upload():
     """Upload package built from conda.recipe/ (or specified alternative)."""
-    
     # TODO: need to upload only if package doesn't exist (as
     # e.g. there are cron builds)
     
@@ -186,22 +185,22 @@ def task_package_upload():
         # TODO: fix backticks hack/windows
         return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe/%(recipe)s`'
 
-    label = {
+    label_param = {
         'name':'label',
         'long':'label',
         'short':'l',
-        'recipe':list,
+        'type':list,
         'default':[]}
 
     # should be required, when I figure out params
-    token = {
+    token_param = {
         'name':'token',
         'long':'token',
         'type':str,
         'default':''}
 
     return {'actions': [CmdAction(thing)],
-            'params': [label,token,recipe_param]}
+            'params': [label_param,token_param,recipe_param]}
 
 
 
