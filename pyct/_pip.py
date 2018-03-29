@@ -5,7 +5,10 @@ from .util import _options_param
 # util stuff
 
 def _pip_install_with_options(options):
-    return "pip install -e .[%s]"%(",".join(options))
+    cmd = "pip install -e ."
+    if len(options)>0:
+        cmd+="[%s]"%(",".join(options))
+    return cmd
 
 
 

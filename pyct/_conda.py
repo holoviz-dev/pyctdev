@@ -66,8 +66,11 @@ def get_dependencies(groups):
 
 
 def _conda_install_with_options(options,channel):
-    return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),
-                                     get_dependencies(options))
+    deps = get_dependencies(['install_requires']+options)
+    if len(deps)>0:
+        return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
+    else:
+        return 'echo "Skipping conda install (no dependencies)"'
 
 
 
