@@ -3,9 +3,87 @@ Tasks for conda world
 
 """
 
+import platform
+import sys
+import os
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
+
+from doit.action import CmdAction
+
 # TODO: for caching env on travis, what about links? option to copy?
 
 
+########## UTIL/CONFIG ##########
+
+_channel_param = {
+    'name':'channel',
+    'long':'channel',
+    'short': 'c',
+    'type':list,
+    'default':[]
+}
+
+# TODO: not sure what conda-using developers do/prefer...
+# pip develop and don't install missing deps
+python_develop = "pip install --no-deps -e ."
+# pip develop and pip install missing deps
+#  python_develop = "pip install -e ."
+# setuptools develop and don't install missing deps
+#  python_develop = "python setup.py develop --no-deps"
+# setuptools develop and easy_install missing deps:
+#  python_develop = "python setup.py develop"
+
+
+# TODO: what do people who install dependencies via conda actually do?
+# Have their own list via other/previous development work? Read from
+# travis? Translate from setup.py?  Read from meta.yaml? Install from
+# existing anaconda.org conda package and then remove --force?  Build
+# and install conda package then remove --force?
+def get_dependencies(groups):
+    """get dependencies from setup.py"""
+    try:
+        from setup import meta
+    except ImportError:
+        try:
+            from setup import setup_args as meta
+        except ImportError:
+            raise ImportError("Could not import setup metadata dict from setup.py (tried meta and setup_args)")
+
+    deps = []
+    for group in groups:
+        if group in ('install_requires','tests_require'):
+            deps += meta.get(group,[])
+        else:
+            deps += meta.get('extras_require',{}).get(group,[])
+
+    return " ".join('"%s"'%dep for dep in deps)
+
+
+def _thing(channel,groups):
+    return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),
+                                     get_dependencies(groups))
+
+def _conda_install_x_dependencies(groups):
+    return {'actions': [CmdAction(lambda channel: _thing(channel,groups))],
+            'params': [_channel_param]}
+
+def _conda_develop_install(deps):
+    d = _conda_install_x_dependencies(['install_requires']+deps)
+    d['actions'].append(python_develop)
+    return d
+
+
+########## MISC ##########
+
+def task_conda_env_capture():
+    """Report all information required to recreate current conda environment"""
+    return {'actions':["conda info","conda list","conda env export"]}
+
+
+########## MOST LIKELY ONLY FOR CI SYSTEMS ##########
 
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
@@ -20,7 +98,7 @@ miniconda_url = {
 # people will have installed python themselves, so the download and
 # install miniconda tasks can be ignored.
 
-def task_download_miniconda():
+def task_miniconda_download():
     """Download Miniconda3-latest"""
     url = miniconda_url[platform.system()]
     miniconda_installer = url.split('/')[-1]
@@ -32,7 +110,7 @@ def task_download_miniconda():
             'uptodate': [True], # (as has no deps)
             'actions': [download_miniconda]}
 
-def task_install_miniconda():
+def task_miniconda_install():
     """Install Miniconda3-latest"""
 
     location = {
@@ -52,25 +130,12 @@ def task_install_miniconda():
             ['START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -u -p %(location)s"]
         }
 
-############################################################
 
-from doit.action import CmdAction
-
-_channel_param = {
-    'name':'channel',
-    'long':'channel',
-    'short': 'c',
-    'type':list,
-    'default':[]
-}
-
-def task_ci_configure_conda():
+def task_conda_configure_ci():
     """Common conda setup for CI systems
 
     Updates to latest conda, and adds conda-build and anaconda-client.
-    """
-    
-    
+    """    
     def thing1(channel):
         return "conda update -y %s conda"%" ".join(['-c %s'%c for c in channel])
 
@@ -82,14 +147,17 @@ def task_ci_configure_conda():
         'params': [_channel_param]}
 
 
-type_param = {
-    'name':'type',
-    'long':'type',
+
+########## PACKAGING ##########
+
+recipe_param = {
+    'name':'recipe',
+    'long':'recipe',
     'type':str,
     'default':''
 }
 
-def task_build_conda_package():
+def task_conda_package_build():
     """Build conda.recipe/ (or specified alternative).
 
     Note that whatever channels you supply at build time must be
@@ -99,28 +167,28 @@ def task_build_conda_package():
     """
     def thing(channel):
         return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
-                                                 "%(type)s")
+                                                 "%(recipe)s")
     
     return {'actions': [CmdAction(thing)],
-            'params': [_channel_param,type_param]}
+            'params': [_channel_param,recipe_param]}
 
 
 
-def task_upload_conda_package():
-    """Upload package built from conda.recipe/ (or specified
-alternative)."""
+def task_conda_package_upload():
+    """Upload package built from conda.recipe/ (or specified alternative)."""
     
-    # TODO: need to upload only if package doesn't exist (as e.g. there are cron builds)
+    # TODO: need to upload only if package doesn't exist (as
+    # e.g. there are cron builds)
     
     def thing(label):
         # TODO: fix backticks hack/windows
-        return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe/%(type)s`'
+        return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe/%(recipe)s`'
 
     label = {
         'name':'label',
         'long':'label',
         'short':'l',
-        'type':list,
+        'recipe':list,
         'default':[]}
 
     # should be required, when I figure out params
@@ -131,15 +199,28 @@ alternative)."""
         'default':''}
 
     return {'actions': [CmdAction(thing)],
-            'params': [label,token,type_param]}
+            'params': [label,token,recipe_param]}
 
 
+
+########## TESTING ##########
+
+# TODO
+
+
+########## DOCS ##########
+
+# TODO
+
+
+
+########## FOR DEVELOPERS ##########
 
 # TODO: not sure this task buys much (but allows to call create_env
 # even if env already exists, for updating).
 
 # TODO: should be called create_conda_env or similar
-def task_create_env():
+def task_conda_env_create():
     """Create named environment if it doesn't already exist"""
     python = {
         'name':'python',
@@ -164,74 +245,32 @@ def task_create_env():
         'actions': ["conda create -y --name %(name)s python=%(python)s"]}
 
 
-def task_capture_conda_env():
-    """Report all information required to recreate current conda environment"""
-    return {'actions':["conda info","conda list","conda env export"]}
 
-
-# TODO: doit - how to share parameters with dependencies? Lots of awkwardness
-# here to work around that...
-
-# TODO: what do people who've installed dependencies via conda actually do?
-def task_conda_develop_install():
-    """Python develop install with dependencies installed by conda only"""
-    d = _conda_install_x_dependencies(['install_requires','tests_require'])
-    # TODO: should this be python setup.py develop --no-deps?  In
-    # either case, what effect does no-deps have beyond not installing
-    # dependencies?  I noticed while developing a pytest plugin that
-    # with --no-deps, the plugin did not get registered...
-    d['actions'].append("pip install --no-deps -e .")
-    return d
-
-def task_conda_develop_install_alternate():
-    """Python develop install with dependencies installed by conda only, kind of"""
-    d = _conda_install_x_dependencies(['install_requires','tests_require'])
-    d['actions'].append("pip install -e .")
-    return d
-
-def _get_dependencies(kinds):
-    try:
-        from setup import meta
-    except ImportError:
-        try:
-            from setup import setup_args as meta
-        except ImportError:
-            raise ImportError("Could not import setup metadata dict from setup.py (tried meta and setup_args)")
-
-    deps = []
-    for kind in kinds:
-        if kind in ('tests_require','install_requires'):
-            deps += meta.get(kind,[])
-            if kind == 'tests_require':
-                # pip doesn't support tests_require; we use extras_require['tests']
-                deps += meta.get('extras_require',{}).get('tests',[])
-        elif kind == 'extras_require':
-            for option in meta.get('extras_require',{}):
-                deps += meta['extras_require'][option]
-        else:
-            raise ValueError("unknown kind %s"%kind)
-    return " ".join('"%s"'%dep for dep in deps)
-
+# TODO: doit - how to share parameters with dependencies? Lots of
+# awkwardness here to work around that...
 
 # conda installs are independent tasks for speed (so conda gets all
 # deps to think about at once)
 
-def _thing(channel,kinds):
-    return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),
-                                     _get_dependencies(kinds))
+# TODO: should be one command with --options param
 
-def _conda_install_x_dependencies(kinds):
-    return {'actions': [CmdAction(lambda channel: _thing(channel,kinds))],
-            'params': [_channel_param]}
+def task_conda_develop_install():
+    """Python develop install with dependencies installed by conda only"""
+    return _conda_develop_install(['tests'])
 
-def task_conda_install_required_dependencies():
-    """Install required dependencies from setup.py using conda"""
-    return _conda_install_x_dependencies(['install_requires'])
+def task_conda_develop_install_examples():
+    """python develop install with dependencies for examples (installed by conda)"""
+    return _conda_develop_install(['tests','examples'])
 
-def task_conda_install_test_dependencies():
-    """Install required and test dependencies from setup.py using conda"""
-    return _conda_install_x_dependencies(['install_requires','tests_require'])
+def task_conda_develop_install_docs():
+    """python develop install with dependencies for building docs (installed by conda)"""
+    return _conda_develop_install(['examples','docs'])
 
-def task_conda_install_all_dependencies():
-    """Install all dependencies from setup.py using conda"""
-    return _conda_install_x_dependencies(["install_requires","tests_require","extras_require"])
+def task_conda_develop_install_all():
+    """python develop install with all dependencies (installed by conda)"""
+    return _conda_develop_install(['all'])
+
+# TODO: keep?
+#def task_test_conda_develop():
+#    return {'actions': [NotImplemented]}
+
