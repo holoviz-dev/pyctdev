@@ -58,7 +58,7 @@ jobs:
     stage: conda_test
     python: 3.6
     before_install:
-      - pip install -e . && doit ecosystem=conda install_miniconda && pip uninstall -y doit pyct && rm -f .doit.db
+      - pip install -e . && doit ecosystem=conda miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       - pip install -e . && doit ecosystem=conda package_build -c conda-forge && pip install -y doit pyct && rm -f .doit.db
       ##
