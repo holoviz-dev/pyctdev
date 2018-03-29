@@ -85,8 +85,6 @@ def task_env_capture():
     return {'actions':["conda info","conda list","conda env export"]}
 
 
-########## MOST LIKELY ONLY FOR CI SYSTEMS ##########
-
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
     "Linux": "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh",
@@ -133,8 +131,8 @@ def task_miniconda_install():
         }
 
 
-def task_ci_configure():
-    """Common conda setup for CI systems
+def task_ecosystem_setup():
+    """Common conda setup
 
     Updates to latest conda, and adds conda-build and anaconda-client.
     """    
