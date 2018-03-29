@@ -14,7 +14,8 @@ setup_args = dict(
     url = 'http://github.com/pyviz/pyct',
     packages=['pyct'],
     python_requires=">=2.7",
-    install_requires=['doit <0.30'] if sys.version_info[0]==2 else ['doit']
+    install_requires=['doit <0.30'] if sys.version_info[0]==2 else ['doit'],
+    extras_require={'tests': ['flake8']}
 )
 
 if __name__ == "__main__":
