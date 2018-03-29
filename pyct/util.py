@@ -13,3 +13,12 @@ if len(toxconf.sections()) == 0:
 
 def get_tox_cmds(env):
     return toxconf[env]['commands'].splitlines()
+
+
+_options_param = {
+    'name':'options',
+    'long':'options',
+    'short': 'o',
+    'type':list,
+    'default':['tests']
+}

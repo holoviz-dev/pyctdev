@@ -1,41 +1,29 @@
-# Note: work in progress. Contains history of learning dodo. Many
-# tasks need improving. Just trying to collect/support everything
-# in one place to start off with...
-
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
-from .util import get_tox_cmds
-# TODO: consider having conda and pip backends, allowing someone to
-# specify/set which one they want to use.
-from ._conda import *  # noqa: api
-
-
 DOIT_CONFIG = {
     'verbosity': 2,
     'backend': 'sqlite3',
 }
 
+import os
 
-########## MISC ##########
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
 
-def task_env_capture():
-    """Report all information required to recreate current environment."""
-    return {'actions':["pip freeze"]} # TODO: and...
+from doit import get_var
+
+from .util import get_tox_cmds
 
 
-########## PACKAGING ##########
+# TODO: one day might have more sophisticated backend management...
+ecosystem = get_var("ecosystem",os.getenv("PYCT_ECOSYSTEM","pip"))
+if ecosystem == 'pip':
+    from ._pip import * # noqa: api
+elif ecosystem == 'conda':
+    from ._conda import * # noqa: api
 
 
-def task_package_build():
-    """TODO: currently using travis integration"""
-    return {'actions':[]}
-
-def task_package_upload():
-    """TODO: currently using travis integration"""
-    return {'actions':[]}    
+############################################################
+# COMMON TASKS
 
 
 ########## TESTING ##########
@@ -84,6 +72,7 @@ def task_test_all():
             'task_dep': ['test_flakes','test_unit','test_examples']}
 
 
+
 ########## DOCS ##########
 
 def task_build_docs():
@@ -109,51 +98,3 @@ def task_build_docs():
             'nbsite_cleandisthtml.py ./doc/_build/html take_a_chance'
         ]
     }
-
-
-########## FOR DEVELOPERS ##########
-
-
-def task_env_create():
-    """TODO: create named environment if it doesn't already exist.
-
-    Note: environment will be created in empty state; use
-    develop_install_... commands to update it.
-
-    """
-    return {'actions':[]}
-
-# TODO: will become options of one task
-
-def task_develop_install():
-    """python develop install (pip install -e .[tests])"""
-    return {'actions':["pip install -e .[tests]"]}
-
-def task_develop_install_examples():
-    """develop install with dependencies for examples"""
-    return {'actions':["pip install -e .[tests, examples]"]}
-
-def task_develop_install_docs():
-    """develop install with dependencies for building docs"""
-    return {'actions':["pip install -e .[docs, examples]"]}
-
-def task_develop_install_all():
-    """develop install with all dependencies"""
-    return {'actions':["pip install -e .[all]"]}
-
-
-## TODO: keep?
-#
-#py = {
-#    'name':'py',
-#    'long':'py',
-#    'type':str,
-#    'default':'36'
-#}
-#
-#def task_test_develop():
-#    """Test ``pip install -e .``"""
-#    return {
-#        'actions': ['tox -vv -e py%(py)s --develop'],
-#        'params': [py]
-#    }

@@ -13,6 +13,8 @@ except ImportError:
 
 from doit.action import CmdAction
 
+from .util import _options_param
+
 # TODO: for caching env on travis, what about links? option to copy?
 
 
@@ -62,23 +64,20 @@ def get_dependencies(groups):
     return " ".join('"%s"'%dep for dep in deps)
 
 
-def _thing(channel,groups):
+
+def _conda_install_with_options(options,channel):
     return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),
-                                     get_dependencies(groups))
+                                     get_dependencies(options))
 
-def _conda_install_x_dependencies(groups):
-    return {'actions': [CmdAction(lambda channel: _thing(channel,groups))],
-            'params': [_channel_param]}
 
-def _conda_develop_install(deps):
-    d = _conda_install_x_dependencies(['install_requires']+deps)
-    d['actions'].append(python_develop)
-    return d
+
+############################################################
+# TASKS...
 
 
 ########## MISC ##########
 
-def task_conda_env_capture():
+def task_env_capture():
     """Report all information required to recreate current conda environment"""
     return {'actions':["conda info","conda list","conda env export"]}
 
@@ -131,7 +130,7 @@ def task_miniconda_install():
         }
 
 
-def task_conda_configure_ci():
+def task_configure_ci():
     """Common conda setup for CI systems
 
     Updates to latest conda, and adds conda-build and anaconda-client.
@@ -157,7 +156,7 @@ recipe_param = {
     'default':''
 }
 
-def task_conda_package_build():
+def task_package_build():
     """Build conda.recipe/ (or specified alternative).
 
     Note that whatever channels you supply at build time must be
@@ -174,7 +173,7 @@ def task_conda_package_build():
 
 
 
-def task_conda_package_upload():
+def task_package_upload():
     """Upload package built from conda.recipe/ (or specified alternative)."""
     
     # TODO: need to upload only if package doesn't exist (as
@@ -219,8 +218,8 @@ def task_conda_package_upload():
 # TODO: not sure this task buys much (but allows to call create_env
 # even if env already exists, for updating).
 
-# TODO: should be called create_conda_env or similar
-def task_conda_env_create():
+# TODO: should be called create_env or similar
+def task_env_create():
     """Create named environment if it doesn't already exist"""
     python = {
         'name':'python',
@@ -254,23 +253,24 @@ def task_conda_env_create():
 
 # TODO: should be one command with --options param
 
-def task_conda_develop_install():
-    """Python develop install with dependencies installed by conda only"""
-    return _conda_develop_install(['tests'])
 
-def task_conda_develop_install_examples():
-    """python develop install with dependencies for examples (installed by conda)"""
-    return _conda_develop_install(['tests','examples'])
 
-def task_conda_develop_install_docs():
-    """python develop install with dependencies for building docs (installed by conda)"""
-    return _conda_develop_install(['examples','docs'])
+def task_develop_install():
+    """python develop install, with specified optional groups of dependencies (installed by conda only).
 
-def task_conda_develop_install_all():
-    """python develop install with all dependencies (installed by conda)"""
-    return _conda_develop_install(['all'])
+    Typically ``conda install "test dependencies" && pip install -e . --no-deps``. 
 
-# TODO: keep?
-#def task_test_conda_develop():
-#    return {'actions': [NotImplemented]}
+    Pass --options multiple times to specify other optional groups
+    (see project's setup.py for available options).
+
+    E.g. 
+
+    ``doit develop_install -o examples -o tests``
+    ``doit develop_install -o all``
+
+    """
+    return {'actions': [
+        CmdAction(_conda_install_with_options),
+        python_develop],
+            'params': [_options_param,_channel_param]}
 
