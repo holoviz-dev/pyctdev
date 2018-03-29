@@ -30,7 +30,6 @@ test:
   commands:
     # check it at least runs...
     - doit list
-    - doit info develop_install
 
 about:
   home: {{ sdata['url'] }}
