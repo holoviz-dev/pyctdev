@@ -58,13 +58,13 @@ jobs:
     stage: conda_test
     python: 3.6
     before_install:
-      - pip install -e . && doit ecosystem=conda miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
+      - export PYCT_ECOSYSTEM=conda
+      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - pip install -e . && doit ecosystem=conda package_build -c conda-forge && pip install -y doit pyct && rm -f .doit.db
+      - pip install -e . && doit ci_configure && doit package_build -c conda-forge && pip uninstall -y doit pyct && rm -f .doit.db
       ##
       - conda install --use-local -c conda-forge pyct
-      - doit ci_configure
-    install: doit develop_install --channel=conda-forge
+    install: doit develop_install -c conda-forge
     script: true # it's true there are no tests yet
 
   - <<: *conda_default
