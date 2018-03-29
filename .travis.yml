@@ -4,10 +4,12 @@ language: generic
 stages:
   - flakes
   - test
-  - name: pip_package
+  - name: pip_dev_package
     if: (branch = master AND type != pull_request) OR (tag =~ ^v)
   - name: conda_dev_package
     if: (branch = master AND type != pull_request) AND (NOT tag =~ ^v)
+  - name: pip_package
+    if: tag =~ ^v
   - name: conda_package
     if: tag =~ ^v
 
@@ -21,6 +23,8 @@ jobs:
   - &pip_default
     stage: test
     env: PYENV_VERSION=3.6
+    # (pyct requires itself to test itself)
+    before_install: pip install -e .
     install: doit develop_install
     script: doit test_unit
 
@@ -52,7 +56,9 @@ jobs:
   - &pip_pkg_default
     stage: pip_dev_package
     env: PYENV_VERSION=3.6 PYPI="https://test.pypi.org/legacy/"
-    before_install: doit ecosystem_setup
+    before_install:
+      - pip install -e .
+      - doit ecosystem_setup      
     install: doit package_build
     script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
 
@@ -68,6 +74,8 @@ jobs:
   - <<: *pip_pkg_default
     stage: pip_package
     env: PYENV_VERSION=2.7 PYPI="https://upload.pypi.org/legacy/"
+    # sdist same as for 3.6
+    install: doit package_build --formats="bdist_wheel"
 
 
   ##### conda
