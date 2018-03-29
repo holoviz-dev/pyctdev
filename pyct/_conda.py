@@ -130,7 +130,7 @@ def task_miniconda_install():
         }
 
 
-def task_configure_ci():
+def task_ci_configure():
     """Common conda setup for CI systems
 
     Updates to latest conda, and adds conda-build and anaconda-client.
