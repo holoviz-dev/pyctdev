@@ -19,10 +19,8 @@ jobs:
     stage: test
     python: 3.6
     env: TOX_ENV=py36
-    install:
-      - pip install tox
-    script:
-      - tox -e $TOX_ENV
+    install: pip install tox
+    script: tox -e $TOX_ENV
 
   - <<: *default
     stage: lint
@@ -60,25 +58,22 @@ jobs:
     stage: conda_test
     python: 3.6
     before_install:
-      - pip install pyct && doit install_miniconda && rm -f .doit.db
+      - pip install -e . && doit ecosystem=conda install_miniconda && pip uninstall -y doit pyct && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - conda install -y -c pyviz/label/dev -c conda-forge pyct
-      - doit ci_configure_conda
-    install:
-      - doit conda_develop_install --channel=conda-forge
+      - pip install -e . && doit ecosystem=conda package_build -c conda-forge && pip install -y doit pyct && rm -f .doit.db
+      ##
+      - conda install --use-local -c conda-forge pyct
+      - doit ci_configure
+    install: doit develop_install --channel=conda-forge
     script: true # it's true there are no tests yet
 
   - <<: *conda_default
     stage: conda_dev_package
     python: 3.6
-    install:
-      - doit build_conda_package --channel conda-forge
-    script:
-      - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN --label=dev
+    install: doit package_build --channel conda-forge
+    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
 
   - <<: *conda_default
     stage: conda_package
-    install:
-      - doit build_conda_package --channel conda-forge    
-    script:
-      - doit upload_conda_package --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
+    install: doit package_build --channel conda-forge
+    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
