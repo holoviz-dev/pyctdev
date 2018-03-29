@@ -24,7 +24,7 @@ jobs:
 
   - <<: *default
     stage: lint
-    env: TOX_ENV=flake8
+    env: TOX_ENV=flakes
 
   - <<: *default
     stage: pypi_package
