@@ -38,7 +38,7 @@ jobs:
       - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       ## build conda package (using git pyct)
-      - pip install -e . && doit ci_configure && doit package_build -c conda-forge && pip uninstall -y doit pyct && rm -f .doit.db
+      - pip install -e . && doit ecosystem_setup && doit package_build -c conda-forge && pip uninstall -y doit pyct && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local -c conda-forge pyct
     install: doit develop_install -c conda-forge
@@ -50,38 +50,24 @@ jobs:
   ##### pip
 
   - &pip_pkg_default
-    stage: pip_package
-    env: PYENV_VERSION=3.6
-    before_install: pip install tox py2venv tox-pip-extensions
-    install: true
-    script: doit package_build
-    ###
-    # TODO: change to a doit command so not dependent on travis
-    deploy:
-      provider: pypi
-      distributions: "sdist bdist_wheel"
-      on:
-        tags: true
-      user: ceball
-      password:
-        secure: $PYPIPWD
-    ###    
+    stage: pip_dev_package
+    env: PYENV_VERSION=3.6 PYPI="https://test.pypi.org/legacy/"
+    before_install: doit ecosystem_setup
+    install: doit package_build
+    script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
 
-  - <<: *default
-    env: PYENV_VERSION=2.7
-    install: true
-    ###
-    # TODO: change to a doit command so not dependent on travis
-    # (duplicated from above just to avoid sdist second time...)
-    deploy:
-      provider: pypi
-      distributions: "bdist_wheel"
-      on:
-        tags: true
-      user: ceball
-      password:
-        secure: $PYPIPWD
-    ###    
+  - <<: *pip_pkg_default
+    env: PYENV_VERSION=2.7 PYPI="https://test.pypi.org/legacy/"
+    # sdist same as for 3.6
+    install: doit package_build --formats="bdist_wheel"
+
+  - <<: *pip_pkg_default
+    stage: pip_package
+    env: PYENV_VERSION=3.6 PYPI="https://upload.pypi.org/legacy/"
+
+  - <<: *pip_pkg_default
+    stage: pip_package
+    env: PYENV_VERSION=2.7 PYPI="https://upload.pypi.org/legacy/"
 
 
   ##### conda
