@@ -20,6 +20,18 @@ requirements:
     - {{ dep }}
     {% endfor %}
 
+test:
+  imports:
+    - pyct
+  requires:
+    {% for dep in sdata['extras_require']['tests'] %}
+    - {{ dep }}
+    {% endfor %}
+  commands:
+    # check it at least runs...
+    - doit list
+    - doit info develop_install
+
 about:
   home: {{ sdata['url'] }}
   summary: {{ sdata['description'] }}
