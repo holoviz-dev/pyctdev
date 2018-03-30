@@ -14,6 +14,7 @@ build:
 requirements:
   build:
     - python
+    - setuptools
   run:
     - python {{ sdata['python_requires'] }}
     {% for dep in sdata.get('install_requires',{}) %}
@@ -23,6 +24,8 @@ requirements:
 test:
   imports:
     - pyct
+  source_files:
+    - dodo.py
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
     - {{ dep }}
