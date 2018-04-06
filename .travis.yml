@@ -36,19 +36,19 @@ jobs:
 
   ## conda
 
-  - &conda_default
-    stage: test
-    env: PYCT_ECOSYSTEM=conda PYENV_VERSION=3.6
-    before_install:
-      ## install miniconda (using git pyct)
-      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
-      - export PATH="$HOME/miniconda/bin:$PATH"
-      ## build conda package (using git pyct)
-      - pip install -e . && doit ecosystem_setup && doit package_build -c pyviz/label/dev -c conda-forge && pip uninstall -y doit pyct && rm -f .doit.db
-      ## install conda package to use for rest of tests
-      - conda install -y --use-local -c conda-forge pyct
-    install: doit develop_install -c conda-forge
-    script: doit test_unit
+#  - &conda_default
+#    stage: test
+#    env: PYCT_ECOSYSTEM=conda PYENV_VERSION=3.6
+#    before_install:
+#      ## install miniconda (using git pyct)
+#      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
+#      - export PATH="$HOME/miniconda/bin:$PATH"
+#      ## build conda package (using git pyct)
+#      - pip install -e . && doit ecosystem_setup && doit package_build -c pyviz/label/dev -c conda-forge && pip uninstall -y doit pyct && rm -f .doit.db
+#      ## install conda package to use for rest of tests
+#      - conda install -y --use-local -c conda-forge pyct
+#    install: doit develop_install -c conda-forge
+#    script: doit test_unit
 
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
@@ -82,20 +82,20 @@ jobs:
 
   ##### conda
 
-  - <<: *conda_default
-    stage: conda_dev_package
-    install: doit package_build -c pyviz/label/dev -c conda-forge
-    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
-
-  # pyct is noarch:python but doit isn't, so check ok on py27
-  - <<: *conda_default
-    stage: conda_check_py27
-    install: doit package_build -c pyviz/label/dev -c conda-forge --python 2.7
-    script: true
-
-  - <<: *conda_default
-    stage: conda_package
-    install: doit package_build -c pyviz/label/dev -c conda-forge
-    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
+#  - <<: *conda_default
+#    stage: conda_dev_package
+#    install: doit package_build -c pyviz/label/dev -c conda-forge
+#    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
+#
+#  # pyct is noarch:python but doit isn't, so check ok on py27
+#  - <<: *conda_default
+#    stage: conda_check_py27
+#    install: doit package_build -c pyviz/label/dev -c conda-forge --python 2.7
+#    script: true
+#
+#  - <<: *conda_default
+#    stage: conda_package
+#    install: doit package_build -c pyviz/label/dev -c conda-forge
+#    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
 
 
