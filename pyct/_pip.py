@@ -26,10 +26,10 @@ def task_env_capture():
 def task_ecosystem_setup():
     """Common pip setup
 
-    Updates to latest pip; adds tox and twine.
+    Updates to latest pip; adds tox, twine, and wheel.
     """
     return {'actions': ["pip install --upgrade pip",
-                        "pip install tox twine"]}
+                        "pip install tox twine wheel"]}
 
 
 ########## PACKAGING ##########
