@@ -81,7 +81,7 @@ def task_package_upload():
 
     # TODO: uploading everything in dist is a bad idea; fix with tox
     # #232 (mentioned above).
-    return {'actions':['twine -u %(username)s -p %(password)s --repository-url=%(repository-url)s dist/*'],
+    return {'actions':['twine upload -u %(username)s -p %(password)s --repository-url=%(repository-url)s dist/*'],
             'params': [username,password,repository_url]}
 
 
