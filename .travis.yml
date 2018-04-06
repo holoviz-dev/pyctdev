@@ -8,12 +8,12 @@ stages:
     if: (branch = master AND type != pull_request) AND (NOT tag =~ ^v)
   - name: pip_package
     if: tag =~ ^v    
-  - name: conda_check_py27
-    if: (branch = master AND type != pull_request) OR (tag =~ ^v)
-  - name: conda_dev_package
-    if: (branch = master AND type != pull_request) AND (NOT tag =~ ^v)
-  - name: conda_package
-    if: tag =~ ^v
+#  - name: conda_check_py27
+#    if: (branch = master AND type != pull_request) OR (tag =~ ^v)
+#  - name: conda_dev_package
+#    if: (branch = master AND type != pull_request) AND (NOT tag =~ ^v)
+#  - name: conda_package
+#    if: tag =~ ^v
 
 jobs:
   include:
