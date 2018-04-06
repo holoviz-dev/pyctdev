@@ -13,6 +13,13 @@ from doit import get_var
 
 from .util import get_tox_cmds
 
+# doit bug in 0.29, which is last version to support py27
+try:
+    get_var("ecosystem")
+except AttributeError:
+    from doit import doit_cmd
+    doit_cmd.reset_vars()
+    del doit_cmd
 
 # TODO: one day might have more sophisticated backend management...
 ecosystem = get_var("ecosystem",os.getenv("PYCT_ECOSYSTEM","pip"))
