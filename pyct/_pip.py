@@ -4,12 +4,49 @@ from .util import _options_param
 
 # util stuff
 
-def _pip_install_with_options(options):
-    cmd = "pip install -e ."
+PYPI_CHANNELS = {
+    'pypi': 'https://pypi.org/simple',
+    'testpypi': 'https://test.pypi.org/simple'
+}
+
+_channel_param = {
+    'name':'channel',
+    'long':'channel',
+    'short': 'c',
+    'type':list,
+    'default':[] # note: no channel means user's defaults (typically
+                 # pypi.org)...is that what we want?
+}
+
+def _pip_install_with_options(options,channel):
+    cmd = "pip install --upgrade " 
+
+    if 'testpypi' in channel:
+        # note: should pre always be used maybe? Or more likely,
+        # should pre be separately configurable?
+        cmd += "--pre "
+
+    # note: like for conda, "defaults" is always there in a slightly
+    # complicated way...we could change this to make it simpler
+    # e.g. have [defaults] by default, and if you override you need to
+    # specify all (including defalts somewhere, if you do want
+    # that...) TODO: need to decide a policy
+    if len(channel)==0:
+        channel = ['pypi']
+    if 'pypi' not in channel:
+        channel.append('pypi')
+
+    servers = [PYPI_CHANNELS[c] for c in channel]
+
+    cmd += "--index-server=%s "%servers[0]
+
+    cmd += " ".join(['--extra-index-server=%s '%server for server in servers[1::]])
+
+    cmd += "-e ."
+    
     if len(options)>0:
         cmd+="[%s]"%(",".join(options))
     return cmd
-
 
 
 ############################################################
@@ -108,14 +145,17 @@ def task_develop_install():
     Pass --options multiple times to specify other optional groups
     (see project's setup.py for available options).
 
+    Pass --channel multiple times to specify other pypi servers.
+
     E.g. 
 
     ``doit develop_install -o examples -o tests``
     ``doit develop_install -o all``
+    ``doit develop_install -c testpypi -c pypi``
 
     """
     return {'actions': [CmdAction(_pip_install_with_options)],
-            'params':[_options_param]}
+            'params':[_options_param,_channel_param]}
 
 ## TODO: keep?
 #

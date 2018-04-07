@@ -12,7 +12,6 @@ except ImportError:
     from urllib import urlretrieve
 
 from doit.action import CmdAction
-
 from .util import _options_param
 
 # TODO: for caching env on travis, what about links? option to copy?
@@ -25,7 +24,9 @@ _channel_param = {
     'long':'channel',
     'short': 'c',
     'type':list,
-    'default':[]
+    'default':[] # note: no channel means user's defaults (currently
+                 # typically what comes with ana/miniconda)...is that
+                 # what we want?
 }
 
 # TODO: not sure what conda-using developers do/prefer...

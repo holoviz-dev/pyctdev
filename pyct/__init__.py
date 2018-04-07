@@ -28,6 +28,10 @@ if ecosystem == 'pip':
 elif ecosystem == 'conda':
     from ._conda import * # noqa: api
 
+# TODO: support some limited form of dry run (but should be at doit
+# level)
+#dryrun = get_var("dryrun",False)
+
 
 ############################################################
 # COMMON TASKS
