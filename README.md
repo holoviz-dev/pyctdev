@@ -3,6 +3,8 @@
 Tools (and documentation) to support common tasks across many similar
 PyViz projects.
 
+**Note: documentation is draft/currently being written**
+
 ## What is pyct?
 
 The main part of pyct is a cross-platform, make-like tool plus library
@@ -66,12 +68,13 @@ doit+pyct. This means pyct can be viewed as:
     (balancing the best possible way with what's practically possible
     in general, given what tools are currently widely available).
     
-The accompanying [background](background.md) document contains more
-details, along with explanations for choices. It's broken into the
-same sections, so can be read alongside this document.
+The accompanying [background](background.md) document (even more draft
+than this one!) contains more details, along with explanations for
+choices. It's broken into the same sections, so can be read alongside
+this document.
 
 There's also an [instructions](instructions.md) document for setting
-up a new project.
+up a new project (but it's only a placeholder right now...).
 
 
 ## What does pyct cover?
@@ -337,7 +340,7 @@ As far as possible, just by running one or a couple of doit commands,
 avoiding CI-provided magic except where it's unavoidable or very
 useful (e.g. parallelizing builds, etc).
 
-### automatically generated packages
+#### automatically generated packages
 
 Every (dev) release:
 
@@ -356,7 +359,7 @@ Note: "package build" means generate package, install package into
 clean environment, run tests.
 
 
-### automatically generated website
+#### automatically generated website
 
 Two main options:
 
