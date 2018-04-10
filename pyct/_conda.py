@@ -11,8 +11,10 @@ try:
 except ImportError:
     from urllib import urlretrieve
 
+import yaml
+
 from doit.action import CmdAction
-from .util import _options_param
+from .util import _options_param, env_param, get_tox_deps, get_tox_cmds, get_tox_python
 
 # TODO: for caching env on travis, what about links? option to copy?
 
@@ -158,6 +160,7 @@ recipe_param = {
     'default':''
 }
 
+
 def task_package_build():
     """Build conda.recipe/ (or specified alternative).
 
@@ -166,12 +169,50 @@ def task_package_build():
     the same(ish) dependencies as used at build time. (TODO: will be
     able to improve this with conda 4.4.)
     """
+    # TODO: conda.recipe path hardcoded/repeated
+
+    # hacks to get a quick version of 
+    # https://github.com/conda/conda-build/issues/2648
+    
     def thing(channel):
         return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
-    
-    return {'actions': [CmdAction(thing)],
-            'params': [_channel_param,recipe_param]}
+
+    def create_recipe_append(recipe,environment):
+        deps = get_tox_deps(environment)
+        cmds = get_tox_cmds(environment)
+        py = get_tox_python(environment)
+ 
+        # deps and cmds are appended
+        # TODO: will overwrite if someone already uses this...
+        with open("conda.recipe/%s/recipe_append.yaml"%recipe,'w') as f:
+            f.write(yaml.dump(
+                {
+                    # hack: taking advantage of last python specified wins...
+                    'requirements':{
+                        'run': ['python =%s'%py]
+                    },
+                    'test':{
+                        'requires':deps,
+                        'commands':cmds
+                }},default_flow_style=False))
+
+        
+
+    def remove_recipe_append(recipe):
+        try:
+            p = os.path.join("conda.recipe",recipe,"recipe_append.yaml")
+            print("remove %s"%p)
+            os.remove(p)
+        except:
+            pass
+
+    return {'actions': [
+        create_recipe_append,
+        CmdAction(thing),        
+    ],
+            'teardown': [remove_recipe_append],
+            'params': [_channel_param, recipe_param, env_param]}
 
 
 

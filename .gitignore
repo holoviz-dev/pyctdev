@@ -2,3 +2,5 @@
 .doit*
 __pycache__
 *egg-info
+*.pyc
+.tox

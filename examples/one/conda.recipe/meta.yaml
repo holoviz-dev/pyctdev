@@ -16,7 +16,7 @@ requirements:
     - python
     - setuptools
   run:
-    - python
+    - python {{ sdata['python_requires'] }}
     {% for dep in sdata.get('install_requires',{}) %}
     - {{ dep }}
     {% endfor %}

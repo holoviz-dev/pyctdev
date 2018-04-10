@@ -4,12 +4,15 @@ DOIT_CONFIG = {
 }
 
 import os
+import sys
+import configparser
 
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
 from doit import get_var
+from doit.action import CmdAction
 
 from .util import get_tox_cmds
 
@@ -30,7 +33,17 @@ elif ecosystem == 'conda':
 
 # TODO: support some limited form of dry run (but should be at doit
 # level)
+# action that just prepends echo to command, does "echo calling fn %s"%fn_name for pyfunc, etc, ...
 #dryrun = get_var("dryrun",False)
+
+
+env_suffix = {
+    'name':'environment_suffix',
+    'long':'environment-suffix',
+    'short': 's',
+    'type':str,
+    'default':'default'
+}
 
 
 ############################################################
@@ -39,49 +52,29 @@ elif ecosystem == 'conda':
 
 ########## TESTING ##########
 
-def task_test_flakes():
-    """Check for flakes (typically python module and notebooks)."""
-    return {'actions': get_tox_cmds("testenv:flakes")}
+def task_test():
+    class thing:
+        def __init__(self,what):
+            self.what=what
+        def __call__(self,environment_suffix):
+            cmds = get_tox_cmds("%s-%s-%s"%( "py%s%s"%sys.version_info[0:2],self.what,environment_suffix))
+            # hack to support multiple commands :(
+            return " && ".join(cmds)
 
-def task_test_unit():
-    """Run core unit tests; should always pass everywhere."""
-    return {'actions': get_tox_cmds("testenv")}
-
-def task_test_examples_quick():
-    """Run quick examples.
-
-    'quick' examples usually specified in project's
-    examples/conftest.py.
-
-    """
-    return {'actions': get_tox_cmds("testenv:examples_quick")}
-
-def task_test_examples():
-    """Run examples (likely to be time/memory consuming)
-
-    'examples' usually defined in project's examples/conftest.py.
-
-    """
-    # TODO: depend on download data task
-    return {'actions': get_tox_cmds("testenv:examples")}
+    # read the possibilities from tox.ini, but could instead have standard ones
+    # as a way of suggesting what projects should make available 
+    toxconf = configparser.ConfigParser()
+    toxconf.read('tox.ini')
+    # not sure how I was supposed to do this (gets all, flakes, unit, etc...)
+    for t in toxconf['tox']['envlist'].split('-')[1][1:-1].split(','): 
+        yield {'actions':[CmdAction(thing(t))],
+               'doc':'Run "%s" tests'%t,
+               'basename': 'test_'+t,
+               'params':[env_suffix]}
 
 
-# TODO: add support for testing different environments e.g.  different
-# sets of dependencies (envs read from tox)
-
-## groups of tests (TODO: duplicating tox.ini)
-
-def task_test_quick():
-    """Run quick tests"""
-    return {'actions': [],
-            'task_dep': ["test_flakes","test_unit","test_examples_quick"]}
-
-
-def task_test_all():
-    """flake tests, unit tests, examples"""
-    return {'actions': [],
-            'task_dep': ['test_flakes','test_unit','test_examples']}
-
+# note: groups of tests with doit would be more flexible, but would
+# duplicate tox
 
 
 ########## DOCS ##########

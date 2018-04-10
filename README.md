@@ -208,7 +208,25 @@ E.g. dependencies installed by conda, with a `python setup.py develop
 --no-deps` on top.
 
 
-### 8. packages on demand? simplify packaging recipes?
+### 8. Testing in different environments
+
+E.g. `doit package_build --environment py36-unit-with_xarray` will
+build a package then install it into a python 3.6 environment, and
+will further install `with_xarray` dependencies, and then will run the
+unit tests. The dependencies for `with_xarray` are specified in
+tox.ini (as are the unit test commands). This works with ecosystem=pip
+and ecosystem=conda.
+
+It's also possible to have extra test commands that only run in a
+particular test environment (e.g. `with_xarray`).
+
+`doit test_unit` will run the unit tests in your current environment
+(no installation of packages/dependencies is done).  If there are
+extra commands for a particular environment, they will be run if you
+select it. E.g. `doit test_unit --environment-suffix with_xarray`.
+
+
+### 9. packages on demand? simplify packaging recipes?
 
 As well as specifying dependencies once, attempt to express other
 package metadata only once. Currently this is in setup.py. Templating
@@ -226,7 +244,7 @@ packages themselves are pure python. Therefore noarch:python conda
 packages where possible.
 
 
-### 9. Channels/sources of dependencies
+### 10. Channels/sources of dependencies
 
 For python/pip: typically just pypi.org. But other 'channels' can be
 specified. E.g. test.pypi.org, or a private server.
@@ -240,7 +258,7 @@ could recommend one above the other. Or if a project suffers in
 performance on one or the other, we could make a recommendation.)
 
 
-### 10. How to structure project
+### 11. How to structure project
 
 Although it's not necessary, a common structure simplifies things
 across multiple similar projects. Pyviz projects typically have
@@ -260,7 +278,7 @@ Limit differences between what's in repository and what's in package
 shipped to users.
 
 
-### 11. Unify how various tools are run
+### 12. Unify how various tools are run
 
 Often, it's not clear how to run the tests for a project. Pyct already
 helps with this by having high level tasks such as "run unit
@@ -274,7 +292,7 @@ tests in different environments, etc). (TODO: what is shared across
 projects, and how? Would rather not have a config file for pyct...)
 
 
-### 12. What's tested, and how.
+### 13. What's tested, and how.
 
 There are various tools for running tests (e.g. pytest, nose). An aim
 of pyct is for pyviz projects to all end up using the same tools where
@@ -305,7 +323,7 @@ of tests to run. So pyct expects there to be:
   * ...?
 
 
-### 13. docs
+### 14. docs
 
 #### website
 
@@ -316,7 +334,7 @@ of tests to run. So pyct expects there to be:
   * Live/browser way for users to try examples: mybinder
 
 
-### 14. versioning
+### 15. versioning
 
 Version via git tag. Version is stored only in one place in the
 repository (a git tag), and is written into packages. Every place that
@@ -334,7 +352,7 @@ Versioning scheme:
   * post 1.0, (TODO: copy hv's scheme?)
 
 
-### 15. automate release type tasks on travis
+### 16. automate release type tasks on travis
 
 As far as possible, just by running one or a couple of doit commands,
 avoiding CI-provided magic except where it's unavoidable or very
@@ -387,7 +405,7 @@ travis is just using doit commands, so same can be run locally at
 release time.
 
 
-### 16. Extra CI things
+### 17. Extra CI things
 
 #### platforms
 

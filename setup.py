@@ -14,7 +14,17 @@ setup_args = dict(
     url = 'http://github.com/pyviz/pyct',
     packages=['pyct'],
     python_requires=">=2.7",
-    install_requires=['doit <0.30'] if sys.version_info[0]==2 else ['doit'],
+    install_requires=[
+        # otherwise py2 users will just get and error (should really
+        # be fixed in doit)
+        'doit <0.30' if sys.version_info[0]==2 else 'doit',
+        # because tox.ini is currently the master list of tests/
+        # environments...tox is not in defaults (and is problematic)
+        # could maybe vendor the required bit
+        'tox',
+        # for conda build config
+        'pyyaml'
+    ],
     extras_require={'tests': ['flake8']}
 )
 

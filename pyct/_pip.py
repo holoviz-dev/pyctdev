@@ -1,6 +1,6 @@
 from doit.action import CmdAction
 
-from .util import _options_param
+from .util import _options_param, env_param
 
 # util stuff
 
@@ -74,7 +74,15 @@ def task_ecosystem_setup():
 
 
 def task_package_build():
-    """Build pip package, then install and test all_quick in venv"""
+    """Build pip package, then install and test all_quick (or other
+    specified env) in venv
+
+    E.g. 
+
+    ``doit package_build --formats=bdist_wheel``
+    ``doit package_build -e all_quick-Ewith_numpy``
+
+    """
 
     formats_param = {
         'name':'formats',
@@ -82,12 +90,14 @@ def task_package_build():
         'type':str,
         'default':'sdist --formats=zip bdist_wheel'
     }
+
+    # TODO: missing support for pypi channels
     
     # TODO: would be able to use the packages created by tox if
     # https://github.com/tox-dev/tox/issues/232 were done    
-    return {'actions': ['tox -e all_quick',
+    return {'actions': ['tox -e %(environment)s',
                         'python setup.py %(formats)s'],
-            'params': [formats_param]}
+            'params': [formats_param,env_param]}
 
 def task_package_upload():
     """Upload pip packages to pypi"""
