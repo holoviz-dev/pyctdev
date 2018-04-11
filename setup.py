@@ -25,7 +25,7 @@ setup_args = dict(
         #'tox'
         
         # for conda build (included in conda build recipe)
-        #'pyyaml'
+        'pyyaml'
     ],
     extras_require={
         'tests': ['flake8']
