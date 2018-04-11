@@ -26,6 +26,8 @@ test:
     - pyct
   source_files:
     - dodo.py
+    - tox.ini
+    - setup.cfg
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
     - {{ dep }}
