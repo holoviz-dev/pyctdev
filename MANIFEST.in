@@ -1,3 +1,4 @@
 include versioneer.py
 include pyct/_version.py
 include pyct/_vendor/*.zip
+include tox.ini
