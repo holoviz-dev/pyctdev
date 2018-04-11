@@ -1,8 +1,14 @@
 import sys
 
 # TODO: provide fallback or vendor (bit of) tox
-import tox.config
-toxconf = tox.config.parseconfig('tox')
+try:
+    import tox.config as tox_config
+except:
+    import os.path
+    sys.path.append(os.path.join(os.path.dirname(__file__),'_vendor','tox.zip'))
+    import tox.config as tox_config
+    
+toxconf = tox_config.parseconfig('tox')
 
 def get_env(test_python,test_group,test_requires):
     if test_python == '':

@@ -17,6 +17,9 @@ requirements:
     - setuptools
   run:
     - python {{ sdata['python_requires'] }}
+    # yaml only required for conda (assume someone won't pip install pyct
+    # when using conda
+    - pyyaml
     {% for dep in sdata.get('install_requires',{}) %}
     - {{ dep }}
     {% endfor %}
