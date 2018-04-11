@@ -5,7 +5,8 @@ try:
     import tox.config as tox_config
 except:
     import os.path
-    sys.path.append(os.path.join(os.path.dirname(__file__),'_vendor','tox.zip'))
+    for pkg in ('tox-3.0.0.zip', 'virtualenv-15.2.0.zip'):
+        sys.path.append(os.path.join(os.path.dirname(__file__),'_vendor',pkg))
     import tox.config as tox_config
     
 toxconf = tox_config.parseconfig('tox')
