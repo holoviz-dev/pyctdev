@@ -13,11 +13,11 @@ env:
 stages:
   - test
   - name: pip_dev_package
-    if: tag =~ ^v(\d+|\.)*[a-z]\d*$  
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$
+  - name: conda_check_py27
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)    
   - name: pip_package
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
-  - name: conda_check_py27
-    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
   - name: conda_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
   - name: conda_package
