@@ -14,6 +14,7 @@ setup_args = dict(
     url = 'http://github.com/pyviz/pyct',
     packages=['pyct'],
     python_requires=">=2.7",
+    include_package_data = True,
     install_requires=[
         # otherwise py2 users will just get an error (should really
         # be fixed in doit)
