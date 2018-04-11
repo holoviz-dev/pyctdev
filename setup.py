@@ -31,7 +31,7 @@ setup_args = dict(
         #'virtualenv'
         'pluggy',   # for tox
         'py',       # for tox
-        'argparse', # for virtualenv
+        #'argparse', # for virtualenv
         ##
 
         ## for python packaging
