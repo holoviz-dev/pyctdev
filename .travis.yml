@@ -16,12 +16,12 @@ stages:
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$  
   - name: pip_package
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
-#  - name: conda_check_py27
-#    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
-#  - name: conda_dev_package
-#    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
-#  - name: conda_package
-#    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
+  - name: conda_check_py27
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
+  - name: conda_dev_package
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
+  - name: conda_package
+    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
 
 jobs:
   include:
@@ -88,20 +88,18 @@ jobs:
 
   ##### conda
 
-#  - <<: *conda_default
-#    stage: conda_dev_package
-#    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
-#    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
-#
-#  # pyct is noarch:python but doit isn't, so also check ok on py27
-#  - <<: *conda_default
-#    stage: conda_check_py27
-#    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py27 --test-group=all
-#    script: true
-#
-#  - <<: *conda_default
-#    stage: conda_package
-#    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
-#    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
-#
+  - <<: *conda_default
+    stage: conda_dev_package
+    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
+    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
 
+  # pyct is noarch:python but doit isn't, so also check ok on py27
+  - <<: *conda_default
+    stage: conda_check_py27
+    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py27 --test-group=all
+    script: true
+
+  - <<: *conda_default
+    stage: conda_package
+    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
+    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
