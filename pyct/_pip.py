@@ -3,7 +3,7 @@
 
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env
+from .util import _options_param, test_group, get_env, test_python, test_requires
 
 # util stuff
 
@@ -95,14 +95,14 @@ def task_package_build():
     }
     # TODO: missing support for pypi channels
     
-    def thing(test_group):
-        return 'tox -e %s'%get_env('',test_group,'default')        
-    
+    def thing(test_group,test_python,test_requires):
+        return 'tox -e %s'%get_env(test_python,test_group,test_requires)
+
     # TODO: would be able to use the packages created by tox if
     # https://github.com/tox-dev/tox/issues/232 were done    
     return {'actions': [CmdAction(thing),
                         'python setup.py %(formats)s'],
-            'params': [formats_param,test_group]}
+            'params': [formats_param,test_group,test_python,test_requires]}
 
 def task_package_upload():
     """Upload pip packages to pypi"""
