@@ -41,9 +41,9 @@ def _pip_install_with_options(options,channel):
 
     servers = [PYPI_CHANNELS[c] for c in channel]
 
-    cmd += "--index-server=%s "%servers[0]
+    cmd += "--index-url=%s "%servers[0]
 
-    cmd += " ".join(['--extra-index-server=%s '%server for server in servers[1::]])
+    cmd += " ".join(['--extra-index-url=%s '%server for server in servers[1::]])
 
     cmd += "-e ."
     
