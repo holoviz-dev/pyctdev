@@ -42,21 +42,21 @@ jobs:
 
   ## conda
 
-#  - &conda_default
-#    stage: test
-#    env: PYCT_ECOSYSTEM=conda PYENV_VERSION=3.6
-#    before_install:
-#      ## install miniconda (using git pyct)
-#      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
-#      - export PATH="$HOME/miniconda/bin:$PATH"
-#      ## build conda package (using git pyct)
-#      - pip install -e . && doit ecosystem_setup && doit package_build -c pyviz/label/dev -c conda-forge && pip uninstall -y doit pyct && rm -f .doit.db
-#      ## install conda package to use for rest of tests
-#      - conda install -y --use-local -c conda-forge pyct
-#    install: doit develop_install -c conda-forge
-#    script:
-#      - doit test_all
-#      - doit --dir=examples/one test_all
+  - &conda_default
+    stage: test
+    env: PYCT_ECOSYSTEM=conda PYENV_VERSION=3.6
+    before_install:
+      ## install miniconda (using git pyct)
+      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
+      - export PATH="$HOME/miniconda/bin:$PATH"
+      ## build conda package (using git pyct)
+      - pip install -e . && doit ecosystem_setup && doit package_build -c pyviz/label/dev && pip uninstall -y doit pyct && rm -f .doit.db
+      ## install conda package to use for rest of tests
+      - conda install -y --use-local pyct
+    install: doit develop_install
+    script:
+      - doit test_all
+      - doit --dir=examples/one test_all
 
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
