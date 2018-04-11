@@ -210,20 +210,21 @@ E.g. dependencies installed by conda, with a `python setup.py develop
 
 ### 8. Testing in different environments
 
-E.g. `doit package_build --environment py36-unit-with_xarray` will
-build a package then install it into a python 3.6 environment, and
-will further install `with_xarray` dependencies, and then will run the
-unit tests. The dependencies for `with_xarray` are specified in
-tox.ini (as are the unit test commands). This works with ecosystem=pip
-and ecosystem=conda.
+E.g. `doit package_build --test-python=py36 --test_requires=with_xarray --test-group=unit`
+will build a package then install it into a python 3.6 environment,
+and will then further install `with_xarray` dependencies, and then
+will run the unit tests. The dependencies for `with_xarray` are
+specified in tox.ini (as are the unit test commands). This works with
+ecosystem=pip and ecosystem=conda. It's also possible to have extra
+test commands that only run in a particular test environment
+(e.g. `with_xarray`).
 
-It's also possible to have extra test commands that only run in a
-particular test environment (e.g. `with_xarray`).
-
-`doit test_unit` will run the unit tests in your current environment
-(no installation of packages/dependencies is done).  If there are
-extra commands for a particular environment, they will be run if you
-select it. E.g. `doit test_unit --environment-suffix with_xarray`.
+`doit test_unit` will run the unit tests in your current environment.
+If there are extra commands for a particular environment, they will be
+run if you select it. E.g. `doit test_unit --test-group
+with_xarray`. However, your current environment is not altered by test
+commands, so you would need to have installed `with_xarray`
+dependencies if necessary.
 
 
 ### 9. packages on demand? simplify packaging recipes?
@@ -233,10 +234,10 @@ package metadata only once. Currently this is in setup.py. Templating
 is then used for conda build. This prevents the common situation where
 descriptions, URLs, licenses, etc, are mismatched.
 
-pyct expects project is being released first on pypi, (anaconda.org
+pyct expects project is being released first on pypi and (anaconda.org
 pyviz). From these sources, conda-forge can be updated, followed by
-anaconda defaults, but we don't maintain those recipes. (Like we don't
-maintain deb packages, for instance.)
+anaconda defaults (but we are not necessarily the maintainers of those
+channels).
 
 pyct is currently primarily supporting pure python packages. While
 they may often have complex, platform specific dependencies, the
