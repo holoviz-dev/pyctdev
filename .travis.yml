@@ -37,11 +37,9 @@ jobs:
     # (pyct requires itself to test itself)
     before_install: pip install -e .
     install: doit develop_install
-    script: doit test_unit
-
-  - <<: *pip_default
-    stage: flakes
-    script: doit test_flakes
+    script:
+      - doit test_all
+      - doit --dir=examples/one test_all
 
   ## conda
 
@@ -72,7 +70,7 @@ jobs:
     before_install:
       - pip install -e .
       - doit ecosystem_setup
-    install: doit package_build $PIP_FORMATS
+    install: doit package_build -e py${PYENV_VERSION//./}-all-default $PIP_FORMATS
     script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
 
   - <<: *pip_pkg_default

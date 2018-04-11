@@ -49,6 +49,8 @@ env_suffix = {
 ############################################################
 # COMMON TASKS
 
+def task_list_envs():
+    return {'actions': ['tox -l']}
 
 ########## TESTING ##########
 

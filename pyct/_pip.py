@@ -1,3 +1,6 @@
+# TODO: should probably use tox --recreate because currently
+# pip+tox not necessarily sync'ing env changes properly.
+
 from doit.action import CmdAction
 
 from .util import _options_param, env_param
