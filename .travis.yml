@@ -11,7 +11,6 @@ env:
     - PIP_FORMATS=""
 
 stages:
-  - flakes
   - test
   - name: pip_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$  
@@ -55,7 +54,9 @@ jobs:
 #      ## install conda package to use for rest of tests
 #      - conda install -y --use-local -c conda-forge pyct
 #    install: doit develop_install -c conda-forge
-#    script: doit test_unit
+#    script:
+#      - doit test_all
+#      - doit --dir=examples/one test_all
 
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
@@ -70,7 +71,7 @@ jobs:
     before_install:
       - pip install -e .
       - doit ecosystem_setup
-    install: doit package_build -e py${PYENV_VERSION//./}-all-default $PIP_FORMATS
+    install: doit package_build --test-python=py${PYENV_VERSION//./} --test-group=all $PIP_FORMATS
     script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
 
   - <<: *pip_pkg_default
@@ -89,18 +90,18 @@ jobs:
 
 #  - <<: *conda_default
 #    stage: conda_dev_package
-#    install: doit package_build -c pyviz/label/dev -c conda-forge
+#    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
 #    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
 #
-#  # pyct is noarch:python but doit isn't, so check ok on py27
+#  # pyct is noarch:python but doit isn't, so also check ok on py27
 #  - <<: *conda_default
 #    stage: conda_check_py27
-#    install: doit package_build -c pyviz/label/dev -c conda-forge --python 2.7
+#    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py27 --test-group=all
 #    script: true
 #
 #  - <<: *conda_default
 #    stage: conda_package
-#    install: doit package_build -c pyviz/label/dev -c conda-forge
+#    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
 #    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
-
+#
 

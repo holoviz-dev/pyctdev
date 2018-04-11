@@ -4,7 +4,6 @@ DOIT_CONFIG = {
 }
 
 import os
-import sys
 import configparser
 
 from ._version import get_versions
@@ -14,7 +13,7 @@ del get_versions
 from doit import get_var
 from doit.action import CmdAction
 
-from .util import get_tox_cmds
+from .util import get_tox_cmds, test_requires, get_env
 
 # doit bug in 0.29, which is last version to support py27
 try:
@@ -37,15 +36,6 @@ elif ecosystem == 'conda':
 #dryrun = get_var("dryrun",False)
 
 
-env_suffix = {
-    'name':'environment_suffix',
-    'long':'environment-suffix',
-    'short': 's',
-    'type':str,
-    'default':'default'
-}
-
-
 ############################################################
 # COMMON TASKS
 
@@ -58,8 +48,9 @@ def task_test():
     class thing:
         def __init__(self,what):
             self.what=what
-        def __call__(self,environment_suffix):
-            cmds = get_tox_cmds("%s-%s-%s"%( "py%s%s"%sys.version_info[0:2],self.what,environment_suffix))
+        def __call__(self,test_requires):
+            environment = get_env('',self.what,test_requires)
+            cmds = get_tox_cmds(environment)
             # hack to support multiple commands :(
             return " && ".join(cmds)
 
@@ -72,7 +63,7 @@ def task_test():
         yield {'actions':[CmdAction(thing(t))],
                'doc':'Run "%s" tests'%t,
                'basename': 'test_'+t,
-               'params':[env_suffix]}
+               'params':[test_requires]}
 
 
 # note: groups of tests with doit would be more flexible, but would

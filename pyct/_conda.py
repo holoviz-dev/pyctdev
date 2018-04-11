@@ -14,7 +14,7 @@ except ImportError:
 import yaml
 
 from doit.action import CmdAction
-from .util import _options_param, env_param, get_tox_deps, get_tox_cmds, get_tox_python
+from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env
 
 # TODO: for caching env on travis, what about links? option to copy?
 
@@ -178,41 +178,48 @@ def task_package_build():
         return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
 
-    def create_recipe_append(recipe,environment):
+    def thing2(channel):
+        return thing(channel)+" -t"
+    
+    def create_recipe_append(recipe,test_python,test_group,test_requires):
+        environment = get_env(test_python,test_group,test_requires)
         deps = get_tox_deps(environment)
         cmds = get_tox_cmds(environment)
         py = get_tox_python(environment)
- 
+  
         # deps and cmds are appended
-        # TODO: will overwrite if someone already uses this...
+        #
+        # TODO: will overwrite recipe_append if someone already uses
+        # this...
+        #
+        # would maybe like to do something more like conda build
+        # conda.recipe -t existing_pkg --extra-command ... --extra-deps ...
         with open("conda.recipe/%s/recipe_append.yaml"%recipe,'w') as f:
             f.write(yaml.dump(
                 {
-                    # hack: taking advantage of last python specified wins...
-                    'requirements':{
-                        'run': ['python =%s'%py]
-                    },
                     'test':{
-                        'requires':deps,
+                        'requires':['python =%s'%py]+deps,
                         'commands':cmds
                 }},default_flow_style=False))
-
-        
 
     def remove_recipe_append(recipe):
         try:
             p = os.path.join("conda.recipe",recipe,"recipe_append.yaml")
-            print("remove %s"%p)
             os.remove(p)
         except:
             pass
 
     return {'actions': [
+        # first build the package...
+        CmdAction(thing),
+        # then extra test it...
+        # (if extra test commands overlap what's in recipe, will be some
+        #  repetition...they ran above, and they will run again...)
         create_recipe_append,
-        CmdAction(thing),        
+        CmdAction(thing2),
     ],
             'teardown': [remove_recipe_append],
-            'params': [_channel_param, recipe_param, env_param]}
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires]}
 
 
 

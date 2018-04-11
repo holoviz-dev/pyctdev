@@ -1,8 +1,13 @@
-# TODO: provide fallback or vendor tox
+import sys
 
+# TODO: provide fallback or vendor (bit of) tox
 import tox.config
 toxconf = tox.config.parseconfig('tox')
 
+def get_env(test_python,test_group,test_requires):
+    if test_python == '':
+        test_python = getpy()
+    return "%s-%s-%s"%(test_python,test_group,test_requires)
 
 
 def get_tox_python(env):
@@ -46,10 +51,27 @@ _options_param = {
     'default':['tests']
 }
 
-env_param = {
-    'name':'environment',
-    'long':'environment',
-    'short': 'e',
+test_python = {
+    'name':'test_python',
+    'long':'test-python',
     'type':str,
-    'default':'unit-default'
+    'default':'' # defaults to current python
 }
+
+test_group = {
+    'name':'test_group',
+    'long':'test-group',
+    'type':str,
+    'default':'unit'
+}
+
+test_requires = {
+    'name':'test_requires',
+    'long':'test-requires',
+    'type':str,
+    'default':'default'
+}
+
+
+def getpy():
+    return "py%s%s"%(sys.version_info[0:2])
