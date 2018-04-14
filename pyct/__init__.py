@@ -1,3 +1,6 @@
+# TODO: various hacks to fix are && join cmds, quoting, default param
+# value for list (or at least move to issues)
+
 DOIT_CONFIG = {
     'verbosity': 2,
     'backend': 'sqlite3',
@@ -49,8 +52,10 @@ def task_test():
         def __init__(self,what):
             self.what=what
         def __call__(self,test_requires):
-            environment = get_env('',self.what,test_requires)
-            cmds = get_tox_cmds(environment)
+            cmds = []
+            for r in (test_requires if len(test_requires)>0 else ['default']):
+                environment = get_env('',self.what,r)
+                cmds += get_tox_cmds(environment)
             # hack to support multiple commands :(
             return " && ".join(cmds)
 

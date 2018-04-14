@@ -14,7 +14,7 @@ except ImportError:
 import yaml
 
 from doit.action import CmdAction
-from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env
+from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo
 
 # TODO: for caching env on travis, what about links? option to copy?
 
@@ -73,7 +73,7 @@ def _conda_install_with_options(options,channel):
     if len(deps)>0:
         return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
     else:
-        return 'echo "Skipping conda install (no dependencies)"'
+        return echo("Skipping conda install (no dependencies)")
 
 
 
@@ -135,10 +135,12 @@ def task_miniconda_install():
 
 
 def task_ecosystem_setup():
-    """Common conda setup
+    """Common conda setup (must be run in base env).
 
-    Updates to latest conda, and adds conda-build and anaconda-client.
-    """    
+    Updates to latest conda, conda-build, and anaconda-client.
+    """
+    # TODO: could request to do these things in base (when everyone has new
+    # enough conda)
     def thing1(channel):
         return "conda update -y %s conda"%" ".join(['-c %s'%c for c in channel])
 
@@ -162,12 +164,20 @@ recipe_param = {
 
 
 def task_package_build():
-    """Build conda.recipe/ (or specified alternative).
+    """Build and then test conda.recipe/ (or specified alternative).
+
+    Specify --no-pkg-tests to avoid running any tests other than those
+    defined explicitly in the recipe (i.e. to run only vanilla conda
+    build, without any modifications).
+
+    Specify a "test matrix" (kind of) via repeated --test-python,
+    --test-group, and --test-requires.
 
     Note that whatever channels you supply at build time must be
     supplied by users of the package at install time for users to get
     the same(ish) dependencies as used at build time. (TODO: will be
     able to improve this with conda 4.4.)
+
     """
     # TODO: conda.recipe path hardcoded/repeated
 
@@ -178,48 +188,63 @@ def task_package_build():
         return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
 
-    def thing2(channel):
-        return thing(channel)+" -t"
+    def thing2(channel,pkg_tests,test_python,test_group,test_requires):
+        cmds = []
+        if pkg_tests:
+            for (p,g,r) in test_matrix(test_python,test_group,test_requires):
+                cmds.append(
+                    thing(channel)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s.yaml"%("%(recipe)s",p,g,r)
+                    )
+        # hack again for returning variable number of commands...
+        return " && ".join(cmds)
     
-    def create_recipe_append(recipe,test_python,test_group,test_requires):
-        environment = get_env(test_python,test_group,test_requires)
-        deps = get_tox_deps(environment)
-        cmds = get_tox_cmds(environment)
-        py = get_tox_python(environment)
-  
-        # deps and cmds are appended
-        #
-        # TODO: will overwrite recipe_append if someone already uses
-        # this...
-        #
-        # would maybe like to do something more like conda build
-        # conda.recipe -t existing_pkg --extra-command ... --extra-deps ...
-        with open("conda.recipe/%s/recipe_append.yaml"%recipe,'w') as f:
-            f.write(yaml.dump(
-                {
-                    'test':{
-                        'requires':['python =%s'%py]+deps,
-                        'commands':cmds
-                }},default_flow_style=False))
+    def create_recipe_append(recipe,test_python,test_group,test_requires,pkg_tests):
+        if not pkg_tests:
+            return
 
-    def remove_recipe_append(recipe):
-        try:
-            p = os.path.join("conda.recipe",recipe,"recipe_append.yaml")
-            os.remove(p)
-        except:
-            pass
+        for (p,g,r) in test_matrix(test_python,test_group,test_requires): 
+            environment = get_env(p,g,r)
+            deps = get_tox_deps(environment)
+            cmds = get_tox_cmds(environment)
+            py = get_tox_python(environment)
+  
+            # deps and cmds are appended
+            #
+            # TODO: will overwrite recipe_append--... if someone
+            # already happens to use it...
+            #
+            # would maybe like to do something more like conda build
+            # conda.recipe -t existing_pkg --extra-command ... --extra-deps ...
+            with open("conda.recipe/%s/recipe_append--%s-%s-%s.yaml"%(recipe,p,g,r),'w') as f:
+                f.write(yaml.dump(
+                    {
+                        'test':{
+                            'requires':['python =%s'%py]+deps,
+                            'commands':cmds
+                    }},default_flow_style=False))
+
+    def remove_recipe_append(recipe,pkg_tests,test_python,test_group,test_requires):
+        if not pkg_tests:
+            return
+
+        for (p,g,r) in test_matrix(test_python,test_group,test_requires):
+            try:
+                p = os.path.join("conda.recipe",recipe,"recipe_append--%s-%s-%s.yaml"%(p,g,r))
+                os.remove(p)
+            except:
+                pass
 
     return {'actions': [
         # first build the package...
         CmdAction(thing),
-        # then extra test it...
-        # (if extra test commands overlap what's in recipe, will be some
+        # then test it...
+        # (if test commands overlap what's in recipe, will be some
         #  repetition...they ran above, and they will run again...)
         create_recipe_append,
         CmdAction(thing2),
     ],
             'teardown': [remove_recipe_append],
-            'params': [_channel_param, recipe_param, test_python, test_group, test_requires]}
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests]}
 
 
 

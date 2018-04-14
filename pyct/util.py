@@ -1,4 +1,5 @@
 import sys
+import itertools
 
 # TODO: provide fallback or vendor (bit of) tox
 try:
@@ -28,7 +29,9 @@ def get_tox_cmds(env):
     if env in toxconf.envconfigs:
         cmds = []
         for cmd in toxconf.envconfigs[env].commands:
-            cmds.append(" ".join(['"{0}"'.format(w) for w in cmd]))
+            if len(cmd)>0:
+                # can't quote first on win (need to quote rest...a list would be better than string - should clean up
+                cmds.append("%s "%cmd[0] + " ".join(['"{0}"'.format(w) for w in cmd[1::]]))
         return cmds
     else:
         #raise ValueError("Could not find %s in tox.ini"%env)
@@ -61,24 +64,45 @@ _options_param = {
 test_python = {
     'name':'test_python',
     'long':'test-python',
-    'type':str,
-    'default':'' # defaults to current python
+    'type':list,
+    'default':[]
 }
 
 test_group = {
     'name':'test_group',
     'long':'test-group',
-    'type':str,
-    'default':'unit'
+    'type':list,
+    'default':[]
 }
 
 test_requires = {
     'name':'test_requires',
     'long':'test-requires',
-    'type':str,
-    'default':'default'
+    'type':list,
+    'default':[]
+}
+
+pkg_tests = {
+    'name':'pkg_tests',
+    'long':'pkg-tests',
+    'type':bool,
+    'default':True,
+    'inverse':'no-pkg-tests'
 }
 
 
 def getpy():
     return "py%s%s"%(sys.version_info[0:2])
+
+def test_matrix(test_python,test_group,test_requires):
+    # sigh, defaults
+    test_python = [getpy()] if len(test_python)==0 else test_python
+    test_group = ['unit'] if len(test_group)==0 else test_group
+    test_requires = ['default'] if len(test_requires)==0 else test_requires
+                   
+    for combo in itertools.product(test_python,test_group,test_requires):
+        yield combo
+
+def echo(msg):
+    return 'python -c "print(\"%s\")"'%msg
+

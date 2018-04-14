@@ -3,7 +3,7 @@
 
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env, test_python, test_requires
+from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo
 
 # util stuff
 
@@ -66,10 +66,9 @@ def task_env_capture():
 def task_ecosystem_setup():
     """Common pip setup
 
-    Updates to latest pip; adds tox, twine, and wheel.
+    Updates to latest pip, tox, twine, and wheel.
     """
-    return {'actions': ["pip install --upgrade pip",
-                        "pip install tox twine wheel"]}
+    return {'actions': ["pip install --upgrade pip tox twine wheel"]}
 
 
 ########## PACKAGING ##########
@@ -95,14 +94,21 @@ def task_package_build():
     }
     # TODO: missing support for pypi channels
     
-    def thing(test_group,test_python,test_requires):
-        return 'tox -e %s'%get_env(test_python,test_group,test_requires)
+    def thing(test_group,test_python,test_requires,pkg_tests):
+        if pkg_tests:
+            enviros = []
+            for (p,g,r) in test_matrix(test_python,test_group,test_requires):
+                enviros.append( get_env(p,g,r) )
+            #import pdb;pdb.set_trace()
+            return 'tox -e ' + ' , '.join(enviros)
+        else:
+            return echo("no tests")
 
     # TODO: would be able to use the packages created by tox if
     # https://github.com/tox-dev/tox/issues/232 were done    
     return {'actions': [CmdAction(thing),
                         'python setup.py %(formats)s'],
-            'params': [formats_param,test_group,test_python,test_requires]}
+            'params': [formats_param,test_group,test_python,test_requires,pkg_tests]}
 
 def task_package_upload():
     """Upload pip packages to pypi"""

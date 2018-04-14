@@ -7,20 +7,19 @@ language: generic
 
 env:
   global:
+    - CHANNELS="-c pyviz/label/dev"
     # will be overridden later to upload only wheel for py27 (sdist from py36)
     - PIP_FORMATS=""
 
 stages:
   - test
-  - name: pip_dev_package
-    if: tag =~ ^v(\d+|\.)*[a-z]\d*$
-  - name: conda_check_py27
-    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)    
-  - name: pip_package
-    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
   - name: conda_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
+  - name: pip_dev_package
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$
   - name: conda_package
+    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
+  - name: pip_package
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
 
 jobs:
@@ -50,7 +49,7 @@ jobs:
       - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       ## build conda package (using git pyct)
-      - pip install -e . && doit ecosystem_setup && doit package_build -c pyviz/label/dev && pip uninstall -y doit pyct && rm -f .doit.db
+      - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyct && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyct
     install: doit develop_install
@@ -71,7 +70,7 @@ jobs:
     before_install:
       - pip install -e .
       - doit ecosystem_setup
-    install: doit package_build --test-python=py${PYENV_VERSION//./} --test-group=all $PIP_FORMATS
+    install: doit package_build --test-group=all $PIP_FORMATS
     script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
 
   - <<: *pip_pkg_default
@@ -90,16 +89,10 @@ jobs:
 
   - <<: *conda_default
     stage: conda_dev_package
-    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
+    install: doit package_build $CHANNELS --test-python=py36 --test-python=py27 --test-group=all
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
-
-  # pyct is noarch:python but doit isn't, so also check ok on py27
-  - <<: *conda_default
-    stage: conda_check_py27
-    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py27 --test-group=all
-    script: true
 
   - <<: *conda_default
     stage: conda_package
-    install: doit package_build -c pyviz/label/dev -c conda-forge --test-python=py${PYENV_VERSION//./} --test-group=all
+    install: doit package_build $CHANNELS --test-python=py36 --test-python=py27 --test-group=all
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main --label=dev
