@@ -34,20 +34,11 @@ setup_args = dict(
         'py',       # for tox
         #'argparse', # for virtualenv
         ##
-
-        ## for python packaging
-        'wheel',
-        'pip',
-
-        ## for conda packaging
-        # 'conda-build',
-        
-        ## conda build
-        'pyyaml'
-        ##
     ],
     extras_require={
-        'tests': ['flake8']
+        'tests': ['flake8'],
+        'ecosystem_pip': ['tox','twine','wheel','pip'],
+        'ecosystem_conda': ['pyyaml'] # + conda build...
     }
 )
 
