@@ -11,7 +11,10 @@ try:
 except ImportError:
     from urllib import urlretrieve
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 from doit.action import CmdAction
 from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo
@@ -201,6 +204,9 @@ def task_package_build():
     def create_recipe_append(recipe,test_python,test_group,test_requires,pkg_tests):
         if not pkg_tests:
             return
+
+        if yaml is None:
+            raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
 
         for (p,g,r) in test_matrix(test_python,test_group,test_requires): 
             environment = get_env(p,g,r)

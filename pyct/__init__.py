@@ -1,6 +1,12 @@
 # TODO: various hacks to fix are && join cmds, quoting, default param
 # value for list (or at least move to issues)
 
+# TODO: is conda build repeating test commands multiple times? Maybe just
+# on windows?
+
+# TODO: whether to include any tests (and tests requires) in our projects'
+# conda recipes (or just use package_build's testing).
+
 DOIT_CONFIG = {
     'verbosity': 2,
     'backend': 'sqlite3',
