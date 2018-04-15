@@ -226,7 +226,9 @@ def task_package_build():
                     {
                         'test':{
                             'requires':['python =%s'%py]+deps,
-                            'commands':cmds
+                            'commands':cmds,
+                            # still undecided about which config files to use
+                            'source_files': ['setup.cfg']
                     }},default_flow_style=False))
 
     def remove_recipe_append(recipe,pkg_tests,test_python,test_group,test_requires):

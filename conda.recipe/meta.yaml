@@ -27,17 +27,15 @@ requirements:
 test:
   imports:
     - pyct
-  source_files:
-    - dodo.py
-    - tox.ini
-    - setup.cfg
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
     - {{ dep }}
-    {% endfor %}
-  commands:
-    # check it at least runs...
-    - doit list
+    {% endfor %}    
+  source_files:
+    # since we're testing itself...
+    - dodo.py
+    - tox.ini
+
 
 about:
   home: {{ sdata['url'] }}
