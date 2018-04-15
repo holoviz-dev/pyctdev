@@ -3,7 +3,7 @@
 
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, test_what
+from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo
 
 # util stuff
 
@@ -96,12 +96,11 @@ def task_package_build():
     }
     # TODO: missing support for pypi channels
     
-    def thing(test_group,test_python,test_requires,test_what, pkg_tests):
+    def thing(test_group,test_python,test_requires,pkg_tests):
         if pkg_tests:
             enviros = []
-            for (p,g,r,w) in test_matrix(test_python,test_group,test_requires, test_what):
+            for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
                 enviros.append( get_env(p,g,r,w) )
-            #import pdb;pdb.set_trace()
             return 'tox -e ' + ' , '.join(enviros)
         else:
             return echo("no tests")
@@ -110,7 +109,7 @@ def task_package_build():
     # https://github.com/tox-dev/tox/issues/232 were done    
     return {'actions': [CmdAction(thing),
                         'python setup.py %(formats)s'],
-            'params': [formats_param,test_group,test_python,test_requires, test_what,pkg_tests]}
+            'params': [formats_param,test_group,test_python,test_requires,pkg_tests]}
 
 def task_package_upload():
     """Upload pip packages to pypi"""
