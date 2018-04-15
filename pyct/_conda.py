@@ -213,7 +213,6 @@ def task_package_build():
             deps = get_tox_deps(environment)
             cmds = get_tox_cmds(environment)
             py = get_tox_python(environment)
-            what = get_tox_what(environment)
   
             # deps and cmds are appended
             #
