@@ -17,7 +17,7 @@ except ImportError:
     yaml = None
 
 from doit.action import CmdAction
-from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo
+from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, test_what
 
 # TODO: for caching env on travis, what about links? option to copy?
 
@@ -191,28 +191,29 @@ def task_package_build():
         return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
 
-    def thing2(channel,pkg_tests,test_python,test_group,test_requires):
+    def thing2(channel,pkg_tests,test_python,test_group,test_requires,test_what):
         cmds = []
         if pkg_tests:
-            for (p,g,r) in test_matrix(test_python,test_group,test_requires):
+            for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,test_what):
                 cmds.append(
-                    thing(channel)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s.yaml"%("%(recipe)s",p,g,r)
+                    thing(channel)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
                     )
         # hack again for returning variable number of commands...
         return " && ".join(cmds)
     
-    def create_recipe_append(recipe,test_python,test_group,test_requires,pkg_tests):
+    def create_recipe_append(recipe,test_python,test_group,test_requires,test_what,pkg_tests):
         if not pkg_tests:
             return
 
         if yaml is None:
             raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
 
-        for (p,g,r) in test_matrix(test_python,test_group,test_requires): 
-            environment = get_env(p,g,r)
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,test_what): 
+            environment = get_env(p,g,r,w)
             deps = get_tox_deps(environment)
             cmds = get_tox_cmds(environment)
             py = get_tox_python(environment)
+            what = get_tox_what(environment)
   
             # deps and cmds are appended
             #
@@ -221,7 +222,7 @@ def task_package_build():
             #
             # would maybe like to do something more like conda build
             # conda.recipe -t existing_pkg --extra-command ... --extra-deps ...
-            with open("conda.recipe/%s/recipe_append--%s-%s-%s.yaml"%(recipe,p,g,r),'w') as f:
+            with open("conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%(recipe,p,g,r,w),'w') as f:
                 f.write(yaml.dump(
                     {
                         'test':{
@@ -229,13 +230,13 @@ def task_package_build():
                             'commands':cmds
                     }},default_flow_style=False))
 
-    def remove_recipe_append(recipe,pkg_tests,test_python,test_group,test_requires):
+    def remove_recipe_append(recipe,pkg_tests,test_python,test_group,test_requires,test_what):
         if not pkg_tests:
             return
 
-        for (p,g,r) in test_matrix(test_python,test_group,test_requires):
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,test_what):
             try:
-                p = os.path.join("conda.recipe",recipe,"recipe_append--%s-%s-%s.yaml"%(p,g,r))
+                p = os.path.join("conda.recipe",recipe,"recipe_append--%s-%s-%s-%s.yaml"%(p,g,r,w))
                 os.remove(p)
             except:
                 pass
@@ -250,7 +251,7 @@ def task_package_build():
         CmdAction(thing2),
     ],
             'teardown': [remove_recipe_append],
-            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests]}
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, test_what, pkg_tests]}
 
 
 

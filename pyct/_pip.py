@@ -3,7 +3,7 @@
 
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo
+from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, test_what
 
 # util stuff
 
@@ -68,6 +68,8 @@ def task_ecosystem_setup():
 
     Updates to latest pip, tox, twine, and wheel.
     """
+    # TODO: will need to become something like the following w/ pip10
+    # d:\python36\python.exe -m pip install --upgrade pip tox twine wheel
     return {'actions': ["pip install --upgrade pip tox twine wheel"]}
 
 
@@ -94,11 +96,11 @@ def task_package_build():
     }
     # TODO: missing support for pypi channels
     
-    def thing(test_group,test_python,test_requires,pkg_tests):
+    def thing(test_group,test_python,test_requires,test_what, pkg_tests):
         if pkg_tests:
             enviros = []
-            for (p,g,r) in test_matrix(test_python,test_group,test_requires):
-                enviros.append( get_env(p,g,r) )
+            for (p,g,r,w) in test_matrix(test_python,test_group,test_requires, test_what):
+                enviros.append( get_env(p,g,r,w) )
             #import pdb;pdb.set_trace()
             return 'tox -e ' + ' , '.join(enviros)
         else:
@@ -108,7 +110,7 @@ def task_package_build():
     # https://github.com/tox-dev/tox/issues/232 were done    
     return {'actions': [CmdAction(thing),
                         'python setup.py %(formats)s'],
-            'params': [formats_param,test_group,test_python,test_requires,pkg_tests]}
+            'params': [formats_param,test_group,test_python,test_requires, test_what,pkg_tests]}
 
 def task_package_upload():
     """Upload pip packages to pypi"""

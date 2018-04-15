@@ -22,7 +22,7 @@ del get_versions
 from doit import get_var
 from doit.action import CmdAction
 
-from .util import get_tox_cmds, test_requires, get_env
+from .util import get_tox_cmds, test_requires, get_env, test_what
 
 # doit bug in 0.29, which is last version to support py27
 try:
@@ -55,13 +55,15 @@ def task_list_envs():
 
 def task_test():
     class thing:
-        def __init__(self,what):
-            self.what=what
-        def __call__(self,test_requires):
+        def __init__(self,group):
+            self.group=group
+        def __call__(self,test_requires,test_what):
             cmds = []
+            # TODO: use test_matrix
             for r in (test_requires if len(test_requires)>0 else ['default']):
-                environment = get_env('',self.what,r)
-                cmds += get_tox_cmds(environment)
+                for w in (test_what if len(test_what)>0 else ['dev']):
+                    environment = get_env('',self.group,r,w)
+                    cmds += get_tox_cmds(environment)
             # hack to support multiple commands :(
             return " && ".join(cmds)
 
@@ -70,11 +72,11 @@ def task_test():
     toxconf = configparser.ConfigParser()
     toxconf.read('tox.ini')
     # not sure how I was supposed to do this (gets all, flakes, unit, etc...)
-    for t in toxconf['tox']['envlist'].split('-')[1][1:-1].split(','): 
+    for t in toxconf['tox']['envlist'].split('-')[1][1:-1].split(','):
         yield {'actions':[CmdAction(thing(t))],
                'doc':'Run "%s" tests'%t,
                'basename': 'test_'+t,
-               'params':[test_requires]}
+               'params':[test_requires,test_what]}
 
 
 # note: groups of tests with doit would be more flexible, but would

@@ -12,10 +12,10 @@ except:
     
 toxconf = tox_config.parseconfig('tox')
 
-def get_env(test_python,test_group,test_requires):
+def get_env(test_python,test_group,test_requires,test_what):
     if test_python == '':
         test_python = getpy()
-    return "%s-%s-%s"%(test_python,test_group,test_requires)
+    return "%s-%s-%s-%s"%(test_python,test_group,test_requires,test_what)
 
 
 def get_tox_python(env):
@@ -82,6 +82,13 @@ test_requires = {
     'default':[]
 }
 
+test_what = {
+    'name':'test_what',
+    'long':'test-what',
+    'type':list,
+    'default':[]
+}
+
 pkg_tests = {
     'name':'pkg_tests',
     'long':'pkg-tests',
@@ -94,13 +101,13 @@ pkg_tests = {
 def getpy():
     return "py%s%s"%(sys.version_info[0:2])
 
-def test_matrix(test_python,test_group,test_requires):
+def test_matrix(test_python,test_group,test_requires,test_what):
     # sigh, defaults
     test_python = [getpy()] if len(test_python)==0 else test_python
     test_group = ['unit'] if len(test_group)==0 else test_group
     test_requires = ['default'] if len(test_requires)==0 else test_requires
-                   
-    for combo in itertools.product(test_python,test_group,test_requires):
+    test_what = ['dev'] if len(test_what)==0 else test_what               
+    for combo in itertools.product(test_python,test_group,test_requires,test_what):
         yield combo
 
 def echo(msg):
