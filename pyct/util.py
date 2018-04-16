@@ -1,5 +1,6 @@
 import sys
 import itertools
+import configparser
 
 # TODO: provide fallback or vendor (bit of) tox
 try:
@@ -11,6 +12,11 @@ except:
     import tox.config as tox_config
     
 toxconf = tox_config.parseconfig('tox')
+# we later filter out any _onlytox commands...
+toxconf_pre = configparser.ConfigParser()
+toxconf_pre.read('tox.ini')
+
+onlytox = '{[_onlytox]commands}'
 
 def get_env(test_python,test_group,test_requires,test_what):
     if test_python == '':
@@ -27,8 +33,12 @@ def get_tox_python(env):
 
 def get_tox_cmds(env):
     if env in toxconf.envconfigs:
+        toxpre = toxconf_pre['testenv']['commands'].splitlines()
+        i = 0 if not toxpre[0].startswith(onlytox) else 1
+        for c in toxpre[1::]:
+            assert not c.startswith(onlytox), "Bad tox config: only first command can be 'onlytox' skipped"
         cmds = []
-        for cmd in toxconf.envconfigs[env].commands:
+        for cmd in toxconf.envconfigs[env].commands[i::]:
             if len(cmd)>0:
                 # can't quote first on win (need to quote rest...a list would be better than string - should clean up
                 cmds.append("%s "%cmd[0] + " ".join(['"{0}"'.format(w) for w in cmd[1::]]))
