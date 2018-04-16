@@ -34,7 +34,8 @@ def get_tox_python(env):
 def get_tox_cmds(env):
     if env in toxconf.envconfigs:
         toxpre = toxconf_pre['testenv']['commands'].splitlines()
-        i = 0 if not toxpre[0].startswith(onlytox) else 1
+        # skip all "onlytox" commands
+        i = 0 if not toxpre[0].startswith(onlytox) else len(toxconf_pre['_onlytox']['commands'].splitlines())
         for c in toxpre[1::]:
             assert not c.startswith(onlytox), "Bad tox config: only first command can be 'onlytox' skipped"
         cmds = []
