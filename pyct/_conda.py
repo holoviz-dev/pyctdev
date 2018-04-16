@@ -228,7 +228,7 @@ def task_package_build():
                             'requires':['python =%s'%py]+deps,
                             'commands':cmds,
                             # still undecided about which config files to use
-                            'source_files': ['setup.cfg']
+                            'source_files': ['tox.ini']
                     }},default_flow_style=False))
 
     def remove_recipe_append(recipe,pkg_tests,test_python,test_group,test_requires):
