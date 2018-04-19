@@ -5,6 +5,8 @@ from doit.action import CmdAction
 
 from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo
 
+# TODO: move tasks to pip.py and leave hacks here.
+
 # util stuff
 
 PYPI_CHANNELS = {
@@ -194,3 +196,8 @@ def task_develop_install():
 #        'actions': ['tox -vv -e py%(py)s --develop'],
 #        'params': [py]
 #    }
+
+
+def task_env_export():
+    """TODO"""
+    return {'actions':[]}

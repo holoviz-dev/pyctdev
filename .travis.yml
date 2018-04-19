@@ -56,6 +56,7 @@ jobs:
     script:
       - doit test_all
       - doit --dir=examples/one test_all
+      - doit --dir=examples/one test_export
 
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########

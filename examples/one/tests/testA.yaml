@@ -1,0 +1,6 @@
+name: _pyct_test_one
+channels:
+  - defaults
+dependencies:
+  - holoviews=1.10.0
+  - hypothesis=3.56.0

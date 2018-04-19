@@ -69,6 +69,8 @@ _options_param = {
     'long':'options',
     'short': 'o',
     'type':list,
+    # TODO: confusing to do this, because it means no way to have
+    # none
     'default':['tests']
 }
 

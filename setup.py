@@ -38,7 +38,10 @@ setup_args = dict(
     extras_require={
         'tests': ['flake8'],
         'ecosystem_pip': ['tox','twine','wheel','pip'],
-        'ecosystem_conda': ['pyyaml'] # + conda build...
+        # pins are supposed to be for when it became possible to
+        # install them outside of root/base env, and when api appeared;
+        # not sure exactly which versions
+        'ecosystem_conda': ['conda >=4.4', 'conda-build >=3.8']
     }
 )
 
