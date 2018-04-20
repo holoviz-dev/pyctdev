@@ -235,8 +235,6 @@ def task_ecosystem_setup():
 
     Updates to latest conda, conda-build, and anaconda-client.
     """
-    # TODO: could request to do these things in base (when everyone has new
-    # enough conda)
     def thing1(channel):
         return "conda update -y %s conda"%" ".join(['-c %s'%c for c in channel])
 
@@ -244,7 +242,13 @@ def task_ecosystem_setup():
         return "conda install -y %s anaconda-client conda-build"%" ".join(['-c %s'%c for c in channel])
 
     return {
-        'actions': [CmdAction(thing1), CmdAction(thing2)],
+        'actions': [
+            CmdAction(thing1),
+            CmdAction(thing2),
+            # https://github.com/conda/conda-build/issues/2821            
+            "conda remove -y --force conda-build",
+            "pip install https://github.com/ceball/conda-build/archive/issue2821-recipe_append_ordering.zip"
+        ],
         'params': [_channel_param]}
 
 
