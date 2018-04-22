@@ -307,6 +307,7 @@ def task_package_build():
                 cmds.append(
                     thing(channel)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
                     )
+                cmds.append("conda build purge") # remove test/work intermediates (see same comment below)
         # hack again for returning variable number of commands...
         return " && ".join(cmds)
 
@@ -354,6 +355,7 @@ def task_package_build():
     return {'actions': [
         # first build the package...
         CmdAction(thing),
+        "conda build purge", # remove test/work intermediates (disk space on travis...but could potentially annoy someone as it'll remove other test/work intermediates too...)
         # then test it...
         # (if test commands overlap what's in recipe, will be some
         #  repetition...they ran above, and they will run again...)
