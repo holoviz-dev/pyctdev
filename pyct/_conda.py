@@ -419,7 +419,7 @@ def task_env_create():
 
     # TODO: improve messages about missing deps
     try:
-        from conda.cli.python_api import Commands, run_command
+        from conda.cli.python_api import Commands, run_command # noqa: hack
         uptodate = _env_exists
     except:
         uptodate = False
