@@ -210,7 +210,9 @@ def task_miniconda_download():
             'actions': [download_miniconda]}
 
 def task_miniconda_install():
-    """Install Miniconda3-latest"""
+    """Install Miniconda3-latest to location if not already present"""
+    # NOTE: if caching on CI, will result in no new mc being installed
+    # ever until cache is cleared
 
     location = {
         'name':'location',
@@ -222,13 +224,23 @@ def task_miniconda_install():
     miniconda_installer = miniconda_url[platform.system()].split('/')[-1]
     return {
         'file_dep': [miniconda_installer],
-        'uptodate': [lambda task,values: os.path.exists(task.options['location'])],
+        'uptodate': [_mc_installed],
         'params': [location],
         'actions':
             # TODO: check windows situation with update
             ['START /WAIT %s'%miniconda_installer + " /S /AddToPath=0 /D=%(location)s"] if platform.system() == "Windows" else ["bash %s"%miniconda_installer + " -b -u -p %(location)s"]
         }
 
+
+# TODO: this is another doit param hack :(
+def _mc_installed(task,values):
+    if task.options is not None:
+        return os.path.exists(task.options['location'])
+    else:
+        for p in task.params:
+            if p['name']=='location':
+                return os.path.exists(p['default'])
+    return False
 
 def task_ecosystem_setup():
     """Common conda setup (must be run in base env).
@@ -408,7 +420,7 @@ def task_env_create():
     # TODO: improve messages about missing deps
     try:
         from conda.cli.python_api import Commands, run_command
-        uptodate = lambda task,values: task.options['name'] in [os.path.basename(e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
+        uptodate = _env_exists
     except:
         uptodate = False
     
@@ -418,6 +430,26 @@ def task_env_create():
         'uptodate': [uptodate],
         # TODO: should add doit here
         'actions': ["conda create -y --name %(name)s python=%(python)s"]}
+
+
+# TODO: this is another doit param hack :(
+# need to file issue. meanwhile probably decorate uptodate fns
+def _env_exists(task,values):
+    name = None
+    if task.options is not None:
+        name = task.options['name']
+    else:
+        for p in task.params:
+            if p['name']=='name':
+                name = p['default']
+    if name is None:
+        return False
+    else:
+        from conda.cli.python_api import Commands, run_command
+        return name in [os.path.basename(e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
+                
+        
+    
 
 # TODO: doit - how to share parameters with dependencies? Lots of
 # awkwardness here to work around that...
