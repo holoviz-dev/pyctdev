@@ -172,7 +172,7 @@ def task_env_export():
         # has channel per package. In fact, would be better to not use
         # conda env and just do it manually using conda commands?
         # --json means pip things not included
-        E.channels = list({ pkg['channel'] for pkg in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0]) })
+        E.channels = [chan for chan in E.channels if chan in { pkg['channel'] for pkg in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0]) }]
         
         # TODO: add python_requires to conda deps?
         E.prefix = None
@@ -446,7 +446,8 @@ def task_env_create():
         # channels here?
         # TODO: note: pyct when testing itself will use previous pyct
         # but not yet testing this command...
-        'actions': ["conda create -y --name %(name)s -c pyviz/label/dev python=%(python)s pyct"]}
+        'actions': ["conda create -y --name %(name)s python=%(python)s",
+                    "conda install -y -c pyviz/label/dev pyct"]}
 
 # TODO: this is another doit param hack :(
 # need to file issue. meanwhile probably decorate uptodate fns
