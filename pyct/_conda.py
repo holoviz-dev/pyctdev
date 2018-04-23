@@ -3,6 +3,8 @@ Tasks for conda world
 
 """
 
+# note: conda's api at https://github.com/conda/conda/issues/7059
+
 # TODO: move tasks to conda.py and leave hacks here.
 
 import platform
@@ -166,6 +168,12 @@ def task_env_export():
         if len(E.dependencies.get('pip',[]))>0:
             E.dependencies.raw += [{'pip':E.dependencies['pip']}]
 
+        # cut down channels TODO: could now write out an env file that
+        # has channel per package. In fact, would be better to not use
+        # conda env and just do it manually using conda commands?
+        # --json means pip things not included
+        E.channels = list({ pkg['channel'] for pkg in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0]) })
+        
         # TODO: add python_requires to conda deps?
         E.prefix = None
         # TODO: win/unicode
