@@ -321,7 +321,6 @@ def task_package_build():
             # TODO: unify with conda in env_export
             env_name = pin_deps_as_env            
             import collections
-            from conda_env.env import from_environment
             from conda.cli.python_api import Commands, run_command
             env_names = [(os.path.basename(e),e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
             counts = collections.Counter([x[0] for x in env_names])
