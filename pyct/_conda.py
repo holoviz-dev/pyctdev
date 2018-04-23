@@ -500,7 +500,7 @@ def task_env_create():
         # TODO: note: pyct when testing itself will use previous pyct
         # but not yet testing this command...
         'actions': ["conda create -y --name %(name)s python=%(python)s",
-                    "conda install -y -c pyviz/label/dev pyct"]}
+                    "conda install -y --name %(name)s -c pyviz/label/dev pyct"]}
 
 # TODO: this is another doit param hack :(
 # need to file issue. meanwhile probably decorate uptodate fns
