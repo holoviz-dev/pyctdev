@@ -14,36 +14,36 @@ different python package 'ecosystems' (pip and conda):
 
 ```
 $ doit list
-build_docs            build docs
-develop_install       python develop install with specified optional groups of dependencies.
-ecosystem_setup       Common pip setup
-env_capture           Report all information required to recreate current environment.
-env_create            TODO: create named environment if it doesn't already exist.
-package_build         Build pip package, then install and test all_quick in venv
-package_upload        Upload pip packages to pypi
-test_all              flake tests, unit tests, examples
-test_examples         Run examples (likely to be time/memory consuming)
-test_examples_quick   Run quick examples.
-test_flakes           Check for flakes (typically python module and notebooks).
-test_quick            Run quick tests
-test_unit             Run core unit tests; should always pass everywhere.
+build_docs        build docs
+develop_install   python develop install with specified optional groups of dependencies.
+ecosystem_setup   Common pip setup
+env_capture       Report all information required to recreate current environment.
+env_create        TODO: create named environment if it doesn't already exist.
+env_export        TODO
+list_envs         
+package_build     Build pip package, then install and test all_quick (or other
+package_upload    Upload pip packages to pypi
+test_all          Run "all" tests
+test_examples     Run "examples" tests
+test_flakes       Run "flakes" tests
+test_unit         Run "unit" tests
 
 $ doit ecosystem=conda list
-build_docs            build docs
-develop_install       python develop install, with specified optional groups of dependencies (installed by conda only).
-ecosystem_setup       Common conda setup
-env_capture           Report all information required to recreate current conda environment
-env_create            Create named environment if it doesn't already exist
-miniconda_download    Download Miniconda3-latest
-miniconda_install     Install Miniconda3-latest
-package_build         Build conda.recipe/ (or specified alternative).
-package_upload        Upload package built from conda.recipe/ (or specified alternative).
-test_all              flake tests, unit tests, examples
-test_examples         Run examples (likely to be time/memory consuming)
-test_examples_quick   Run quick examples.
-test_flakes           Check for flakes (typically python module and notebooks).
-test_quick            Run quick tests
-test_unit             Run core unit tests; should always pass everywhere.
+build_docs           build docs
+develop_install      python develop install, with specified optional groups of dependencies (installed by conda only).
+ecosystem_setup      Common conda setup (must be run in base env).
+env_capture          Report all information required to recreate current conda environment
+env_create           Create named environment if it doesn't already exist
+env_export           Generate a pinned environment.yaml from specified env, filtering against specified groups of deps.
+list_envs            
+miniconda_download   Download Miniconda3-latest
+miniconda_install    Install Miniconda3-latest to location if not already present
+package_build        Build and then test conda.recipe/ (or specified alternative).
+package_upload       Upload package built from conda.recipe/ (or specified alternative).
+test_all             Run "all" tests
+test_examples        Run "examples" tests
+test_flakes          Run "flakes" tests
+test_unit            Run "unit" tests
 ```
 
 Although doit+pyct must be installed to run these tasks, the approach
