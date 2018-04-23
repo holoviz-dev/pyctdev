@@ -412,7 +412,10 @@ def task_package_upload():
 # even if env already exists, for updating).
 
 def task_env_create():
-    """Create named environment if it doesn't already exist"""
+    """Create named environment if it doesn't already exist
+
+    Environment will include pyct.
+    """
     python = {
         'name':'python',
         'long':'python',
@@ -428,11 +431,12 @@ def task_env_create():
     
     return {
         'params': [python,name],
-        # conda's api https://github.com/conda/conda/issues/7059
         'uptodate': [uptodate],
-        # TODO: should add doit here
-        'actions': ["conda create -y --name %(name)s python=%(python)s"]}
-
+        # TODO: Wouldn't need to check for env if conda create --force
+        # would overwrite/update existing env.
+        # TODO: Meanwhile, if keeping, should allow to specify
+        # channels here?
+        'actions': ["conda create -y --name %(name)s -c pyviz/label/dev python=%(python)s pyct"]}
 
 # TODO: this is another doit param hack :(
 # need to file issue. meanwhile probably decorate uptodate fns
