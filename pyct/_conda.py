@@ -436,6 +436,8 @@ def task_env_create():
         # would overwrite/update existing env.
         # TODO: Meanwhile, if keeping, should allow to specify
         # channels here?
+        # TODO: note: pyct when testing itself will use previous pyct
+        # but not yet testing this command...
         'actions': ["conda create -y --name %(name)s -c pyviz/label/dev python=%(python)s pyct"]}
 
 # TODO: this is another doit param hack :(
