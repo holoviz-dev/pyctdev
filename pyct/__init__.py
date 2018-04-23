@@ -101,10 +101,10 @@ def task_build_docs():
     return {
         'params': [org, repo],
         'actions': [
-            'nbsite_nbpagebuild.py %(org)s %s(repo)s ./examples ./doc',
-            'sphinx-build -b html ./doc ./doc/_build/html',
-            'nbsite_fix_links.py ./doc/_build/html',
-            'touch ./doc/_build/html/.nojekyll',
-            'nbsite_cleandisthtml.py ./doc/_build/html take_a_chance'
+            'nbsite_nbpagebuild.py %(org)s %(repo)s ./examples ./docs',
+            'sphinx-build -b html ./docs ./docs/_build/html',
+            'nbsite_fix_links.py ./docs/_build/html',
+            'touch ./docs/_build/html/.nojekyll',
+            'nbsite_cleandisthtml.py ./docs/_build/html take_a_chance'
         ]
     }
