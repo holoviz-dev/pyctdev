@@ -158,9 +158,17 @@ def task_env_export():
         from conda.models.match_spec import MatchSpec
 
         deps = set([MatchSpec(d).name for d in _get_dependencies(['install_requires']+options)])
-
-        for what in E.dependencies:
+        
+        for what in E.dependencies:                    
             E.dependencies[what] = [d for d in E.dependencies[what] if MatchSpec(d).name in deps]
+
+        # fix up conda channels TODO: should probably just use non-env
+        # commands all along instead of conda env
+        if 'conda' in E.dependencies:
+            packages = {package['name']:package for package in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])}
+            E.dependencies['conda'] = ["%s%s"%( (packages[MatchSpec(x).name]['channel']+"::" if packages[MatchSpec(x).name]['channel']!="defaults" else '') ,x) for x in E.dependencies['conda']]
+            E.channels = ["defaults"]
+            
         # what could go wrong?
         E.dependencies.raw = []
         if len(E.dependencies.get('conda',[]))>0:
@@ -168,12 +176,6 @@ def task_env_export():
         if len(E.dependencies.get('pip',[]))>0:
             E.dependencies.raw += [{'pip':E.dependencies['pip']}]
 
-        # cut down channels TODO: could now write out an env file that
-        # has channel per package. In fact, would be better to not use
-        # conda env and just do it manually using conda commands?
-        # --json means pip things not included
-        E.channels = [chan for chan in E.channels if chan in { pkg['channel'] for pkg in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0]) }]
-        
         # TODO: add python_requires to conda deps?
         E.prefix = None
         # TODO: win/unicode
@@ -319,7 +321,7 @@ def task_package_build():
             requirements_run = []
             
             # TODO: unify with conda in env_export
-            env_name = pin_deps_as_env            
+            env_name = pin_deps_as_env
             import collections
             from conda.cli.python_api import Commands, run_command
             env_names = [(os.path.basename(e),e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
@@ -333,7 +335,8 @@ def task_package_build():
             deps = _get_dependencies(['install_requires'])
 
             # TODO: could add channel to the pin...
-            requirements_run = ["%s ==%s"%(d,packagesd[d]['version']) for d in deps]
+            from conda.models.match_spec import MatchSpec
+            requirements_run = ["%s ==%s"%(MatchSpec(d).name,packagesd[MatchSpec(d).name]['version']) for d in deps]
                         
             with open("conda.recipe/%s/_pyct_recipe_clobber.yaml"%recipe,'w') as f:
                 f.write(yaml.dump(
