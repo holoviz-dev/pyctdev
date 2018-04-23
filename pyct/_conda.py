@@ -304,16 +304,60 @@ def task_package_build():
     # hacks to get a quick version of
     # https://github.com/conda/conda-build/issues/2648
 
-    def thing(channel):
-        return "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
-                                                 "%(recipe)s")
 
-    def thing2(channel,pkg_tests,test_python,test_group,test_requires):
+    pin_deps_as_env = {
+        'name':'pin_deps_as_env',
+        'long':'pin-deps-as-env',
+        'type':str,
+        'default':''}
+
+    
+    def create_recipe_clobber(recipe,pin_deps_as_env):
+        if pin_deps_as_env == '':
+            return
+        else:
+            requirements_run = []
+            
+            # TODO: unify with conda in env_export
+            env_name = pin_deps_as_env            
+            import collections
+            from conda_env.env import from_environment
+            from conda.cli.python_api import Commands, run_command
+            env_names = [(os.path.basename(e),e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
+            counts = collections.Counter([x[0] for x in env_names])
+            assert counts[env_name]==1 # would need more than name to be sure...
+            prefix = dict(env_names)[env_name]
+
+            packages = json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])
+            packagesd = {package['name']:package for package in packages}
+
+            deps = _get_dependencies(['install_requires'])
+
+            # TODO: could add channel to the pin...
+            requirements_run = ["%s ==%s"%(d,packagesd[d]['version']) for d in deps]
+                        
+            with open("conda.recipe/%s/_pyct_recipe_clobber.yaml"%recipe,'w') as f:
+                f.write(yaml.dump(
+                    {
+                        'requirements':{
+                            'run': requirements_run
+                        }
+                    },default_flow_style=False))
+
+    
+    def thing(channel,pin_deps_as_env,recipe):
+        cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
+                                                 "%(recipe)s")
+        if pin_deps_as_env != '':
+            cmd += " --clobber-file conda.recipe/%s/_pyct_recipe_clobber.yaml"%recipe
+        return cmd
+
+    def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe,pin_deps_as_env):
         cmds = []
         if pkg_tests:
             for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
                 cmds.append(
-                    thing(channel)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
+                    thing(channel,pin_deps_as_env,recipe)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
                     )
                 cmds.append("conda build purge") # remove test/work intermediates (see same comment below)
         # hack again for returning variable number of commands...
@@ -349,7 +393,13 @@ def task_package_build():
                             'source_files': ['tox.ini']
                     }},default_flow_style=False))
 
-    def remove_recipe_append(recipe,pkg_tests,test_python,test_group,test_requires):
+    def remove_recipe_append_and_clobber(recipe,pkg_tests,test_python,test_group,test_requires):
+        try:
+            p = os.path.join("conda.recipe",recipe,"_pyct_recipe_clobber.yaml")
+            os.remove(p)
+        except:
+            pass
+        
         if not pkg_tests:
             return
 
@@ -361,6 +411,7 @@ def task_package_build():
                 pass
 
     return {'actions': [
+        create_recipe_clobber,
         # first build the package...
         CmdAction(thing),
         "conda build purge", # remove test/work intermediates (disk space on travis...but could potentially annoy someone as it'll remove other test/work intermediates too...)
@@ -370,8 +421,8 @@ def task_package_build():
         create_recipe_append,
         CmdAction(thing2),
     ],
-            'teardown': [remove_recipe_append],
-            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests]}
+            'teardown': [remove_recipe_append_and_clobber],
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests, pin_deps_as_env]}
 
 
 
