@@ -435,7 +435,7 @@ def task_package_upload():
 
     def thing(label):
         # TODO: fix backticks hack/windows
-        return 'anaconda --token %(token)s upload --user pyviz ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe/%(recipe)s`'
+        return 'anaconda --token %(token)s upload --user %(user)s ' + ' '.join(['--label %s'%l for l in label]) + ' `conda build --output conda.recipe/%(recipe)s`'
 
     label_param = {
         'name':'label',
@@ -451,8 +451,15 @@ def task_package_upload():
         'type':str,
         'default':''}
 
+    # should be required, when I figure out params
+    user_param = {
+        'name':'user',
+        'long':'user',
+        'type':str,
+        'default':'pyviz'}
+    
     return {'actions': [CmdAction(thing)],
-            'params': [label_param,token_param,recipe_param]}
+            'params': [label_param,token_param,recipe_param,user_param]}
 
 
 
