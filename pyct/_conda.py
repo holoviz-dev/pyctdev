@@ -357,6 +357,8 @@ def task_package_build():
     def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe,pin_deps_as_env):
         cmds = []
         if pkg_tests:
+            # TODO: should test groups just be applied across others rather than product?
+            # It's about test isolation vs speed of running tests...
             for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
                 cmds.append(
                     thing(channel,pin_deps_as_env,recipe)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
