@@ -23,7 +23,7 @@ stages:
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
 
   - name: pvutil_conda_dev_package
-    if: tag =~ ^v(\d+|\.)*[a-z]\d*$
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$ OR (branch = master AND type != pull_request)
   - name: pvutil_pip_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$
   - name: pvutil_conda_package
@@ -115,6 +115,7 @@ jobs:
     stage: pvutil_conda_dev_package
     install:
       - cd pvutil
+      - git describe --long --dirty
       - doit package_build $CHANNELS --test-python=py36 --test-python=py27 --test-group=all
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
 
