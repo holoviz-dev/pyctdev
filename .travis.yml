@@ -21,10 +21,15 @@ stages:
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
   - name: pip_package
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
+
   - name: pvutil_conda_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$
   - name: pvutil_pip_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$
+  - name: pvutil_conda_package
+    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
+  - name: pvutil_pip_package
+    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
 
 jobs:
   include:
@@ -113,9 +118,24 @@ jobs:
       - doit package_build $CHANNELS --test-python=py36 --test-python=py27 --test-group=all
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=dev
 
+  - <<: *conda_default
+    stage: pvutil_conda_package
+    install:
+      - cd pvutil
+      - doit package_build $CHANNELS --test-python=py36 --test-python=py27 --test-group=all
+    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN --label=main
+
+
   - <<: *pip_pkg_default
     stage: pvutil_pip_dev_package
     env: PYENV_VERSION=3.6 PYPI="https://test.pypi.org/legacy/"
+    install:
+      - cd pvutil
+      - doit package_build --test-group=all $PIP_FORMATS
+
+  - <<: *pip_pkg_default
+    stage: pvutil_pip_package
+    env: PYENV_VERSION=3.6
     install:
       - cd pvutil
       - doit package_build --test-group=all $PIP_FORMATS
