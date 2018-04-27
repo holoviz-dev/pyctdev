@@ -21,9 +21,8 @@ stages:
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
   - name: pip_package
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
-
   - name: pvutil_conda_dev_package
-    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
+    if: tag =~ ^v(\d+|\.)*[a-z]\d*$
   - name: pvutil_pip_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$
 
