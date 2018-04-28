@@ -92,6 +92,7 @@ def _get_dependencies(groups):
         if group in ('install_requires','tests_require'):
             deps += meta.get(group,[])
         else:
+            # TODO: it's ok to not fail for missing install_requires, tests_require, i.e. standard ones. Not ok to not fail for missing extras_require e.g. I try doit develop_install -o recommended but if recommended does not exist that should be an error
             deps += meta.get('extras_require',{}).get(group,[])
     return deps
 
@@ -498,17 +499,18 @@ def task_env_create():
         uptodate = _env_exists
     except:
         uptodate = False
+
+    def _morex(channel):
+        return "conda create -y %s"%(" ".join(['-c %s'%c for c in channel])) + " --name %(name)s python=%(python)s"
     
     return {
-        'params': [python,name],
+        'params': [python,name,_channel_param],
         'uptodate': [uptodate],
         # TODO: Wouldn't need to check for env if conda create --force
         # would overwrite/update existing env.
-        # TODO: Meanwhile, if keeping, should allow to specify
-        # channels here?
         # TODO: note: pyct when testing itself will use previous pyct
         # but not yet testing this command...
-        'actions': ["conda create -y --name %(name)s python=%(python)s",
+        'actions': [CmdAction(_morex),
                     "conda install -y --name %(name)s -c pyviz/label/dev pyct"]}
 
 # TODO: this is another doit param hack :(
