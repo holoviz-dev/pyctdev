@@ -258,6 +258,10 @@ conda-forge and defaults. For a project with tricky requirements, we
 could recommend one above the other. Or if a project suffers in
 performance on one or the other, we could make a recommendation.)
 
+dev builds and dev package releases of projects on travis should use
+pyviz/label/dev to get other packages, while release package builds
+should use just pyviz. And then if happy with those package,
+conda-forge and defaults should be updated.
 
 ### 11. How to structure project
 
@@ -266,13 +270,16 @@ across multiple similar projects. Pyviz projects typically have
 repositories that look like:
 
 ```
-/package/
-/package/tests
-/package/tests/data
-/examples/
-/examples/data        # maybe just have /data
-/examples/assets
-/docs/
+package/
+package/tests
+package/tests/data
+package/examples/
+package/examples/data
+package/examples/assets
+examples -> package/examples
+
+doc/       # minimal nbsite skeleton only
+doc/assets # e.g. favicon - not relevant to notebooks
 ```
 
 Limit differences between what's in repository and what's in package
@@ -437,3 +444,7 @@ Rather than running tasks sequentially (wall clock time consuming; a
 task might affect subsequent ones), tasks can be run independently in
 parallel.
 
+### To add to docs
+
+* generating pinned conda package
+* generating environment.yml
