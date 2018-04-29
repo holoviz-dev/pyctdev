@@ -103,7 +103,7 @@ def task_package_build():
             enviros = []
             for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
                 enviros.append( get_env(p,g,r,w) )
-            return 'tox -e ' + ' , '.join(enviros)
+            return 'python -m tox -e ' + ' , '.join(enviros)
         else:
             return echo("no tests")
 
