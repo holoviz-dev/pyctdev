@@ -74,7 +74,7 @@ def task_test():
     # not sure how I was supposed to do this (gets all, flakes, unit, etc...)
     for t in toxconf['tox']['envlist'].split('-')[1][1:-1].split(','):
         yield {'actions':[CmdAction(thing(t))],
-               'doc':'Run "%s" tests'%t,
+               'doc':'Run "%s" tests'%t, # TODO: read from tox ini
                'basename': 'test_'+t,
                'params':[test_requires,test_what]}
 
