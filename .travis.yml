@@ -55,6 +55,7 @@ jobs:
     install: doit develop_install
     script:
       - doit test_all
+      - conda config --add channels file:///$HOME/miniconda/conda-bld      
       - doit --dir=examples/one test_all
       - doit --dir=examples/one test_export
 
