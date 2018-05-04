@@ -6,13 +6,13 @@ from setuptools import setup
 import versioneer
 
 setup_args = dict(
-    name = 'pyct',
-    description = 'pyviz common tasks',
+    name = 'pyctdev',
+    description = 'pyviz common tasks for developers',
     version = versioneer.get_version().lstrip('v'),
     cmdclass = versioneer.get_cmdclass(),
     license = 'BSD-3',
-    url = 'http://github.com/pyviz/pyct',
-    packages=['pyct'],
+    url = 'http://github.com/pyviz/pyctdev',
+    packages=['pyctdev'],
     python_requires=">=2.7",
     include_package_data = True,
     install_requires=[

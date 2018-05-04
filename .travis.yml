@@ -32,7 +32,7 @@ jobs:
   - &pip_default
     stage: test
     env: PYENV_VERSION=3.6
-    # (pyct requires itself to test itself)
+    # (pyctdev requires itself to test itself)
     before_install: pip install -e .
     install: doit develop_install
     script:
@@ -43,15 +43,15 @@ jobs:
 
   - &conda_default
     stage: test
-    env: PYCT_ECOSYSTEM=conda PYENV_VERSION=3.6
+    env: PYCTDEV_ECOSYSTEM=conda PYENV_VERSION=3.6
     before_install:
-      ## install miniconda (using git pyct)
-      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyct && rm -f .doit.db
+      ## install miniconda (using git pyctdev)
+      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
-      ## build conda package (using git pyct)
-      - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyct && rm -f .doit.db
+      ## build conda package (using git pyctdev)
+      - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
-      - conda install -y --use-local pyct
+      - conda install -y --use-local pyctdev
     install: doit develop_install
     script:
       - doit test_all

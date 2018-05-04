@@ -33,7 +33,7 @@ except AttributeError:
     del doit_cmd
 
 # TODO: one day might have more sophisticated backend management...
-ecosystem = get_var("ecosystem",os.getenv("PYCT_ECOSYSTEM","pip"))
+ecosystem = get_var("ecosystem",os.getenv("PYCTDEV_ECOSYSTEM","pip"))
 if ecosystem == 'pip':
     from ._pip import * # noqa: api
 elif ecosystem == 'conda':

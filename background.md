@@ -15,7 +15,7 @@ What's below is a list of various relevant topics. It's all up for
 discussion. There are places where I don't even know I don't know what
 I'm talking about. We need to agree on things, then maybe discuss
 whether support should be added for something in a place other than
-pyct eventually (e.g. there's `doit conda_develop_install` to install
+pyctdev eventually (e.g. there's `doit conda_develop_install` to install
 required and test dependencies plus the package itself in 'editable'
 mode - but this could instead be a command provided by conda itself).
 
@@ -69,7 +69,7 @@ a variety of complications arise in practice:
      dependencies from a local channel".
 
 
-Might seem that pyct is often shadowing simple commands and is thus a
+Might seem that pyctdev is often shadowing simple commands and is thus a
 bit pointless or a source of repetition. However, it's still useful as
 documentation of what command(s) we expect to use to carry out a task,
 and it allows grouping/dependencies. E.g. we have a definition of what
@@ -81,14 +81,14 @@ command(s) can be run alone without using doit.
 Don't know if the preceding is a good idea, but I at least get pretty
 confused about what I'm supposed to do on any particular project.
 
-In contrast, if a pyct task is many steps/is complex, might be better
+In contrast, if a pyctdev task is many steps/is complex, might be better
 to have more support in underlying tools. E.g.  `doit
 conda_develop_install` exists because there's no way to 'develop
 install' using conda, getting the dependencies, without running
 multiple conda and pip commands.
 
 
-Alternatives to doit+pyct:
+Alternatives to doit+pyctdev:
 
   * do nothing
 
@@ -310,19 +310,19 @@ latter because it uses pip to install dependencies - I get wheels, for
 fast trouble free installation).
 
 Developers may also want to create and manage environments (conda) or
-virtual environments (python). pyct can create environments. Why have
-pyct able to create environments? 1. Because it's useful to have one
+virtual environments (python). pyctdev can create environments. Why have
+pyctdev able to create environments? 1. Because it's useful to have one
 command you can run that will create *or* switch to environment if it
 already exists. E.g. imagine CI with miniconda/environment caching.
 One doit command to create or switch to environment is easier than
 having to figure out every time if the environment exists and creating
 it otherwise. (Add something to conda instead?) 2. Because it allows
-other features, e.g. pyct could provide tox-like functionality for
+other features, e.g. pyctdev could provide tox-like functionality for
 conda developers, where tests can be run over multiple versions of
 python, multiple sets of dependencies, etc. (Although maybe that's
 covered by conda-build with multiple recipes?)
 
-Note: the above pyct features (creating envs, testing over multiple
+Note: the above pyctdev features (creating envs, testing over multiple
 envs, develop install) are maybe candidates for moving to conda
 commands? Or already exist in conda somewhere?
 
@@ -439,13 +439,13 @@ TODO: email
 setup.cfg fairly popular at the moment. Might be replaced in the
 future, but seems reasonable to to use if for now.
 
-For now, pyct has various common (but awkward/long) test commands
+For now, pyctdev has various common (but awkward/long) test commands
 stored, available under tasks like `doit unit_tests` and `doit
 nb_lint`, etc. And it has some groups too, e.g. `all_tests`. If more
 of the pytest things above were done, these might not be necessary.
 
 There's some tension/overlap between config stored in setup.cfg (or
-tox.ini), and things in pyct. Bit worried pyct could grow a yaml
+tox.ini), and things in pyctdev. Bit worried pyctdev could grow a yaml
 config file...
 
 
@@ -466,7 +466,7 @@ and sphinx_ioam_theme don't use v.
 geoviews and parambokeh mix the two forms (confuses github a bit,
 e.g. in tag ordering?)
 
-hv, param, paramnb, autover, (pyct), (plus topographica, lancet,
+hv, param, paramnb, autover, (pyctdev), (plus topographica, lancet,
 imagen, featuremapper, ...) use v.
 
 
@@ -522,9 +522,9 @@ stick to it. However, chances of any kind of agreement on an existing
 standard seem pretty close to zero ;) Anyway, this kind of thing only
 matters/begins to save time as more people contribute.
 
-### alternative to multiple config files: pyct only
+### alternative to multiple config files: pyctdev only
 
-TODO: pyct could have a config file containing config for all the
+TODO: pyctdev could have a config file containing config for all the
 tools, so there'd be no need for lots of separate files (setup.cfg,
 tox.ini, options passed to commands in travis/appveyor, etc). But then
 the separate tools wouldn't work on their own...
@@ -547,7 +547,7 @@ contribute to/perform various tasks for most pyviz projects.
 
 Other things:
 
-* doit's a bit general/low level (although the idea is that pyct
+* doit's a bit general/low level (although the idea is that pyctdev
   helps)
 
 * can be awkward to develop tasks (although the idea is we don't have
@@ -556,10 +556,10 @@ Other things:
 * have to try quite hard to keep things declarative (and result's
   not as clear as e.g. a yaml config file would be)
 
-* Last doit to support py2 is 0.29. To simplify installation, pyct is
-  on pypi as py2 and py3, so it's always `pip install pyct` to get
-  pyct and the right doit (whereas `pip install doit` on py2 fails
-  fails; need `pip install pyct<0.30`).
+* Last doit to support py2 is 0.29. To simplify installation, pyctdev is
+  on pypi as py2 and py3, so it's always `pip install pyctdev` to get
+  pyctdev and the right doit (whereas `pip install doit` on py2 fails
+  fails; need `pip install pyctdev<0.30`).
 
 * May need to get one of doit's dependencies to put wheels on pypi
   (some mac users have reported pip installing doit because of
@@ -570,12 +570,12 @@ Other things:
   conda using developers. But could go onto pyviz.
 
 * If you start with just python (or conda), you can use that to pip
-  install doit+pyct. You can then use doit+pyct to do stuff like
+  install doit+pyctdev. You can then use doit+pyctdev to do stuff like
   create an environment and install dependencies into it. When you
   then activate that environment, if you want to run more doit tasks
-  (which you probably will want to do), you should install doit+pyct
+  (which you probably will want to do), you should install doit+pyctdev
   again so it uses the env's python. TODO: doit's create_environment
-  should install doit+pyct?
+  should install doit+pyctdev?
   
     * note: say you were using python 3 and created python 2
       environment. If you stay in same directory, the python2 doit you
@@ -585,11 +585,11 @@ Other things:
 * provokes negative reactions, another tool, etc. (Although the idea
   is developers don't have to use it - they can run the commands
   stored in doit on their own i.e. use doit for documentation of what
-  the commands are. And eventually doit/pyct could become unnecessary
+  the commands are. And eventually doit/pyctdev could become unnecessary
   as what's covered by standardish python tools may expand enough to
   cover managing projects rather than 'just python software
   packages'.) (May well be possible already to find a better/simpler
-  tool than doit. Shouldn't be hard to switch if we keep pyct
+  tool than doit. Shouldn't be hard to switch if we keep pyctdev
   reasonably straightforward, just generally calling external tools.)
 
 * I'm sure there are more...

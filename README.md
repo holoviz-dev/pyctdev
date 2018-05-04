@@ -1,13 +1,13 @@
-# pyct: pyviz common tasks
+# pyctdev: pyviz common tasks for developers
 
 Tools (and documentation) to support common tasks across many similar
 PyViz projects.
 
 **Note: documentation is draft/currently being written**
 
-## What is pyct?
+## What is pyctdev?
 
-The main part of pyct is a cross-platform, make-like tool plus library
+The main part of pyctdev is a cross-platform, make-like tool plus library
 of common tasks to allow project admin tasks to be run equally well
 locally or on CI systems, on different platforms, or to support
 different python package 'ecosystems' (pip and conda):
@@ -46,10 +46,10 @@ test_flakes          Run "flakes" tests
 test_unit            Run "unit" tests
 ```
 
-Although doit+pyct must be installed to run these tasks, the approach
+Although doit+pyctdev must be installed to run these tasks, the approach
 is trying to call standard python and/or conda tools where possible,
 so that people can run commands independently without installing
-doit+pyct. This means pyct can be viewed as:
+doit+pyctdev. This means pyctdev can be viewed as:
 
   * documentation of what all the common tasks are
   
@@ -77,39 +77,39 @@ There's also an [instructions](instructions.md) document for setting
 up a new project (but it's only a placeholder right now...).
 
 
-## What does pyct cover?
+## What does pyctdev cover?
 
 Something something
 
 ### 0. What are all the tasks? How to run a task?
 
-pyct shows what tasks there are, e.g. "run unit tests", "build conda
+pyctdev shows what tasks there are, e.g. "run unit tests", "build conda
 package", "upload conda package", "install as a developer", and so on.
 
-pyct also documents how to perform those tasks, i.e. what the
+pyctdev also documents how to perform those tasks, i.e. what the
 necessary command(s) are for a task, or what tasks should be run
 before others.
 
-To see all the tasks, you can type `doit list` in a project using pyct
+To see all the tasks, you can type `doit list` in a project using pyctdev
 to get a list of the tasks with descriptions. `doit info` gives more
-detail on any particular task. Alternatively, you can read the pyct
+detail on any particular task. Alternatively, you can read the pyctdev
 source code; most tasks are straightforward commands.
 
 
 ### 1. Can run project admin tasks locally, on CI, and across platforms
 
-doit/pyct are written in python so should work everywhere python's
+doit/pyctdev are written in python so should work everywhere python's
 available. (And once any python's available, doit can be used to
 install other pythons if necessary - currently miniconda and
 anaconda.)
 
-Other suggested tools used by pyct are also cross platform: tox,
+Other suggested tools used by pyctdev are also cross platform: tox,
 conda, pip, etc.
 
 
 ### 2. support python and conda ecosystems
 
-pyct supports performing most tasks with either the python/pip or the
+pyctdev supports performing most tasks with either the python/pip or the
 conda ecosystem. E.g. `doit develop_install` will typically run `pip
 install -e .[tests]`, which installs the dependencies using pip and
 then does an editable install. Alternatively, `doit ecosystem=conda
@@ -126,15 +126,15 @@ systems).
 ### 3. support multiple versions of python
 
 Similarly to allowing developers to support both pip and conda
-ecosystems, pyct allows developers to support multiple versions of
+ecosystems, pyctdev allows developers to support multiple versions of
 python. For python, doit uses tox to run same tests over multiple
-environments using tox. For conda, pyct runs conda build over multiple
+environments using tox. For conda, pyctdev runs conda build over multiple
 versions of python.
 
 
 ### 4. dependencies in one place
 
-pyct allows developers to express their project's "abstract"
+pyctdev allows developers to express their project's "abstract"
 dependencies in one place. Currently this place is setup.py, as it's
 widely supported by both python and conda tools. The dependencies
 listed in setup.py are used for:
@@ -154,17 +154,17 @@ e.g. for a tutorial examples environment, versions of all dependencies
 may be pinned to ensure reproducibility (see 10/environment files,
 below).
 
-pyct support transforming dependencies and generating environment.yml
+pyctdev support transforming dependencies and generating environment.yml
 (and possibly pipenv or similar).
 
 
 ### 5. dependencies labelled for different purposes
 
-pyct supports expressing build and install/runtime dependencies, plus
+pyctdev supports expressing build and install/runtime dependencies, plus
 various optional groups of dependencies (e.g. for running examples,
 building docs, etc).
 
-pyct uses standard/generally supported python/pip/setuptools setup.py
+pyctdev uses standard/generally supported python/pip/setuptools setup.py
 arguments to do this (`install_requires` and `extras_require`). pip
 understands these, so the same optional dependency groups are
 available to users (e.g. a user can run `pip install
@@ -179,7 +179,7 @@ generated - though typically our projects just have "base" and
 
 ### 6. testing of what users install
 
-pyct encourages testing of the packages that users will install,
+pyctdev encourages testing of the packages that users will install,
 rather than focusing only on testing what developers work with.
 
 In the python ecosystem, tox is used to build a package, create a
@@ -199,11 +199,11 @@ to the point of being able to run the tests is difficult. Seasoned
 project developers know what they are doing, but it's less obvious to
 occasional developers.
 
-pyct ensures the dependencies required to develop a project are
+pyctdev ensures the dependencies required to develop a project are
 obvious, and encourages developers to keep them up to date (e.g. by
 testing `doit develop_install` on neutral CI machines).
 
-pyct also tries to capture how developers set up their environment.
+pyctdev also tries to capture how developers set up their environment.
 E.g. dependencies installed by conda, with a `python setup.py develop
 --no-deps` on top.
 
@@ -234,12 +234,12 @@ package metadata only once. Currently this is in setup.py. Templating
 is then used for conda build. This prevents the common situation where
 descriptions, URLs, licenses, etc, are mismatched.
 
-pyct expects project is being released first on pypi and (anaconda.org
+pyctdev expects project is being released first on pypi and (anaconda.org
 pyviz). From these sources, conda-forge can be updated, followed by
 anaconda defaults (but we are not necessarily the maintainers of those
 channels).
 
-pyct is currently primarily supporting pure python packages. While
+pyctdev is currently primarily supporting pure python packages. While
 they may often have complex, platform specific dependencies, the
 packages themselves are pure python. Therefore noarch:python conda
 packages where possible.
@@ -290,20 +290,20 @@ shipped to users.
 
 Often, it's not clear how to run the tests for a project. Pyct already
 helps with this by having high level tasks such as "run unit
-tests". However, pyct also encourages internal command definitions to
+tests". However, pyctdev also encourages internal command definitions to
 appear only once.
 
 Currently, setup.cfg is used to store global options for commands
 (e.g. flake8 rules), while tox.ini is used to store the various actual
 commands used for different things (e.g. running unit tests, running
 tests in different environments, etc). (TODO: what is shared across
-projects, and how? Would rather not have a config file for pyct...)
+projects, and how? Would rather not have a config file for pyctdev...)
 
 
 ### 13. What's tested, and how.
 
 There are various tools for running tests (e.g. pytest, nose). An aim
-of pyct is for pyviz projects to all end up using the same tools where
+of pyctdev is for pyviz projects to all end up using the same tools where
 possible. And to configure those tools in the same kind of way.
 
 * unit tests: pytest
@@ -324,7 +324,7 @@ possible. And to configure those tools in the same kind of way.
 * ...?
 
 pytest has features for defining ("marking") and then selecting groups
-of tests to run. So pyct expects there to be:
+of tests to run. So pyctdev expects there to be:
 
   * "slow tests" (`pytest -m slow`)
 

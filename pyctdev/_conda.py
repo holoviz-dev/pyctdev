@@ -137,7 +137,7 @@ def task_env_export():
 
     e.g.
 
-    doit ecosystem=conda env_export --env-name _pyct_test_one --env-file pyct_test_one.yaml --env-name-again _pyct_test_one --options examples env_create --name _pyct_test_one
+    doit ecosystem=conda env_export --env-name _pyctdev_test_one --env-file pyctdev_test_one.yaml --env-name-again _pyctdev_test_one --options examples env_create --name _pyctdev_test_one
     """
 
     # TODO: required, rename, friendlier
@@ -339,7 +339,7 @@ def task_package_build():
             from conda.models.match_spec import MatchSpec
             requirements_run = ["%s ==%s"%(MatchSpec(d).name,packagesd[MatchSpec(d).name]['version']) for d in deps]
                         
-            with open("conda.recipe/%s/_pyct_recipe_clobber.yaml"%recipe,'w') as f:
+            with open("conda.recipe/%s/_pyctdev_recipe_clobber.yaml"%recipe,'w') as f:
                 f.write(yaml.dump(
                     {
                         'requirements':{
@@ -352,7 +352,7 @@ def task_package_build():
         cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
         if pin_deps_as_env != '':
-            cmd += " --clobber-file conda.recipe/%s/_pyct_recipe_clobber.yaml"%recipe
+            cmd += " --clobber-file conda.recipe/%s/_pyctdev_recipe_clobber.yaml"%recipe
         return cmd
 
     def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe,pin_deps_as_env):
@@ -400,7 +400,7 @@ def task_package_build():
 
     def remove_recipe_append_and_clobber(recipe,pkg_tests,test_python,test_group,test_requires):
         try:
-            p = os.path.join("conda.recipe",recipe,"_pyct_recipe_clobber.yaml")
+            p = os.path.join("conda.recipe",recipe,"_pyctdev_recipe_clobber.yaml")
             os.remove(p)
         except:
             pass
@@ -485,7 +485,7 @@ def task_package_upload():
 def task_env_create():
     """Create named environment if it doesn't already exist
 
-    Environment will include pyct.
+    Environment will include pyctdev.
     """
     python = {
         'name':'python',
@@ -508,10 +508,10 @@ def task_env_create():
         'uptodate': [uptodate],
         # TODO: Wouldn't need to check for env if conda create --force
         # would overwrite/update existing env.
-        # TODO: note: pyct when testing itself will use previous pyct
+        # TODO: note: pyctdev when testing itself will use previous pyctdev
         # but not yet testing this command...
         'actions': [CmdAction(_morex),
-                    "conda install -y --name %(name)s -c pyviz/label/dev pyct"]}
+                    "conda install -y --name %(name)s -c pyviz/label/dev pyctdev"]}
 
 # TODO: this is another doit param hack :(
 # need to file issue. meanwhile probably decorate uptodate fns

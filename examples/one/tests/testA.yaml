@@ -1,4 +1,4 @@
-name: _pyct_test_one
+name: _pyctdev_test_one
 channels:
   - defaults
 dependencies:
