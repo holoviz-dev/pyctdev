@@ -73,8 +73,14 @@ def task_test():
     toxconf.read('tox.ini')
     # not sure how I was supposed to do this (gets all, flakes, unit, etc...)
     for t in toxconf['tox']['envlist'].split('-')[1][1:-1].split(','):
+        doc = 'Run "%s" tests (see tox.ini for commands)'%t
+        if '_'+t in toxconf:
+            desc = toxconf['_'+t].get("description")
+            if desc is not None:
+                doc = desc
+            
         yield {'actions':[CmdAction(thing(t))],
-               'doc':'Run "%s" tests'%t, # TODO: read from tox ini
+               'doc':doc,
                'basename': 'test_'+t,
                'params':[test_requires,test_what]}
 
