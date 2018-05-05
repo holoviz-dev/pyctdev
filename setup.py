@@ -41,7 +41,9 @@ setup_args = dict(
         # pins are supposed to be for when it became possible to
         # install them outside of root/base env, and when api appeared;
         # not sure exactly which versions
-        'ecosystem_conda': ['conda >=4.4', 'conda-build >=3.8']
+        # (actually, cb pin is for tested/known good version
+        # TODO: beware pin here and in _conda.py!
+        'ecosystem_conda': ['conda >=4.4', 'conda-build ==3.10.1']
     }
 )
 

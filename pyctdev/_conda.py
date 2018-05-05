@@ -256,21 +256,19 @@ def _mc_installed(task,values):
 def task_ecosystem_setup():
     """Common conda setup (must be run in base env).
 
-    Updates to latest conda, conda-build, and anaconda-client.
+    Updates to latest conda, and anaconda-client (cb is pinned)
     """
     def thing1(channel):
         return "conda update -y %s conda"%" ".join(['-c %s'%c for c in channel])
 
     def thing2(channel):
-        return "conda install -y %s anaconda-client conda-build"%" ".join(['-c %s'%c for c in channel])
+        # TODO: beware pin here and in setup.py!
+        return 'conda install -y %s anaconda-client "conda-build=3.10.1"'%" ".join(['-c %s'%c for c in channel])
 
     return {
         'actions': [
             CmdAction(thing1),
-            CmdAction(thing2),
-            # https://github.com/conda/conda-build/issues/2821            
-            "conda remove -y --force conda-build",
-            "pip install https://github.com/ceball/conda-build/archive/issue2821-recipe_append_ordering.zip"
+            CmdAction(thing2)
         ],
         'params': [_channel_param]}
 
