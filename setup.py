@@ -7,7 +7,7 @@ import versioneer
 
 setup_args = dict(
     name = 'pyctdev',
-    description = 'pyviz common tasks for developers',
+    description = 'python packaging common tasks for developers',
     version = versioneer.get_version().lstrip('v'),
     cmdclass = versioneer.get_cmdclass(),
     license = 'BSD-3',

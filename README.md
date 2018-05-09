@@ -1,7 +1,7 @@
-# pyctdev: pyviz common tasks for developers
+# pyctdev: python packaging common tasks for developers
 
 Tools (and documentation) to support common tasks across many similar
-PyViz projects.
+projects, focusing on those making up [PyViz.org](http://pyviz.org).
 
 **Note: documentation is draft/currently being written**
 
@@ -9,7 +9,7 @@ PyViz projects.
 
 The main part of pyctdev is a cross-platform, make-like tool plus library
 of common tasks to allow project admin tasks to be run equally well
-locally or on CI systems, on different platforms, or to support
+locally or on various CI systems, on different platforms, or to support
 different python package 'ecosystems' (pip and conda):
 
 ```
@@ -60,7 +60,7 @@ doit+pyctdev. This means pyctdev can be viewed as:
     can be corrected :) )
   
   * a way to map relatively unchanging "high level tasks" (e.g. "run
-    the unit tests") to underlying commands that might change over
+    the unit tests") to underlying specific commands that might change over
     time (e.g. as the python packaging ecosystem changes) or that vary
     between projects (e.g. run tests with nose or with pytest).
 
@@ -79,7 +79,10 @@ up a new project (but it's only a placeholder right now...).
 
 ## What does pyctdev cover?
 
-Something something
+pyctdev is a work in progress, and when it stabilizes we will need to
+expand this description to include a clear mission statement about
+what is intended to be covered by pyctdev and which aspects of package
+management are out of scope.
 
 ### 0. What are all the tasks? How to run a task?
 
@@ -99,9 +102,13 @@ source code; most tasks are straightforward commands.
 ### 1. Can run project admin tasks locally, on CI, and across platforms
 
 doit/pyctdev are written in python so should work everywhere python's
-available. (And once any python's available, doit can be used to
-install other pythons if necessary - currently miniconda and
-anaconda.)
+available (not just on Unix-like systems, unlike many project
+configuration files). (And once any python's available, doit can be
+used to install other pythons if necessary - currently miniconda and
+anaconda.) Having the same command to run on each platform helps ensure
+that testing, package building, and related tasks are done consistently
+across platforms, which is particularly important when developers use 
+one platform but users will download packages for another.
 
 Other suggested tools used by pyctdev are also cross platform: tox,
 conda, pip, etc.
@@ -154,7 +161,7 @@ e.g. for a tutorial examples environment, versions of all dependencies
 may be pinned to ensure reproducibility (see 10/environment files,
 below).
 
-pyctdev support transforming dependencies and generating environment.yml
+pyctdev supports transforming dependencies and generating environment.yml
 (and possibly pipenv or similar).
 
 
@@ -229,20 +236,23 @@ dependencies if necessary.
 
 ### 9. packages on demand? simplify packaging recipes?
 
-As well as specifying dependencies once, attempt to express other
+As well as specifying dependencies once, pyct attempts to express other
 package metadata only once. Currently this is in setup.py. Templating
 is then used for conda build. This prevents the common situation where
 descriptions, URLs, licenses, etc, are mismatched.
 
-pyctdev expects project is being released first on pypi and (anaconda.org
-pyviz). From these sources, conda-forge can be updated, followed by
+pyctdev expects project is being released first on pypi and on an 
+anaconda.org channel. From these sources, conda-forge can be updated, followed by
 anaconda defaults (but we are not necessarily the maintainers of those
 channels).
 
-pyctdev is currently primarily supporting pure python packages. While
+pyctdev is currently primarily supporting pure Python packages. While
 they may often have complex, platform specific dependencies, the
-packages themselves are pure python. Therefore noarch:python conda
-packages where possible.
+packages controlled by pyct are so far all pure Python. Therefore 
+we build noarch:python conda packages where possible.  If we start
+maintaining packages with binary code, pyct will be extended 
+to support platform-specific packages, but for now none of our
+packages require that.
 
 
 ### 10. Channels/sources of dependencies
@@ -250,17 +260,18 @@ packages where possible.
 For python/pip: typically just pypi.org. But other 'channels' can be
 specified. E.g. test.pypi.org, or a private server.
 
-Our pyviz conda packages can usually be installed on top of either
-anaconda defaults or conda-forge. anaconda.org pyviz (releases) and
-pyviz/label/dev (dev versions). Only our specific packages are on this
-channel. (We could recommend that any one install should not mix
+The conda packages we maintain for PyViz.org can usually be installed
+on top of either anaconda defaults or conda-forge. We currently put
+them on anaconda.org pyviz (releases) and pyviz/label/dev (dev
+versions), and only our specific packages are on this channel. For a
+variety of reasons we recommend that any one install should not mix
 conda-forge and defaults. For a project with tricky requirements, we
-could recommend one above the other. Or if a project suffers in
-performance on one or the other, we could make a recommendation.)
+recommend one above the other. Or if a project suffers in
+performance on one or the other, we make a recommendation.
 
-dev builds and dev package releases of projects on travis should use
+Our dev builds and dev package releases of projects on Travis CI use
 pyviz/label/dev to get other packages, while release package builds
-should use just pyviz. And then if happy with those package,
+just use pyviz. And then if devs are happy with those packages,
 conda-forge and defaults should be updated.
 
 ### 11. How to structure project
@@ -282,8 +293,9 @@ doc/       # minimal nbsite skeleton only
 doc/assets # e.g. favicon - not relevant to notebooks
 ```
 
-Limit differences between what's in repository and what's in package
-shipped to users.
+We try to limit differences between what's in the repository and
+what's in the package shipped to users, to avoid creating custom
+package building code.
 
 
 ### 12. Unify how various tools are run
@@ -303,8 +315,9 @@ projects, and how? Would rather not have a config file for pyctdev...)
 ### 13. What's tested, and how.
 
 There are various tools for running tests (e.g. pytest, nose). An aim
-of pyctdev is for pyviz projects to all end up using the same tools where
-possible. And to configure those tools in the same kind of way.
+of pyctdev is for our pyviz projects to all end up using the same
+developer tools where possible. And to configure those tools in the
+same kind of way.
 
 * unit tests: pytest
 
@@ -351,7 +364,8 @@ needs to know version (`__init__.py`; packaging: `setup.py`,
 
 Storing in one place, and it being the tag rather than in the git repo
 source code, makes it easier to automate various other 'release time'
-tasks. Most pyviz projects will use autover (via param).
+tasks. Our pyviz projects generally use
+[autover](https://github.com/pyviz/autover) (via param).
 
 Versioning scheme:
 
@@ -363,8 +377,10 @@ Versioning scheme:
 ### 16. automate release type tasks on travis
 
 As far as possible, just by running one or a couple of doit commands,
-avoiding CI-provided magic except where it's unavoidable or very
-useful (e.g. parallelizing builds, etc).
+we avoid CI-provided magic except where it's truly unavoidable or very
+useful (e.g. parallelizing builds, etc), because we need to support
+multiple CI systems (Travis CI for Linux and Mac, plus Appveyor for
+Windows).
 
 #### automatically generated packages
 
@@ -407,19 +423,19 @@ Two main options:
      appropriate for a young, fast-moving project until release 1.0,
      then archiving each x.y version.
 
-Note: for e.g. datashader, using travis isn't currently feasible (build
-takes too long/uses too much memory/requires too-large data). But
-travis is just using doit commands, so same can be run locally at
-release time.
+Note: for e.g. datashader, using Travis CI isn't currently feasible
+(build takes too long/uses too much memory/requires too-large
+data). But Travis is just using doit commands, so same can be run
+locally at release time.
 
 
 ### 17. Extra CI things
 
 #### platforms
 
-* Ubuntu (travis)
+* Ubuntu (Travis CI)
 
-* MacOS (travis)
+* MacOS (Travis CI)
 
 * Windows (appveyor)
 
@@ -434,7 +450,7 @@ supported. (Supported also for python/pip, although speed is not an
 issue there).
 
 In many ways, this could be a better test than installing from
-scratch, since most devs/users will be updating existing conda
+scratch, since many devs/users will be updating existing conda
 installations/environments rather than starting from scratch.
 
 

@@ -1,6 +1,7 @@
 # Background
 
-What are the problems for pyviz projects, and what alternatives there
+What are the problems for the types of projects we maintain, which are
+primarily those under the PyViz umbrella, and what alternatives there
 might be for solving them?
 
 PyViz projects are so far all pure python projects, though they often
