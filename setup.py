@@ -8,6 +8,8 @@ import versioneer
 setup_args = dict(
     name = 'pyctdev',
     description = 'python packaging common tasks for developers',
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",    
     version = versioneer.get_version().lstrip('v'),
     cmdclass = versioneer.get_cmdclass(),
     license = 'BSD-3',
@@ -34,10 +36,14 @@ setup_args = dict(
         'py',       # for tox
         #'argparse', # for virtualenv
         ##
+
+        # Pretty much part of every python distribution now anyway.
+        # Use it e.g. to be able to read pyproject.toml
+        #'pip'
     ],
     extras_require={
         'tests': ['flake8'],
-        'ecosystem_pip': ['tox','twine','wheel','pip'],
+        'ecosystem_pip': ['tox','twine','wheel'],
         # pins are supposed to be for when it became possible to
         # install them outside of root/base env, and when api appeared;
         # not sure exactly which versions
