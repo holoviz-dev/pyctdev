@@ -8,7 +8,7 @@ setup_args = dict(
     packages = find_packages(),
     install_requires = [
         # just example
-        'hypothesis'
+        'hypothesis <3.57.0'
     ],
     extras_require = {
         'tests': ['flake8'],
