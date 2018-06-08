@@ -345,6 +345,16 @@ def task_package_build():
                         }
                     },default_flow_style=False))
 
+    def thing0():
+        import pip._vendor.pytoml as toml
+        if os.path.exists('pyproject.toml'):
+            pp = toml.load(open('pyproject.toml'))
+            if 'build-system' in pp:
+                buildreqs = pp['build-system'].get("requires",[])
+                if len(buildreqs)>0:            
+                    return "conda install -y " + " ".join('"%s"'%dep for dep in buildreqs)
+
+        return 'echo "no build reqs"'
     
     def thing(channel,pin_deps_as_env,recipe):
         cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
@@ -415,6 +425,8 @@ def task_package_build():
 
     return {'actions': [
         create_recipe_clobber,
+        # 0. install build requirements (conda build doesn't support pyproject.toml/PEP518
+        CmdAction(thing0),
         # first build the package...
         CmdAction(thing),
         "conda build purge", # remove test/work intermediates (disk space on travis...but could potentially annoy someone as it'll remove other test/work intermediates too...)
