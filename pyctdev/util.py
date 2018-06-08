@@ -48,17 +48,28 @@ def get_tox_cmds(env):
         #raise ValueError("Could not find %s in tox.ini"%env)
         return ["""python -c "print('Could not read """ + env + """ from tox.ini');import sys;sys.exit(1)" """]
 
-def get_tox_deps(env):
+def get_tox_deps(env,hack_one=False):
     if env in toxconf.envconfigs:
         deps = toxconf.envconfigs[env].deps
         deps2use = []
         for d in deps:
-            if '.[' in d.name:
-                pass # only tox dependencies - not from setup.py
-            elif d.name=='.':
-                assert False # expecting this to never happen
+            if hack_one is False: # you are testing that dependencies were already specified correctly
+                if '.[' in d.name:
+                    pass # only tox dependencies - not from setup.py
+                elif d.name=='.':
+                    assert False # expecting this to never happen
+                else:
+                    deps2use.append(d.name)
             else:
-                deps2use.append(d.name)
+                if '.[' in d.name: # can't quite decide if this is the right thing to do (it's for supporting --test-requires on existing package)
+                    deps2use += _get_dependencies([x.strip() for x in deps[0].name[2:-1].split(',')])
+                    
+                elif d.name=='.':
+                    assert False # expecting this to never happen
+                else:
+                    deps2use.append(d.name)
+
+                
         return deps2use
         
     else:
@@ -126,3 +137,32 @@ def test_matrix(test_python,test_group,test_requires,test_what):
 def echo(msg):
     return 'python -c "print(\"%s\")"'%msg
 
+
+##### only for conda really
+
+# TODO: what do people who install dependencies via conda actually do?
+# Have their own list via other/previous development work? Read from
+# travis? Translate from setup.py?  Read from meta.yaml? Install from
+# existing anaconda.org conda package and then remove --force?  Build
+# and install conda package then remove --force?
+def _get_dependencies(groups):
+    """get dependencies from setup.py"""
+    try:
+        from setup import meta
+    except ImportError:
+        try:
+            from setup import setup_args as meta
+        except ImportError:
+            raise ImportError("Could not import setup metadata dict from setup.py (tried meta and setup_args)")
+
+    deps = []
+    for group in groups:
+        if group in ('install_requires','tests_require'):
+            deps += meta.get(group,[])
+        else:
+            # TODO: it's ok to not fail for missing install_requires, tests_require, i.e. standard ones. Not ok to not fail for missing extras_require e.g. I try doit develop_install -o recommended but if recommended does not exist that should be an error
+            deps += meta.get('extras_require',{}).get(group,[])
+    return deps
+
+def get_dependencies(groups):
+    return " ".join('"%s"'%dep for dep in _get_dependencies(groups))

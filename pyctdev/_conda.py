@@ -71,34 +71,7 @@ python_develop = "pip install --no-deps -e ."
 # setuptools develop and easy_install missing deps:
 #  python_develop = "python setup.py develop"
 
-
-# TODO: what do people who install dependencies via conda actually do?
-# Have their own list via other/previous development work? Read from
-# travis? Translate from setup.py?  Read from meta.yaml? Install from
-# existing anaconda.org conda package and then remove --force?  Build
-# and install conda package then remove --force?
-def _get_dependencies(groups):
-    """get dependencies from setup.py"""
-    try:
-        from setup import meta
-    except ImportError:
-        try:
-            from setup import setup_args as meta
-        except ImportError:
-            raise ImportError("Could not import setup metadata dict from setup.py (tried meta and setup_args)")
-
-    deps = []
-    for group in groups:
-        if group in ('install_requires','tests_require'):
-            deps += meta.get(group,[])
-        else:
-            # TODO: it's ok to not fail for missing install_requires, tests_require, i.e. standard ones. Not ok to not fail for missing extras_require e.g. I try doit develop_install -o recommended but if recommended does not exist that should be an error
-            deps += meta.get('extras_require',{}).get(group,[])
-    return deps
-
-def get_dependencies(groups):
-    return " ".join('"%s"'%dep for dep in _get_dependencies(groups))
-
+from .util import get_dependencies,_get_dependencies
 
 
 def _conda_install_with_options(options,channel,env_name_again):
@@ -282,6 +255,95 @@ recipe_param = {
     'type':str,
     'default':''
 }
+
+
+# TODO: (almost) duplicates some bits of package_build
+# TODO: missing from pip version
+def task_package_test():
+    """Test existing package
+
+    Specify a "test matrix" (kind of) via repeated --test-python,
+    --test-group, and --test-requires.
+
+
+    """
+
+    def thing(channel,recipe):
+        cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
+                                                 "%(recipe)s")
+        return cmd
+
+    
+    def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe):
+        cmds = []
+        if pkg_tests:
+            # TODO: should test groups just be applied across others rather than product?
+            # It's about test isolation vs speed of running tests...
+            for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
+                cmds.append(
+                    thing(channel,recipe)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
+                    )
+                cmds.append("conda build purge") # remove test/work intermediates (see same comment below)
+        # hack again for returning variable number of commands...
+        return " && ".join(cmds)
+
+    def create_recipe_append(recipe,test_python,test_group,test_requires,pkg_tests):
+        if not pkg_tests:
+            return
+
+        if yaml is None:
+            raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
+
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
+            environment = get_env(p,g,r,w)
+            deps = get_tox_deps(environment,hack_one=True) # note the hack_one, which is different from package_build
+            cmds = get_tox_cmds(environment)
+            py = get_tox_python(environment)
+
+            # deps and cmds are appended
+            #
+            # TODO: will overwrite recipe_append--... if someone
+            # already happens to use it...
+            #
+            # would maybe like to do something more like conda build
+            # conda.recipe -t existing_pkg --extra-command ... --extra-deps ...
+            with open("conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%(recipe,p,g,r,w),'w') as f:
+                f.write(yaml.dump(
+                    {
+                        'test':{
+                            'requires':['python =%s'%py]+deps,
+                            'commands':cmds,
+                            # still undecided about which config files to use
+                            'source_files': ['tox.ini']
+                    }},default_flow_style=False))
+
+    def remove_recipe_append_and_clobber(recipe,pkg_tests,test_python,test_group,test_requires):
+        try:
+            p = os.path.join("conda.recipe",recipe,"_pyctdev_recipe_clobber.yaml")
+            os.remove(p)
+        except:
+            pass
+        
+        if not pkg_tests:
+            return
+
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
+            try:
+                p = os.path.join("conda.recipe",recipe,"recipe_append--%s-%s-%s-%s.yaml"%(p,g,r,w))
+                os.remove(p)
+            except:
+                pass
+
+    return {'actions': [
+        # then test it...
+        # (if test commands overlap what's in recipe, will be some
+        #  repetition...they ran above, and they will run again...)
+        create_recipe_append,
+        CmdAction(thing2),
+    ],
+            'teardown': [remove_recipe_append_and_clobber],
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests]}
+
 
 
 def task_package_build():
