@@ -26,7 +26,7 @@ except ImportError:
     yaml = None
 
 from doit.action import CmdAction
-from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo
+from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs
 
 # TODO: for caching env on travis, what about links? option to copy?
 
@@ -73,6 +73,15 @@ python_develop = "pip install --no-deps -e ."
 
 from .util import get_dependencies,_get_dependencies
 
+def _conda_build_deps(channel):
+    buildreqs = get_buildreqs()
+    deps = " ".join('"%s"'%dep for dep in buildreqs)
+    if len(buildreqs)>0:
+        e = '' if env_name_again=='' else '-n %s'%env_name_again
+        return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
+    else:
+        return echo("Skipping conda install (no build dependencies)")
+    
 
 def _conda_install_with_options(options,channel,env_name_again):
     deps = get_dependencies(['install_requires']+options)
@@ -407,16 +416,12 @@ def task_package_build():
                         }
                     },default_flow_style=False))
 
-    def thing0():
-        import pip._vendor.pytoml as toml
-        if os.path.exists('pyproject.toml'):
-            pp = toml.load(open('pyproject.toml'))
-            if 'build-system' in pp:
-                buildreqs = pp['build-system'].get("requires",[])
-                if len(buildreqs)>0:            
-                    return "conda install -y " + " ".join('"%s"'%dep for dep in buildreqs)
-
-        return 'echo "no build reqs"'
+    def thing0(channel):
+        buildreqs = get_buildreqs()
+        if len(buildreqs)>0:            
+            return "conda install -y " + " ".join('"%s"'%dep for dep in buildreqs)
+        else:
+            return 'echo "no build reqs"'    
     
     def thing(channel,pin_deps_as_env,recipe):
         cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
@@ -629,6 +634,7 @@ def task_develop_install():
 
     """
     return {'actions': [
+        CmdAction(_conda_build_deps),
         CmdAction(_conda_install_with_options_hacked),
         python_develop],
             'params': [_options_param,_channel_param]}

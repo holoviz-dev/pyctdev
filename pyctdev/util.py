@@ -166,3 +166,13 @@ def _get_dependencies(groups):
 
 def get_dependencies(groups):
     return " ".join('"%s"'%dep for dep in _get_dependencies(groups))
+
+
+def get_buildreqs():
+    import pip._vendor.pytoml as toml
+    buildreqs = []
+    if os.path.exists('pyproject.toml'):
+        pp = toml.load(open('pyproject.toml'))
+        if 'build-system' in pp:
+            buildreqs += pp['build-system'].get("requires",[])
+    return buildreqs
