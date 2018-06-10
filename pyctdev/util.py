@@ -135,7 +135,7 @@ def test_matrix(test_python,test_group,test_requires,test_what):
         yield combo
 
 def echo(msg):
-    return 'python -c "print(\"%s\")"'%msg
+    return 'python -c "print(\'%s\')"'%msg
 
 
 ##### only for conda really
