@@ -77,7 +77,6 @@ def _conda_build_deps(channel):
     buildreqs = get_buildreqs()
     deps = " ".join('"%s"'%dep for dep in buildreqs)
     if len(buildreqs)>0:
-        e = '' if env_name_again=='' else '-n %s'%env_name_again
         return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
     else:
         return echo("Skipping conda install (no build dependencies)")
