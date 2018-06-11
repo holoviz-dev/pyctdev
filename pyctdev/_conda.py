@@ -417,8 +417,9 @@ def task_package_build():
 
     def thing0(channel):
         buildreqs = get_buildreqs()
-        if len(buildreqs)>0:            
-            return "conda install -y " + " ".join('"%s"'%dep for dep in buildreqs)
+        if len(buildreqs)>0:
+            deps = " ".join('"%s"'%dep for dep in buildreqs)
+            return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
         else:
             return 'echo "no build reqs"'    
     
