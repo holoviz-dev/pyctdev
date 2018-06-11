@@ -9,7 +9,7 @@ env:
   global:
     - CHANNELS="-c pyviz/label/dev"
     # will be overridden later to upload only wheel for py27 (sdist from py36)
-    - PIP_FORMATS="--formats=\"sdist --formats=gztar bdist_wheel\""
+    - PIP_FORMATS="sdist bdist_wheel"
 
 stages:
   - test
@@ -68,11 +68,11 @@ jobs:
 
   - &pip_pkg_default
     stage: pip_dev_package
-    env: PYENV_VERSION=2.7 PYPI="https://test.pypi.org/legacy/" PIP_FORMATS="--formats=bdist_wheel"
+    env: PYENV_VERSION=2.7 PYPI="https://test.pypi.org/legacy/" PIP_FORMATS="bdist_wheel"
     before_install:
       - pip install -e .
       - doit ecosystem_setup
-    install: doit package_build --test-group=all $PIP_FORMATS
+    install: doit package_build --test-group=all --formats="$PIP_FORMATS"
     script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
 
   - <<: *pip_pkg_default
@@ -80,7 +80,7 @@ jobs:
 
   - <<: *pip_pkg_default
     stage: pip_package
-    env: PYENV_VERSION=2.7 PYPI="https://upload.pypi.org/legacy/" PIP_FORMATS="--formats=bdist_wheel"
+    env: PYENV_VERSION=2.7 PYPI="https://upload.pypi.org/legacy/" PIP_FORMATS="bdist_wheel"
 
   - <<: *pip_pkg_default
     stage: pip_package
