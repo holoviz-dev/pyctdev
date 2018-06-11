@@ -94,7 +94,7 @@ def task_package_build():
         'name':'formats',
         'long':'formats',
         'type':str,
-        'default':'sdist --formats=zip bdist_wheel --universal'
+        'default':'sdist --formats=gztar bdist_wheel --universal'
     }
     # TODO: missing support for pypi channels
     
