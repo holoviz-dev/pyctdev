@@ -9,7 +9,7 @@ env:
   global:
     - CHANNELS="-c pyviz/label/dev"
     # will be overridden later to upload only wheel for py27 (sdist from py36)
-    - PIP_FORMATS="--formats=\"gztar bdist_wheel\""
+    - PIP_FORMATS="--formats=\"sdist --formats=gztar bdist_wheel\""
 
 stages:
   - test
