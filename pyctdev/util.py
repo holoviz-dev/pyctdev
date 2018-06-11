@@ -146,14 +146,23 @@ def echo(msg):
 # existing anaconda.org conda package and then remove --force?  Build
 # and install conda package then remove --force?
 def _get_dependencies(groups):
-    """get dependencies from setup.py"""
-    try:
-        from setup import meta
-    except ImportError:
+    """get dependencies from setup.cfg or otherwise setup.py"""
+    meta = None
+    if os.path.exists("setup.cfg"):
+        from setuptools.config import read_configuration
+        setupcfg = read_configuration("setup.cfg")
+        if 'options' in setupcfg:
+            if 'install_requires' in setupcfg['options']:
+                meta = setupcfg['options']
+
+    if meta is None:
         try:
-            from setup import setup_args as meta
+            from setup import meta
         except ImportError:
-            raise ImportError("Could not import setup metadata dict from setup.py (tried meta and setup_args)")
+            try:
+                from setup import setup_args as meta
+            except ImportError:
+                raise ValueError("Could not find dependencies in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)")
 
     deps = []
     for group in groups:
