@@ -76,6 +76,9 @@ this document.
 There's also an [instructions](instructions.md) document for setting
 up a new project (but it's only a placeholder right now...).
 
+If you have a question, please feel free to open an issue (after first
+checking the [FAQ](FAQ.md).
+
 
 ## What does pyctdev cover?
 
