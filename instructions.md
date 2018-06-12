@@ -1,57 +1,297 @@
-Note: unfinished draft
+# How to set up a project
 
-Things to configure...
+Typically expected files in the project root directory for a project
+supporting pip (using setuptools) and conda using (conda build):
 
+  * `README.md`, `LICENSE.txt`: project description and license
 
-## structure
+  * `setup.py` (+ `setup.cfg`), `MANIFEST.in`, `pyproject.toml`:
+    python packaging metadata (about package, dependencies), rules
+    about which files to package, build tool config (including
+    dependencies)
 
+  * `conda.recipe/meta.yaml`: conda build recipe (templated from
+    python packaging metadata as far as possible)
 
-## dependencies
+  * `tox.ini`: how to test (environments, groups of tests, test tool
+    config, etc)
 
+  * `.travis.yml`, `.appveyor.yml`: CI config
 
-## versioning
+  * (`dodo.py`: currently required for pyctdev, but will go away)
 
+Typically expected structure for `yourpackage`:
 
-## testing
-
-
-### unit tests
-
-
-### pyflakes
-
-
-### basic notebook tests
-
-
-### notebook data tests
-
-
-### benchmarking
-
-
-## CI
-
-### travis
+```
+README.md # etc
+doc/
+examples/
+yourpackage/
+yourpackage/tests
+```
 
 
-### appveyor
+## python packaging metadata
 
 
+### pyproject.toml
 
-## docs
+```
+[build-system]
+requires = [
+    "pyctbuild",
+    "setuptools"
+]
+```
+
+### setup.py
+
+```
+from setuptools import setup
+
+###
+# Temporary until build requirements as specified in pyproject.toml
+# are widely supported
+try:
+    import pyctbuild
+except ImportError:
+    raise ImportError("yourpackage requires pyctbuild to build; please upgrade to pip>=10 and try again (or alternatively, install pyctbuild manually first (e.g. `conda install -c pyviz pyctbuild`)")
+###
+
+if __name__=="__main__":
+    setup()
+```
+
+(TODO: packaging examples; https://github.com/pyviz/pyct/issues/22)
+
+### setup.cfg
+
+#### metadata
+
+```
+[metadata]
+name = yourpackage
+version = attr: pyctbuild.version.get_setup_version2
+description = yourpackage provides...
+long_description = file: README.md
+long_description_content_type = text/markdown
+license = BSD 3-Clause License
+license_file = LICENSE.txt
+classifiers =
+    License :: OSI Approved :: BSD License
+    Operating System :: OS Independent
+    Programming Language :: Python
+    Programming Language :: Python :: 2.7
+    Programming Language :: Python :: 3.5
+    Programming Language :: Python :: 3.6
+    Development Status :: 4 - Beta
+author = PyViz
+author_email = holoviews@gmail.com
+maintainer = PyViz
+maintainer_email = holoviews@gmail.com
+url = https://yourproject.org/
+project_urls =
+    Bug Tracker = https://github.com/pyviz/yourproject/issues
+    Documentation = https://yourproject.org/
+    Source Code = https://github.com/pyviz/yourproject
+```
+
+#### dependencies etc
+
+```
+[options]
+include_package_data = True  # ensure MANIFEST.in rules respected at install time
+packages = find:             # automatically find packages
+
+python_requires = >=2.7
+
+install_requires =
+    param >=1.6.1
+    bokeh >=0.12.10
+    etc...
+
+[options.extras_require]
+tests =
+    pytest >=2.8.5
+    nbsmoke >=0.2.6
+    flake8
+    etc...
+
+examples =
+    pyct
+    holoviews
+    etc...
+
+doc =
+    nbsite
+    sphinx_ioam_theme
+    etc...
+```
+
+#### entry points
+
+```
+[options.entry_points]
+console_scripts =
+    yourpackage = yourpackage.__main__:main
+```
+
+#### automated git tag versioning
+
+```
+[tool:autover]
+reponame = parambokeh
+```
+
+Also include `pkgname` if different from `reponame`.
+
+(See also `version` in metadata, above.)
 
 
-## pypi
+#### ensure universal wheel
+
+```
+[wheel]
+universal = 1
+```
+
+
+## tox.ini (testing)
+
+```
+# For use with pyct (https://github.com/pyviz/pyct), but just standard
+# tox config (works with tox alone).
+
+[tox]
+# "test matrix" (bit cryptic; https://github.com/pyviz/pyct/issues/9)
+#        python version     test group        extra envs  extra commands       
+envlist = {py27,py36}-{lint,unit,examples,all}-{default}-{dev,pkg}
+
+[_lint]
+description = Flake check python and notebooks, and verify notebooks
+deps = .[tests]
+commands = flake8
+           pytest --nbsmoke-lint -k ".ipynb"
+           pytest --nbsmoke-verify -k ".ipynb"
+
+[_unit]
+description = Run unit tests
+deps = .[tests]
+commands = pytest yourpackage
+
+[_examples]
+description = Test that examples run
+deps = .[examples, tests]
+commands = pytest --nbsmoke-run -k ".ipynb"
+
+[_all]
+description = Run all tests
+deps = .[examples, tests]
+commands = {[_lint]commands}
+           {[_unit]commands}
+           {[_examples]commands}
+
+[_pkg]
+commands = yourpackage copy-examples --path=. --force
+           yourpackage fetch-data --path=. --datasets small.yml
+
+[testenv]
+changedir = {envtmpdir}
+
+commands = pkg: {[_pkg]commands}
+           unit: {[_unit]commands}
+           lint: {[_lint]commands}
+           examples: {[_examples]commands}
+           all: {[_all]commands}
+
+deps = unit: {[_unit]deps}
+       lint: {[_lint]deps}
+       examples: {[_examples]deps}
+       all: {[_all]deps}
+
+[pytest]
+addopts = -v --pyargs --doctest-modules --doctest-ignore-import-errors
+norecursedirs = doc .git dist build _build .ipynb_checkpoints
+# notebooks to skip running; one case insensitive re to match per line
+nbsmoke_skip_run = ^.*JSONInit\.ipynb$
+
+[flake8]
+include = *.py
+# run_test.py is generated by conda build, which appears to have a
+# bug resulting in code being duplicated a couple of times.
+exclude = .git,__pycache__,.tox,.eggs,*.egg,doc,dist,build,_build,.ipynb_checkpoints,run_test.py
+ignore = E,
+         W
+```
 
 
 ## conda package(s)
 
+`conda.recipe/meta.yaml`:
 
-## tox
+```
+{% set sdata = load_setup_py_data() %}
+
+package:
+  name: yourpackage
+  version: {{ sdata['version'] }}
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+  entry_points:
+    {% for group,epoints in sdata.get("entry_points",{}).items() %}
+    {% for entry_point in epoints %}
+    - {{ entry_point }}
+    {% endfor %}
+    {% endfor %}  
+
+requirements:
+  host:
+    # duplicates pyproject.toml (not supported in conda build)
+    - python
+    - setuptools
+    - pyctbuild
+  run:
+    - python {{ sdata['python_requires'] }}
+    {% for dep in sdata.get('install_requires',{}) %}
+    - {{ dep }}
+    {% endfor %}
+
+test:
+  imports:
+    - yourpackage
+  requires:
+    {% for dep in sdata['extras_require']['tests'] %}
+    - {{ dep }}
+    {% endfor %}
+
+about:
+  home: {{ sdata['url'] }}
+  summary: {{ sdata['description'] }}
+  license: {{ sdata['license'] }}
+```
 
 
+## travis, appveyor
 
-## notebook tests
+TODO
 
+(only calling pyctdev commands so can also be run locally)
+
+(travis variables for pypi, anaconda.org)
+
+
+## docs
+
+TODO
+
+
+## more TODO
+
+  * notebook data tests
+  * benchmarking
 
