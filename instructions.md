@@ -1,7 +1,7 @@
 # How to set up a project
 
 Typically expected files in the project root directory for a project
-supporting pip (using setuptools) and conda using (conda build):
+supporting pip (using setuptools) and conda (using conda build):
 
   * `README.md`, `LICENSE.txt`: project description and license
 
@@ -274,6 +274,9 @@ about:
   summary: {{ sdata['description'] }}
   license: {{ sdata['license'] }}
 ```
+
+Note: pyctdev will run the appropriate test commands from tox.ini
+during packaging.
 
 
 ## travis, appveyor
