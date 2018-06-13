@@ -1,26 +1,8 @@
 # How to set up a project
 
-Typically expected files in the project root directory for a project
-supporting pip (using setuptools) and conda (using conda build):
+## Structure
 
-  * `README.md`, `LICENSE.txt`: project description and license
-
-  * `setup.py` (+ `setup.cfg`), `MANIFEST.in`, `pyproject.toml`:
-    python packaging metadata (about package, dependencies), rules
-    about which files to package, build tool config (including
-    dependencies)
-
-  * `conda.recipe/meta.yaml`: conda build recipe (templated from
-    python packaging metadata as far as possible)
-
-  * `tox.ini`: how to test (environments, groups of tests, test tool
-    config, etc)
-
-  * `.travis.yml`, `.appveyor.yml`: CI config
-
-  * (`dodo.py`: currently required for pyctdev, but will go away)
-
-Typically expected structure for `yourpackage`:
+(TODO not yet written) Typically expected structure for `yourpackage`:
 
 ```
 README.md # etc
@@ -30,8 +12,41 @@ yourpackage/
 yourpackage/tests
 ```
 
+...
 
-## python packaging metadata
+
+## Packaging/testing config
+
+For a project that:
+
+  1. supports installation via python (pip) and conda
+
+  2. has python packages built with setuptools and conda packages
+     built with conda build
+
+  3. is tested on win, mac, linux using appveyor and travis CI
+
+the typically expected config files for the project are:
+
+  * `README.md`, `LICENSE.txt`: project description and license
+
+  * `setup.cfg`: python package metadata (about package, dependencies)
+
+  * `pyproject.toml`: package/build time dependencies
+
+  * `MANIFEST.in`: rules about which files to package
+
+  * `conda.recipe/meta.yaml`: conda build recipe (templated from
+    python packaging metadata as far as possible) i.e. conda
+    equivalent of `setup.cfg` + `pyproject.toml`.
+
+  * `tox.ini`: how to test (i.e. environments, groups of tests, test
+    tool config, etc)
+
+  * `.travis.yml`, `.appveyor.yml`: CI config
+
+  * (`dodo.py`: currently required for pyctdev, but will probably go
+    away)
 
 
 ### pyproject.toml
@@ -49,24 +64,15 @@ requires = [
 ```
 from setuptools import setup
 
-###
-# Temporary until build requirements as specified in pyproject.toml
-# are widely supported
-try:
-    import pyctbuild
-except ImportError:
-    raise ImportError("yourpackage requires pyctbuild to build; please upgrade to pip>=10 and try again (or alternatively, install pyctbuild manually first (e.g. `conda install -c pyviz pyctbuild`)")
-###
-
 if __name__=="__main__":
     setup()
 ```
 
-(TODO: packaging examples; https://github.com/pyviz/pyct/issues/22)
+(TODO: missing packaging of examples; https://github.com/pyviz/pyct/issues/22)
 
 ### setup.cfg
 
-#### metadata
+#### About the package
 
 ```
 [metadata]
@@ -96,12 +102,10 @@ project_urls =
     Source Code = https://github.com/pyviz/yourproject
 ```
 
-#### dependencies etc
+#### dependencies
 
 ```
 [options]
-include_package_data = True  # ensure MANIFEST.in rules respected at install time
-packages = find:             # automatically find packages
 
 python_requires = >=2.7
 
@@ -128,6 +132,15 @@ doc =
     etc...
 ```
 
+#### Additional recommended packaging options
+
+```
+[options]
+...
+include_package_data = True  # ensure MANIFEST.in rules respected at install time
+packages = find:             # automatically find packages
+```
+
 #### entry points
 
 ```
@@ -140,7 +153,7 @@ console_scripts =
 
 ```
 [tool:autover]
-reponame = parambokeh
+reponame = yourpackage
 ```
 
 Also include `pkgname` if different from `reponame`.
@@ -156,7 +169,7 @@ universal = 1
 ```
 
 
-## tox.ini (testing)
+### tox.ini (testing)
 
 ```
 # For use with pyct (https://github.com/pyviz/pyct), but just standard
@@ -225,9 +238,7 @@ ignore = E,
 ```
 
 
-## conda package(s)
-
-`conda.recipe/meta.yaml`:
+### conda.recipe/meta.yaml
 
 ```
 {% set sdata = load_setup_py_data() %}
@@ -273,13 +284,14 @@ about:
   home: {{ sdata['url'] }}
   summary: {{ sdata['description'] }}
   license: {{ sdata['license'] }}
+  license_file: {{ sdata['license_file'] }}
 ```
 
 Note: pyctdev will run the appropriate test commands from tox.ini
 during packaging.
 
 
-## travis, appveyor
+### travis, appveyor
 
 TODO
 
