@@ -26,15 +26,15 @@ For a project that:
 
   3. is tested on win, mac, linux using appveyor and travis CI
 
-the typically expected config files for the project are:
+the typically expected packaging/testing config files are:
 
   * `README.md`, `LICENSE.txt`: project description and license
 
-  * `setup.cfg`: python package metadata (about package, dependencies)
+  * `setup.cfg`: python package metadata and dependencies
 
-  * `pyproject.toml`: package/build time dependencies
+  * `pyproject.toml`: dependencies required at packaging/build time
 
-  * `MANIFEST.in`: rules about which files to package
+  * `MANIFEST.in`: rules about which files to include in package
 
   * `conda.recipe/meta.yaml`: conda build recipe (templated from
     python packaging metadata as far as possible) i.e. conda
