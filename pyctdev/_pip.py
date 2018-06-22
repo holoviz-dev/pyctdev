@@ -1,9 +1,11 @@
 # TODO: should probably use tox --recreate because currently
 # pip+tox not necessarily sync'ing env changes properly.
 
+import warnings
+
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo
+from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, get_buildreqs
 
 # TODO: move tasks to pip.py and leave hacks here.
 
@@ -90,6 +92,20 @@ def task_package_build():
 
     """
 
+    sdist_install_build_deps_param = {
+        'name': 'sdist_install_build_deps',
+        'long': 'sdist-install-build-deps',
+        'type': bool,
+        'default': False,
+    }
+
+    sdist_run_tests_param = {
+        'name': 'sdist_run_tests',
+        'long': 'sdist-run-tests',
+        'type': bool,
+        'default': False,
+    }
+
     # TODO: should be called commands or similar
     formats_param = {
         'name':'formats',
@@ -99,20 +115,55 @@ def task_package_build():
     }
     # TODO: missing support for pypi channels
     
-    def thing(test_group,test_python,test_requires,pkg_tests):
+    def thing(test_group,test_python,test_requires,pkg_tests,sdist=False):
         if pkg_tests:
             enviros = []
             for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
                 enviros.append( get_env(p,g,r,w) )
-            return 'python -m pyctdev._vendor.tox_wrapper -e ' + ' , '.join(enviros)
+
+            # i.e. for now, standard tox for sdist
+            cmd = 'python -m pyctdev._vendor.tox_wrapper' if not sdist else 'python -m tox'
+            return cmd + ' -e ' + ' , '.join(enviros)
         else:
             return echo("no tests")
 
+    def wheel(test_group,test_python,test_requires,pkg_tests,formats):
+        if 'wheel' in formats:
+            return thing(test_group,test_python,test_requires,pkg_tests)
+        else:
+            return echo("no wheel")
+
+    def sdist(test_group,test_python,test_requires,pkg_tests,formats,sdist_run_tests):
+        if 'sdist' in formats:
+            if sdist_run_tests:
+                return thing(test_group,test_python,test_requires,pkg_tests,sdist=True)
+            else:
+                warnings.warn("You have requested to build an sdist. Unlike wheel, sdist will not be installed and tested by default. To also install and test sdist, specify --sdist-run-tests.")
+                return echo("not running sdist tests")
+        else:
+            return echo("no sdist")
+        
+    def sdist_build_deps(formats,sdist_install_build_deps):
+        if 'sdist' in formats:
+            if not sdist_install_build_deps:
+                warnings.warn("If the project for which you are building an sdist has build dependencies, you will need to install them yourself first or specify --sdist-install-build-deps to have them installed for you (which will permanently affect your current environment). This is a limitation of pip not yet supporting building of sdist; https://github.com/pypa/pip/issues/5407, https://github.com/pypa/pip/issues/5401")
+                return echo("not installing sdist build deps")
+            else:
+                buildreqs = get_buildreqs()
+                deps = " ".join('"%s"'%dep for dep in buildreqs)
+                if len(buildreqs)>0:
+                    return "pip install %s"%deps
+                else:
+                    return echo("no build deps")
+
+
     # TODO: would be able to use the packages created by tox if
     # https://github.com/tox-dev/tox/issues/232 were done    
-    return {'actions': [CmdAction(thing),
+    return {'actions': [CmdAction(wheel),
+                        CmdAction(sdist_build_deps),
+                        CmdAction(sdist),
                         'python setup.py %(formats)s'],
-            'params': [formats_param,test_group,test_python,test_requires,pkg_tests]}
+            'params': [formats_param,test_group,test_python,test_requires,pkg_tests,sdist_run_tests_param,sdist_install_build_deps_param]}
 
 def task_package_upload():
     """Upload pip packages to pypi"""
