@@ -1,9 +1,6 @@
 # TODO: various hacks to fix are && join cmds, quoting, default param
 # value for list (or at least move to issues)
 
-# TODO: is conda build repeating test commands multiple times? Maybe just
-# on windows?
-
 # TODO: whether to include any tests (and tests requires) in our projects'
 # conda recipes (or just use package_build's testing).
 
@@ -21,6 +18,13 @@ del get_versions
 
 from doit import get_var
 from doit.action import CmdAction
+
+###
+# until https://github.com/tox-dev/tox/issues/850 is in a tox release, make
+# sure we'll import our unreleased copy of tox.
+import sys
+sys.path.insert(1,os.path.join(os.path.dirname(__file__),"_vendor","tox-pep-518.zip"))
+###
 
 from .util import get_tox_cmds, test_requires, get_env, test_what
 

@@ -2,7 +2,9 @@ import sys
 import itertools
 import configparser
 
-# TODO: provide fallback or vendor (bit of) tox
+# Fallbacks for conda, which can't install tox from defaults (at
+# least, not as of June 2018). Allows to parse tox.ini (i.e. to use
+# tox.ini as single place where all test cmds and envs are stored)
 try:
     import tox.config as tox_config
 except:
