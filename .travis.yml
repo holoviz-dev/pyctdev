@@ -72,7 +72,7 @@ jobs:
     before_install:
       - pip install -e .
       - doit ecosystem_setup
-    install: doit package_build --test-group=all --formats="$PIP_FORMATS" --test-sdist
+    install: doit package_build --test-group=all --formats="$PIP_FORMATS" --sdist-run-tests
     script: doit package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
 
   - <<: *pip_pkg_default
