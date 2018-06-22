@@ -68,23 +68,23 @@ jobs:
 
   - &pip_pkg_default
     stage: pip_dev_package
-    env: PYENV_VERSION=2.7 PYPI="https://test.pypi.org/legacy/" PIP_FORMATS="bdist_wheel"
+    env: PYENV_VERSION=2.7 PYPI=testpypi PIP_FORMATS="bdist_wheel"
     before_install:
       - pip install -e .
       - doit ecosystem_setup
-    install: doit package_build --test-group=all --formats="$PIP_FORMATS"
-    script: doit package_upload -u ceball -p $PYPIPWD -r ${PYPI}
+    install: doit package_build --test-group=all --formats="$PIP_FORMATS" --test-sdist
+    script: doit package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
 
   - <<: *pip_pkg_default
-    env: PYENV_VERSION=3.6 PYPI="https://test.pypi.org/legacy/"
-
-  - <<: *pip_pkg_default
-    stage: pip_package
-    env: PYENV_VERSION=2.7 PYPI="https://upload.pypi.org/legacy/" PIP_FORMATS="bdist_wheel"
+    env: PYENV_VERSION=3.6 PYPI=testpypi
 
   - <<: *pip_pkg_default
     stage: pip_package
-    env: PYENV_VERSION=3.6 PYPI="https://upload.pypi.org/legacy/"
+    env: PYENV_VERSION=2.7 PYPI=pypi PIP_FORMATS="bdist_wheel"
+
+  - <<: *pip_pkg_default
+    stage: pip_package
+    env: PYENV_VERSION=3.6 PYPI=pypi
 
 
   ##### conda

@@ -16,6 +16,11 @@ PYPI_CHANNELS = {
     'testpypi': 'https://test.pypi.org/simple'
 }
 
+PYPI_UPLOAD_URLS = {
+    'pypi': 'https://upload.pypi.org/legacy/',
+    'testpypi': "https://test.pypi.org/legacy/"
+}
+
 _channel_param = {
     'name':'channel',
     'long':'channel',
@@ -185,17 +190,31 @@ def task_package_upload():
     }
 
     repository_url = {
-        'name':'repository-url',
+        'name':'repository_url',
         'long':'repository-url',
         'short': 'r',
         'type':str,
-        'default':'https://test.pypi.org/legacy/'
+        'default':''
     }
+    
+    pypi = {
+        'name':'pypi',
+        'long':'pypi',
+        'type':str,
+        'default':'testpypi'
+    }
+
+    def thing(username,password,repository_url,pypi):
+        if repository_url!="":
+            warnings.warn("--repository-url is deprecated")
+            return 'twine upload -u %(username)s -p %(password)s --repository-url=%(repository_url) dist/*'
+        else:
+            return 'twine upload -u %(username)s -p %(password)s --repository-url='+ PYPI_UPLOAD_URLS[pypi] +' dist/*'
 
     # TODO: uploading everything in dist is a bad idea; fix with tox
     # #232 (mentioned above).
-    return {'actions':['twine upload -u %(username)s -p %(password)s --repository-url=%(repository-url)s dist/*'],
-            'params': [username,password,repository_url]}
+    return {'actions':[CmdAction(thing)],
+            'params': [username,password,repository_url,pypi]}
 
 
 
