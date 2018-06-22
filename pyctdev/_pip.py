@@ -90,6 +90,7 @@ def task_package_build():
 
     """
 
+    # TODO: should be called commands or similar
     formats_param = {
         'name':'formats',
         'long':'formats',
