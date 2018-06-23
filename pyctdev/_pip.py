@@ -160,6 +160,8 @@ def task_package_build():
                     return "pip install %s"%deps
                 else:
                     return echo("no build deps")
+        else:
+            return echo("no sdist requested")
 
 
     # TODO: would be able to use the packages created by tox if
