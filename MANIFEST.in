@@ -2,5 +2,5 @@ include versioneer.py
 include LICENSE
 include README.md
 include pyctdev/_version.py
-include pyctdev/_vendor/*.zip
+include pyctdev/_vendor/*.*
 include tox.ini
