@@ -1,6 +1,8 @@
 # TODO: should probably use tox --recreate because currently
 # pip+tox not necessarily sync'ing env changes properly.
 
+# TODO: missing test package task for pip. Current workaround is build package each time.
+
 import warnings
 
 from doit.action import CmdAction

@@ -415,6 +415,7 @@ def task_package_build():
                         }
                     },default_flow_style=False))
 
+    # TODO: this should be requested by flag! like for pip
     def thing0(channel):
         buildreqs = get_buildreqs()
         if len(buildreqs)>0:
