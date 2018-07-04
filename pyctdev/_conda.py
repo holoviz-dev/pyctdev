@@ -9,6 +9,7 @@ Tasks for conda world
 
 import platform
 import os
+import glob
 import json
 try:
     from urllib.request import urlretrieve
@@ -639,3 +640,56 @@ def task_develop_install():
         CmdAction(_conda_install_with_options_hacked),
         python_develop],
             'params': [_options_param,_channel_param]}
+
+
+def task_env_dependency_graph():
+    """Write out dependency graph of named environment."""
+
+    def _x(env_name):
+
+        ##### find the environment
+        # (todo copied from earlier in file!)
+        import collections
+        from conda.cli.python_api import Commands, run_command
+        env_names = [(os.path.basename(e),e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
+        counts = collections.Counter([x[0] for x in env_names])
+        assert counts[env_name]==1 # would need more than name to be sure...
+        prefix = dict(env_names)[env_name]
+
+        ###### build graph from packages' metadata
+        from conda.models.match_spec import MatchSpec
+        nodes = set()
+        edges = set()
+        for pkgmetafile in glob.glob(os.path.join(prefix,'conda-meta','*.json')):
+            pkgmeta = json.load(open(pkgmetafile))
+            pkgname = pkgmeta['name']
+            nodes.add(pkgname)
+            for d in pkgmeta.get('depends', []):
+                edges.add( (pkgname, MatchSpec(d).name) )
+
+        ###### write out the graph
+        try:
+            import graphviz
+        except ImportError:
+            graphviz = None
+
+        if graphviz:
+            G = graphviz.Digraph(filename=env_name,format='svg') # can open in browser, can search text
+            for n in nodes:
+                G.node(n)
+            for e in edges:
+                G.edge(*e)
+            G.render()
+            print("wrote %s.svg"%env_name)
+        else:
+            # should replace this made up format with something else
+            with open(env_name+".txt",'w') as f:
+                f.write("***** packages *****\n")
+                for n in nodes:
+                    f.write("%s\n"%n)
+                f.write("\n***** dependencies *****\n")
+                for e in edges:
+                    f.write("%s -> %s\n"%e)                    
+            print("wrote %s.txt (install graphviz for svg)"%env_name)
+
+    return {'actions': [_x,], 'params':[env_name,]}
