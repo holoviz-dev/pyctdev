@@ -210,8 +210,7 @@ def task_package_upload():
 
     def thing(username,password,repository_url,pypi):
         if repository_url!="":
-            warnings.warn("--repository-url is deprecated")
-            return 'twine upload -u %(username)s -p %(password)s --repository-url=%(repository_url) dist/*'
+            return 'twine upload -u %(username)s -p %(password)s --repository-url=%(repository_url)s dist/*'
         else:
             return 'twine upload -u %(username)s -p %(password)s --repository-url='+ PYPI_UPLOAD_URLS[pypi] +' dist/*'
 
