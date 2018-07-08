@@ -9,6 +9,7 @@ setup_args = dict(
     install_requires = [
         # just example
         'hypothesis[numpy] <3.57.0'
+        # TODO: need a [] without a version to test cb dropping as selector
     ],
     extras_require = {
         'tests': ['flake8'],
