@@ -18,10 +18,10 @@ requirements:
   run:
     - python {{ sdata['python_requires'] }}
     {% for dep in sdata.get('install_requires',{}) %}
-    - {{ dep }}
+    - "{{ dep }}"
     {% endfor %}
     {% for dep in sdata['extras_require']['ecosystem_conda'] %}
-    - {{ dep }}
+    - "{{ dep }}"
     {% endfor %}
 
 test:
@@ -29,7 +29,7 @@ test:
     - pyctdev
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
-    - {{ dep }}
+    - "{{ dep }}"
     {% endfor %}    
   source_files:
     # since we're testing itself...
