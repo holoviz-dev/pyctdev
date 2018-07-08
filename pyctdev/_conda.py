@@ -11,6 +11,7 @@ import platform
 import os
 import glob
 import json
+import re
 try:
     from urllib.request import urlretrieve
 except ImportError:
@@ -265,6 +266,20 @@ recipe_param = {
     'default':''
 }
 
+def _join_the_club(dep):
+    # cb at least at 3.10.1 interprets square brackets as selectors
+    # even if not after a # and then silently drops...not sure what's
+    # accidental and what's deliberate difference between cb and
+    # conda. Meanwhile, I've been using the fact that e.g. conda
+    # install "dask[complete]" results in installing "dask" to
+    # implement the convention that conda packages contain everything
+    # i.e. any pip install x[option1,option2,...]  is covered by conda
+    # install x. see https://github.com/pyviz/pyct/issues/42
+    new = re.sub(r'\[.*?\]','',dep)
+    # not much point warning only here, since it happens in other places too
+    #if new!=dep:warnings.warn("Changed your dep from %s to %s"%(dep,new))
+    return new
+
 
 # TODO: (almost) duplicates some bits of package_build
 # TODO: missing from pip version
@@ -306,6 +321,7 @@ def task_package_test():
         for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
             environment = get_env(p,g,r,w)
             deps = get_tox_deps(environment,hack_one=True) # note the hack_one, which is different from package_build
+            deps = [_join_the_club(d) for d in deps]
             cmds = get_tox_cmds(environment)
             py = get_tox_python(environment)
 
@@ -403,6 +419,7 @@ def task_package_build():
             packagesd = {package['name']:package for package in packages}
 
             deps = _get_dependencies(['install_requires'])
+            deps = [_join_the_club(d) for d in deps]
 
             # TODO: could add channel to the pin...
             from conda.models.match_spec import MatchSpec
@@ -454,7 +471,7 @@ def task_package_build():
 
         for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
             environment = get_env(p,g,r,w)
-            deps = get_tox_deps(environment)
+            deps = [_join_the_club(d) for d in get_tox_deps(environment)]
             cmds = get_tox_cmds(environment)
             py = get_tox_python(environment)
 
