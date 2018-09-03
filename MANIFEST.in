@@ -3,5 +3,5 @@ include LICENSE
 include README.md
 include pyctdev/_version.py
 include pyctdev/_vendor/*.*
-include pyctdev/condatemplate.yaml
+include pyctdev/tasks/condatemplate.yaml
 include tox.ini

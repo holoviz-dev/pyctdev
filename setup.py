@@ -17,9 +17,16 @@ setup_args = dict(
     packages=['pyctdev'],
     python_requires=">=2.7",
     include_package_data = True,
+    entry_points={
+        'console_scripts': [
+            'pyctdev = pyctdev.__main__:main'
+        ]
+    },
     install_requires=[
+        "param",
         # otherwise py2 users will just get an error (should really
         # be fixed in doit)
+        # TODO: pin. (and py3 only now?)
         'doit' if sys.version_info[0]>2 else 'doit <0.30',
 
         # doit requires cloudpickle but does not specify the dependency
@@ -42,8 +49,10 @@ setup_args = dict(
 
         # Pretty much part of every python distribution now anyway.
         # Use it e.g. to be able to read pyproject.toml
+        # Also many conda packages use it to build anyway.        
         # pinning to avoid https://github.com/pyviz/pyctdev/issues/12
         'pip >=19.1.1'
+#        'setuptools >=39' # for its vendoring of stuff        
     ],
     extras_require={
         'tests': ['flake8'],
@@ -52,7 +61,11 @@ setup_args = dict(
         # install them outside of root/base env, and when api appeared;
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
-        'ecosystem_conda': ['conda >=4.4', 'conda-build >=3.10.1']
+        # TODO: does this work out practically vs ecosystem_setup? E.g. what about updating to latest conda? Or just rely on miniconda to provide that (then what about e.g. caching on travis?)
+        'ecosystem_conda': ['conda >=4.4',
+                            'conda-build >=3.10.1',
+                            'anaconda-client']
+                            # +some kind of yaml?
     }
 )
 
