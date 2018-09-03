@@ -88,6 +88,25 @@ _options_param = {
     'default':['tests']
 }
 
+# the hack for above default
+_options_param2 = {
+    'name':'options2',
+    'long':'options2',
+    'short': 'o2',
+    'type':list,
+    'default':[]
+}
+
+
+# TODO: very related to options_param :(
+# TODO: couldn't pip support this, or some kind of pattern matching?
+_all_extras_param = {
+    'name':'all_extras',
+    'long':'all-extras',
+    'type':bool,
+    'default':False
+}
+
 test_python = {
     'name':'test_python',
     'long':'test-python',
@@ -143,13 +162,7 @@ def echo(msg):
 
 ##### only for conda really
 
-# TODO: what do people who install dependencies via conda actually do?
-# Have their own list via other/previous development work? Read from
-# travis? Translate from setup.py?  Read from meta.yaml? Install from
-# existing anaconda.org conda package and then remove --force?  Build
-# and install conda package then remove --force?
-def _get_dependencies(groups):
-    """get dependencies from setup.cfg or otherwise setup.py"""
+def _get_setup_metadata():
     meta = None
     if os.path.exists("setup.cfg"):
         from setuptools.config import read_configuration
@@ -167,7 +180,21 @@ def _get_dependencies(groups):
             except ImportError:
                 raise ValueError("Could not find dependencies in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)")
 
+    return meta
+    
+
+# TODO: what do people who install dependencies via conda actually do?
+# Have their own list via other/previous development work? Read from
+# travis? Translate from setup.py?  Read from meta.yaml? Install from
+# existing anaconda.org conda package and then remove --force?  Build
+# and install conda package then remove --force?
+def _get_dependencies(groups,all_extras=False):
+    """get dependencies from setup.cfg or otherwise setup.py"""
+    meta = _get_setup_metadata()
     deps = []
+    if all_extras:
+        extras = meta.get('extras_require',{})
+        groups = set(groups).union(set(extras))
     for group in groups:
         if group in ('install_requires','tests_require'):
             deps += meta.get(group,[])
@@ -176,8 +203,8 @@ def _get_dependencies(groups):
             deps += meta.get('extras_require',{}).get(group,[])
     return deps
 
-def get_dependencies(groups):
-    return " ".join('"%s"'%dep for dep in _get_dependencies(groups))
+def get_dependencies(groups,all_extras=False):
+    return " ".join('"%s"'%dep for dep in _get_dependencies(groups,all_extras=all_extras))
 
 
 def get_buildreqs():
@@ -188,3 +215,54 @@ def get_buildreqs():
         if 'build-system' in pp:
             buildreqs += pp['build-system'].get("requires",[])
     return buildreqs
+
+
+# TODO: can i use more of setuptools config parsing?
+def read_pins(f):
+    from setuptools.config import ConfigHandler
+    # duplicates some earlier configparser stuff (which doesn't
+    # support py2; need to clean up)
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser # python2 (also prevents dict-like access)
+    import re
+    pyctdev_section = 'tool:pyctdev'
+    config = configparser.ConfigParser()
+    config.read(f)
+
+    if pyctdev_section not in config.sections():
+        return {}
+
+    try:
+        pins_raw = config.get(pyctdev_section,'pins')
+    except configparser.NoOptionError:
+        pins_raw = ''
+    
+    return ConfigHandler._parse_dict(pins_raw)
+
+def read_conda_packages(f,name):
+    from setuptools.config import ConfigHandler
+    # duplicates some earlier configparser stuff (which doesn't
+    # support py2; need to clean up)
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser # python2 (also prevents dict-like access)
+    import re
+    config = configparser.ConfigParser()
+    config.read(f)
+
+    pyctdev_section = 'tool:pyctdev.conda'
+    
+    if pyctdev_section not in config.sections():
+        return []
+
+    try:
+        packages_raw = config.get(pyctdev_section,'packages')
+    except configparser.NoOptionError:
+        packages_raw = ''
+
+    return ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
+
+

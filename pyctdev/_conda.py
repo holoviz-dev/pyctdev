@@ -3,6 +3,20 @@ Tasks for conda world
 
 """
 
+# TODO: conda env file/package generation: sort within each section (e.g. run dependencies, build dependencies)
+
+# TODO: pkg name addition needs to support multiple packages e.g. gv gv-core
+
+# TODO: pkg name addition needs to support existing recipe if present
+
+# TODO: clean up list v. string form for _pin
+
+# TODO: be able to generate env file (not just env)
+
+# TODO: no support for pin deps etc in pip
+
+# pip can install an "env" from remote file; what about conda?
+
 # note: conda's api at https://github.com/conda/conda/issues/7059
 
 # TODO: move tasks to conda.py and leave hacks here.
@@ -12,6 +26,8 @@ import os
 import glob
 import json
 import re
+import sys
+import warnings
 try:
     from urllib.request import urlretrieve
 except ImportError:
@@ -28,9 +44,13 @@ except ImportError:
     yaml = None
 
 from doit.action import CmdAction
-from .util import _options_param, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs
-
+from .util import _options_param,_options_param2, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs, read_pins, read_conda_packages,_all_extras_param
 # TODO: for caching env on travis, what about links? option to copy?
+
+try:
+    from conda.models.match_spec import MatchSpec
+except ImportError:
+    pass # TODO: things will go wrong later...
 
 
 ########## UTIL/CONFIG ##########
@@ -53,6 +73,12 @@ env_name_again = {
     'default':''}
 ##
 
+package_name = {'name':'package_name',
+                'long':'package-name',
+                'type':str,
+                'default':'' }
+
+
 _channel_param = {
     'name':'channel',
     'long':'channel',
@@ -62,6 +88,16 @@ _channel_param = {
                  # typically what comes with ana/miniconda)...is that
                  # what we want?
 }
+
+# TODO: pinning not supported for pip world yet
+no_pin_deps = {
+    'name':'no_pin_deps',
+    'long':'no-pin-deps',
+    'type':bool,
+    'default':True,
+    'inverse':'pin-deps'
+}
+
 
 # TODO: not sure what conda-using developers do/prefer...
 # pip develop and don't install missing deps
@@ -84,9 +120,38 @@ def _conda_build_deps(channel):
         return echo("Skipping conda install (no build dependencies)")
     
 
-def _conda_install_with_options(options,channel,env_name_again):
-    deps = get_dependencies(['install_requires']+options)
+def _pin(deps):
+
+    pins = read_pins('setup.cfg')
+    if len(pins)==0:
+        warnings.warn("Pins requested, but no pins in setup.cfg")
+        return
+
+    try:
+        pinned_but_missing = set(pins).difference(set([MatchSpec(d).name for d in deps]))
+    except:
+        import pdb;pdb.set_trace()
+
+    if len(pinned_but_missing)!=0:
+        raise ValueError("Pins specified for non-existent dependencies %s"%pinned_but_missing)
+    pinneddeps = []    
+    for d in deps:
+        dname = MatchSpec(d).name
+        if dname in pins:
+            pinneddeps.append("%s ==%s"%(dname,pins[dname]))
+        else:
+            pinneddeps.append("%s"%d)
+    return pinneddeps
+
+    
+def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras):
+    # TODO: list v string form for _pin
+    deps = _get_dependencies(['install_requires']+options,all_extras=all_extras)
+
     if len(deps)>0:
+        deps = _pin(deps) if no_pin_deps is False else deps
+        deps = " ".join('"%s"'%dep for dep in deps)       
+        # TODO and join the club? 
         e = '' if env_name_again=='' else '-n %s'%env_name_again
         return "conda install -y " + e + " %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
     else:
@@ -94,8 +159,8 @@ def _conda_install_with_options(options,channel,env_name_again):
 
 
 # TODO: another parameter workaround
-def _conda_install_with_options_hacked(options,channel):
-    return _conda_install_with_options(options,channel,'')
+def _conda_install_with_options_hacked(options,channel,no_pin_deps,all_extras):
+    return _conda_install_with_options(options,channel,'',no_pin_deps,all_extras)
 
 ############################################################
 # TASKS...
@@ -106,6 +171,52 @@ def _conda_install_with_options_hacked(options,channel):
 def task_env_capture():
     """Report all information required to recreate current conda environment"""
     return {'actions':["conda info","conda list","conda env export"]}
+
+def task_env_export2():
+
+    # TODO: support channel pins too maybe. Either as a separate thing that can
+    # also be requested (like version pins), or maybe just use channel::pkg in
+    # pins?
+
+    # TODO: required, rename, friendlier
+    env_file = {
+        'name':'env_file',
+        'long':'env-file',
+        'type':str,
+        'default':''}
+
+    
+    def x(no_pin_deps,package_name,options2,channel,all_extras,env_file,env_name_again):
+        from conda_env.env import Environment
+
+        options = set(options2).union(set(read_conda_packages('setup.cfg',package_name)))
+        deps = [d for d in _get_dependencies(['install_requires']+list(options),all_extras=all_extras)]
+
+        if no_pin_deps is False:
+            deps = _pin(deps)
+
+        deps = [_join_the_club(d) for d in deps]
+            
+        e = Environment(
+            name=env_name_again,
+            channels=channel,
+            filename = env_file,
+            dependencies=sorted(deps))
+
+        e.save()
+
+        # hack in link back
+        with open(env_file,'r+') as f:
+            content = f.read()
+            f.seek(0)
+            # probably more useful info could be put here
+            f.write("# file created by pyctdev:\n#   " + " ".join(sys.argv) + "\n\n" + content)
+        
+    return {'actions':[x],
+            'params': [_options_param2,_channel_param,_all_extras_param,no_pin_deps,package_name,env_file,env_name_again]
+    }
+
+
 
 def task_env_export():
     """
@@ -130,7 +241,7 @@ def task_env_export():
         'type':str,
         'default':''}
 
-    def x(env_name,options,env_file):
+    def x(env_name,options,env_file,all_extras):
         import collections
         from conda_env.env import from_environment
         from conda.cli.python_api import Commands, run_command
@@ -141,7 +252,7 @@ def task_env_export():
         E = from_environment(env_name, prefix, no_builds=True, ignore_channels=False)
         from conda.models.match_spec import MatchSpec
 
-        deps = set([MatchSpec(d).name for d in _get_dependencies(['install_requires']+options)])
+        deps = set([MatchSpec(d).name for d in _get_dependencies(['install_requires']+options,all_extras=all_extras)])
         
         for what in E.dependencies:                    
             E.dependencies[what] = [d for d in E.dependencies[what] if MatchSpec(d).name in deps]
@@ -170,13 +281,13 @@ def task_env_export():
         CmdAction(_hacked_conda_install_with_options),
         x],
             'task_dep': ['env_create'],
-            'params': [env_name, _options_param, env_file, env_name_again,_options_param,_channel_param]}
+            'params': [env_name, _options_param, env_file, env_name_again,_options_param,_channel_param,_all_extras_param]}
 
 # because of default options value...removing 'tests'
-def _hacked_conda_install_with_options(task,options,channel,env_name_again):
+def _hacked_conda_install_with_options(task,options,channel,env_name_again,all_extras):
     if 'tests' in task.options.get('options',[]):
         task.options['options'].remove('tests')
-    return _conda_install_with_options(options,channel,env_name_again)
+    return _conda_install_with_options(options,channel,env_name_again,all_extras)
 
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
@@ -392,39 +503,71 @@ def task_package_build():
     # hacks to get a quick version of
     # https://github.com/conda/conda-build/issues/2648
 
-
+    
     pin_deps_as_env = {
         'name':'pin_deps_as_env',
         'long':'pin-deps-as-env',
         'type':str,
         'default':''}
 
-    
-    def create_recipe_clobber(recipe,pin_deps_as_env):
-        if pin_deps_as_env == '':
+    def create_base_recipe(package_name):
+
+        if package_name=='':
+            return
+        
+        # read from setup.cfg
+        extras = str(read_conda_packages('setup.cfg',package_name))
+        
+#        assert package_name in setup.cfg
+        r = open(os.path.join(os.path.dirname(__file__),"condatemplate.yaml")).read()
+
+        # hack https://github.com/conda/conda-build/issues/2475
+        r = r.replace(r"{{ pname }}",package_name)
+        
+
+        if not os.path.exists("conda.recipe"): # could do better/race
+            os.makedirs("conda.recipe")
+
+        with open("conda.recipe/meta.yaml",'w') as f:
+            f.write("{%% set pname = %s %%}\n"%package_name)
+            f.write("{%% set extras = %s %%}\n"%extras)
+            buildreqs = get_buildreqs()
+            buildeps = "["+ ",".join('"%s"'%dep for dep in buildreqs) + "]"
+            f.write("{%% set builddeps = %s %%}\n"%buildeps)
+            f.write(r)
+
+            
+    def create_recipe_clobber(recipe,pin_deps_as_env,no_pin_deps,package_name):
+        from conda.models.match_spec import MatchSpec            
+        
+        if pin_deps_as_env == '' and no_pin_deps is True:
             return
         else:
-            requirements_run = []
-            
-            # TODO: unify with conda in env_export
-            env_name = pin_deps_as_env
-            import collections
-            from conda.cli.python_api import Commands, run_command
-            env_names = [(os.path.basename(e),e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
-            counts = collections.Counter([x[0] for x in env_names])
-            assert counts[env_name]==1 # would need more than name to be sure...
-            prefix = dict(env_names)[env_name]
-
-            packages = json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])
-            packagesd = {package['name']:package for package in packages}
-
-            deps = _get_dependencies(['install_requires'])
+            extras = read_conda_packages('setup.cfg',package_name)
+            deps = _get_dependencies(['install_requires']+extras)
             deps = [_join_the_club(d) for d in deps]
 
-            # TODO: could add channel to the pin...
-            from conda.models.match_spec import MatchSpec
-            requirements_run = ["%s ==%s"%(MatchSpec(d).name,packagesd[MatchSpec(d).name]['version']) for d in deps]
-                        
+            if pin_deps_as_env != '':
+                assert no_pin_deps is True
+                # TODO: unify with conda in env_export
+                env_name = pin_deps_as_env
+                import collections
+                from conda.cli.python_api import Commands, run_command
+                env_names = [(os.path.basename(e),e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
+                counts = collections.Counter([x[0] for x in env_names])
+                assert counts[env_name]==1 # would need more than name to be sure...
+                prefix = dict(env_names)[env_name]
+    
+                packages = json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])
+                packagesd = {package['name']:package for package in packages}
+        
+                # TODO: could add channel to the pin...
+                requirements_run = ["%s ==%s"%(MatchSpec(d).name,packagesd[MatchSpec(d).name]['version']) for d in deps]
+                
+            else:
+                requirements_run = _pin(deps)
+                
+                            
             with open("conda.recipe/%s/_pyctdev_recipe_clobber.yaml"%recipe,'w') as f:
                 f.write(yaml.dump(
                     {
@@ -442,21 +585,21 @@ def task_package_build():
         else:
             return 'echo "no build reqs"'    
     
-    def thing(channel,pin_deps_as_env,recipe):
+    def thing(channel,pin_deps_as_env,recipe,no_pin_deps):
         cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
-        if pin_deps_as_env != '':
+        if pin_deps_as_env != '' or no_pin_deps is False:
             cmd += " --clobber-file conda.recipe/%s/_pyctdev_recipe_clobber.yaml"%recipe
         return cmd
 
-    def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe,pin_deps_as_env):
+    def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe,pin_deps_as_env,no_pin_deps):
         cmds = []
         if pkg_tests:
             # TODO: should test groups just be applied across others rather than product?
             # It's about test isolation vs speed of running tests...
             for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
                 cmds.append(
-                    thing(channel,pin_deps_as_env,recipe)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
+                    thing(channel,pin_deps_as_env,recipe,no_pin_deps)+" -t --append-file conda.recipe/%s/recipe_append--%s-%s-%s-%s.yaml"%("%(recipe)s",p,g,r,w)
                     )
                 cmds.append("conda build purge") # remove test/work intermediates (see same comment below)
         # hack again for returning variable number of commands...
@@ -510,9 +653,11 @@ def task_package_build():
                 pass
 
     return {'actions': [
-        create_recipe_clobber,
         # 0. install build requirements (conda build doesn't support pyproject.toml/PEP518
         CmdAction(thing0),
+
+        create_base_recipe,
+        create_recipe_clobber,
         # first build the package...
         CmdAction(thing),
         "conda build purge", # remove test/work intermediates (disk space on travis...but could potentially annoy someone as it'll remove other test/work intermediates too...)
@@ -523,7 +668,7 @@ def task_package_build():
         CmdAction(thing2),
     ],
             'teardown': [remove_recipe_append_and_clobber],
-            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests, pin_deps_as_env]}
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests, pin_deps_as_env,no_pin_deps,package_name]}
 
 
 
@@ -667,7 +812,7 @@ def task_develop_install():
         CmdAction(_conda_build_deps),
         CmdAction(_conda_install_with_options_hacked),
         python_develop],
-            'params': [_options_param,_channel_param]}
+            'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param]}
 
 
 def task_env_dependency_graph():

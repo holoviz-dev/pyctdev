@@ -7,7 +7,7 @@ import warnings
 
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, get_buildreqs
+from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, get_buildreqs, _all_extras_param
 
 # TODO: move tasks to pip.py and leave hacks here.
 
@@ -32,7 +32,7 @@ _channel_param = {
                  # pypi.org)...is that what we want?
 }
 
-def _pip_install_with_options(options,channel):
+def _pip_install_with_options(options,channel,all_extras):
     cmd = "pip install --upgrade " 
 
     if 'testpypi' in channel:
@@ -57,7 +57,12 @@ def _pip_install_with_options(options,channel):
     cmd += " ".join(['--extra-index-url=%s '%server for server in servers[1::]])
 
     cmd += "-e ."
-    
+
+    if all_extras:
+        meta = _get_setup_metadata()
+        extras = meta.get('extras_require',{})
+        options = set(options).union(set(extras))
+
     if len(options)>0:
         cmd+="[%s]"%(",".join(options))
     return cmd
@@ -253,7 +258,7 @@ def task_develop_install():
 
     """
     return {'actions': [CmdAction(_pip_install_with_options)],
-            'params':[_options_param,_channel_param]}
+            'params':[_options_param,_channel_param,_all_extras_param]}
 
 ## TODO: keep?
 #
