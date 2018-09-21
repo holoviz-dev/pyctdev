@@ -598,6 +598,18 @@ def task_env_create():
 
     def _morex(channel):
         return "conda create -y %s"%(" ".join(['-c %s'%c for c in channel])) + " --name %(name)s python=%(python)s"
+
+    def _morexx():
+        # when installing selfi nto environment, get from appropriate channel
+    # (doing this is a hack anyway/depends how env stacking ends up going)
+        from . import __version__
+        from setuptools._vendor.packaging.version import Version
+        selfchan = "pyviz"
+        if Version(__version__).is_prerelease:
+            selfchan+="/label/dev"
+
+        return "conda install -y --name %(name)s -c " + selfchan + " pyctdev"
+    
     
     return {
         'params': [python,name,_channel_param],
@@ -606,8 +618,7 @@ def task_env_create():
         # would overwrite/update existing env.
         # TODO: note: pyctdev when testing itself will use previous pyctdev
         # but not yet testing this command...
-        'actions': [CmdAction(_morex),
-                    "conda install -y --name %(name)s -c pyviz/label/dev pyctdev"]}
+        'actions': [CmdAction(_morex),CmdAction(_morexx)]}
 
 # TODO: this is another doit param hack :(
 # need to file issue. meanwhile probably decorate uptodate fns
