@@ -752,8 +752,12 @@ def task_env_create():
         selfchan = "pyviz"
         if Version(__version__).is_prerelease:
             selfchan+="/label/dev"
+        if "PYCTDEV_SELF_CHANNEL" in os.environ:
+            selfchan=os.environ["PYCTDEV_SELF_CHANNEL"]
 
-        return "conda install -y --name %(name)s -c " + selfchan + " pyctdev"
+        if selfchan!="":
+            selfchan = " -c " + selfchan
+        return "conda install -y --name %(name)s " + selfchan + " pyctdev"
     
     
     return {
