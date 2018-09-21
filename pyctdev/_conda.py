@@ -109,7 +109,7 @@ python_develop = "pip install --no-deps -e ."
 # setuptools develop and easy_install missing deps:
 #  python_develop = "python setup.py develop"
 
-from .util import get_dependencies,_get_dependencies
+from .util import _get_dependencies
 
 def _conda_build_deps(channel):
     buildreqs = get_buildreqs()

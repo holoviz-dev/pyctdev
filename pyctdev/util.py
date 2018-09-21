@@ -226,7 +226,6 @@ def read_pins(f):
         import configparser
     except ImportError:
         import ConfigParser as configparser # python2 (also prevents dict-like access)
-    import re
     pyctdev_section = 'tool:pyctdev'
     config = configparser.ConfigParser()
     config.read(f)
@@ -249,7 +248,6 @@ def read_conda_packages(f,name):
         import configparser
     except ImportError:
         import ConfigParser as configparser # python2 (also prevents dict-like access)
-    import re
     config = configparser.ConfigParser()
     config.read(f)
 

@@ -7,7 +7,7 @@ import warnings
 
 from doit.action import CmdAction
 
-from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, get_buildreqs, _all_extras_param
+from .util import _options_param, test_group, get_env, test_python, test_requires, pkg_tests, test_matrix, echo, get_buildreqs, _all_extras_param, _get_setup_metadata
 
 # TODO: move tasks to pip.py and leave hacks here.
 
