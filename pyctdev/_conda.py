@@ -185,8 +185,16 @@ def task_env_export2():
         'type':str,
         'default':''}
 
+    no_advert = {
+        'name':'no_advert',
+        'long':'no-advert',
+        'type':bool,
+        'default':True,
+        'inverse':'advert'
+    }
+
     
-    def x(no_pin_deps,package_name,options2,channel,all_extras,env_file,env_name_again):
+    def x(no_pin_deps,package_name,options2,channel,all_extras,env_file,env_name_again,no_advert):
         from conda_env.env import Environment
 
         options = set(options2).union(set(read_conda_packages('setup.cfg',package_name)))
@@ -205,15 +213,16 @@ def task_env_export2():
 
         e.save()
 
-        # hack in link back
-        with open(env_file,'r+') as f:
-            content = f.read()
-            f.seek(0)
-            # probably more useful info could be put here
-            f.write("# file created by pyctdev:\n#   " + " ".join(sys.argv) + "\n\n" + content)
+        if not no_advert:
+            # hack in link back
+            with open(env_file,'r+') as f:
+                content = f.read()
+                f.seek(0)
+                # probably more useful info could be put here
+                f.write("# file created by pyctdev:\n#   " + " ".join(sys.argv) + "\n\n" + content)
         
     return {'actions':[x],
-            'params': [_options_param2,_channel_param,_all_extras_param,no_pin_deps,package_name,env_file,env_name_again]
+            'params': [_options_param2,_channel_param,_all_extras_param,no_pin_deps,package_name,env_file,env_name_again,no_advert]
     }
 
 
