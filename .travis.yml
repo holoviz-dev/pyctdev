@@ -42,6 +42,7 @@ jobs:
     script:
       - doit test_all
       - doit --dir=examples/one test_all
+      #- doit --dir=examples/two test_all
 
   ## conda
 
@@ -64,7 +65,8 @@ jobs:
       - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
       - doit --dir=examples/one test_all
       - doit --dir=examples/one test_export
-
+      # TODO: still need to update conda stuff e.g. remove recipe
+      - doit --dir=examples/two test_export
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
 
