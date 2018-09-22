@@ -3,6 +3,10 @@ Tasks for conda world
 
 """
 
+# TODO: must have already said this somewhere, but the parameter
+# handling is a nightmare. For so many reasons. Like when chaining
+# tasks, all must support the same parameters.
+
 # TODO: conda env file/package generation: sort within each section (e.g. run dependencies, build dependencies)
 
 # TODO: pkg name addition needs to support multiple packages e.g. gv gv-core
@@ -290,13 +294,13 @@ def task_env_export():
         CmdAction(_hacked_conda_install_with_options),
         x],
             'task_dep': ['env_create'],
-            'params': [env_name, _options_param, env_file, env_name_again,_options_param,_channel_param,_all_extras_param]}
+            'params': [env_name, _options_param, env_file, env_name_again,_options_param,_channel_param,_all_extras_param, no_pin_deps]}
 
 # because of default options value...removing 'tests'
-def _hacked_conda_install_with_options(task,options,channel,env_name_again,all_extras):
+def _hacked_conda_install_with_options(task,options,channel,env_name_again,no_pin_deps,all_extras):
     if 'tests' in task.options.get('options',[]):
         task.options['options'].remove('tests')
-    return _conda_install_with_options(options,channel,env_name_again,all_extras)
+    return _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras)
 
 miniconda_url = {
     "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
