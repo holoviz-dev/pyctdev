@@ -193,7 +193,7 @@ def task_env_export2():
         'name':'no_advert',
         'long':'no-advert',
         'type':bool,
-        'default':True,
+        'default':False,
         'inverse':'advert'
     }
 
