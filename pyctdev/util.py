@@ -241,6 +241,9 @@ def read_pins(f):
     return ConfigHandler._parse_dict(pins_raw)
 
 def read_conda_packages(f,name):
+    if name == '':
+        return []
+    
     from setuptools.config import ConfigHandler
     # duplicates some earlier configparser stuff (which doesn't
     # support py2; need to clean up)
@@ -254,7 +257,10 @@ def read_conda_packages(f,name):
     pyctdev_section = 'tool:pyctdev.conda'
     
     if pyctdev_section not in config.sections():
-        return []
+        if name!='':
+            raise ValueError("Requested package name %s but not defined in setup.cfg"%name)
+        else:
+            return []
 
     try:
         packages_raw = config.get(pyctdev_section,'packages')
