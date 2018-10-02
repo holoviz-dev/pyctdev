@@ -151,6 +151,7 @@ def _pin(deps):
 def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras):
     # TODO: list v string form for _pin
     deps = _get_dependencies(['install_requires']+options,all_extras=all_extras)
+    deps = [_join_the_club(d) for d in deps]
 
     if len(deps)>0:
         deps = _pin(deps) if no_pin_deps is False else deps
