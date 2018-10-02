@@ -127,14 +127,14 @@ def _conda_build_deps(channel):
 def _pin(deps):
 
     pins = read_pins('setup.cfg')
+    pins = { _join_the_club(d):pins[d] for d in pins }
     if len(pins)==0:
         warnings.warn("Pins requested, but no pins in setup.cfg")
         return
 
-    try:
-        pinned_but_missing = set(pins).difference(set([MatchSpec(d).name for d in deps]))
-    except:
-        import pdb;pdb.set_trace()
+    deps = [_join_the_club(d) for d in deps]
+
+    pinned_but_missing = set(pins).difference(set([MatchSpec(d).name for d in deps]))
 
     if len(pinned_but_missing)!=0:
         raise ValueError("Pins specified for non-existent dependencies %s"%pinned_but_missing)
@@ -144,7 +144,7 @@ def _pin(deps):
         if dname in pins:
             pinneddeps.append("%s ==%s"%(dname,pins[dname]))
         else:
-            pinneddeps.append("%s"%d)
+            pinneddeps.append("%s"%dname)
     return pinneddeps
 
     
@@ -263,9 +263,9 @@ def task_env_export():
         assert counts[env_name]==1 # would need more than name to be sure...
         prefix = dict(env_names)[env_name]
         E = from_environment(env_name, prefix, no_builds=True, ignore_channels=False)
-        from conda.models.match_spec import MatchSpec
 
-        deps = set([MatchSpec(d).name for d in _get_dependencies(['install_requires']+options,all_extras=all_extras)])
+        deps = [_join_the_club(d) for d in _get_dependencies(['install_requires']+options,all_extras=all_extras)]
+        deps = set([MatchSpec(d).name for d in deps])
         
         for what in E.dependencies:                    
             E.dependencies[what] = [d for d in E.dependencies[what] if MatchSpec(d).name in deps]
@@ -390,7 +390,11 @@ recipe_param = {
     'default':''
 }
 
+# TODO: python2conda or something, and would be nice to use param ;)
 def _join_the_club(dep):
+    # note: using conda's matchspec to read python package spec; should use
+    # fn from python packaging instead
+
     # cb at least at 3.10.1 interprets square brackets as selectors
     # even if not after a # and then silently drops...not sure what's
     # accidental and what's deliberate difference between cb and
@@ -402,7 +406,11 @@ def _join_the_club(dep):
     new = re.sub(r'\[.*?\]','',dep)
     # not much point warning only here, since it happens in other places too
     #if new!=dep:warnings.warn("Changed your dep from %s to %s"%(dep,new))
-    return new
+    ms = MatchSpec(new)
+    out = "%s"%ms.name
+    if ms.version is not None:
+        out+= " %s"%ms.version
+    return out
 
 
 # TODO: (almost) duplicates some bits of package_build
@@ -551,8 +559,6 @@ def task_package_build():
 
             
     def create_recipe_clobber(recipe,pin_deps_as_env,no_pin_deps,package_name):
-        from conda.models.match_spec import MatchSpec            
-        
         if pin_deps_as_env == '' and no_pin_deps is True:
             return
         else:
@@ -847,7 +853,6 @@ def task_env_dependency_graph():
         prefix = dict(env_names)[env_name]
 
         ###### build graph from packages' metadata
-        from conda.models.match_spec import MatchSpec
         nodes = set()
         edges = set()
         for pkgmetafile in glob.glob(os.path.join(prefix,'conda-meta','*.json')):
