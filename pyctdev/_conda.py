@@ -130,7 +130,7 @@ def _pin(deps):
     pins = { _join_the_club(d):pins[d] for d in pins }
     if len(pins)==0:
         warnings.warn("Pins requested, but no pins in setup.cfg")
-        return
+        return deps
 
     deps = [_join_the_club(d) for d in deps]
 
@@ -544,6 +544,8 @@ def task_package_build():
 
     def create_base_recipe(package_name):
 
+        # TODO: need to replace this with checking for existing recipe and using that.
+        # and fall back to package name in normal setup.cfg
         if package_name=='':
             return
         
