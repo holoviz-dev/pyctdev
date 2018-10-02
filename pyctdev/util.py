@@ -264,3 +264,24 @@ def read_conda_packages(f,name):
     return ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
 
 
+def read_conda_namespace_map(f):
+    from setuptools.config import ConfigHandler
+    # duplicates some earlier configparser stuff (which doesn't
+    # support py2; need to clean up)
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser # python2 (also prevents dict-like access)
+    pyctdev_section = 'tool:pyctdev.conda'
+    config = configparser.ConfigParser()
+    config.read(f)
+
+    if pyctdev_section not in config.sections():
+        return {}
+
+    try:
+        namespacemap_raw = config.get(pyctdev_section,'namespace_map')
+    except configparser.NoOptionError:
+        namespacemap_raw = ''
+    
+    return ConfigHandler._parse_dict(namespacemap_raw)

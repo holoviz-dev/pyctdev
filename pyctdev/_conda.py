@@ -48,7 +48,7 @@ except ImportError:
     yaml = None
 
 from doit.action import CmdAction
-from .util import _options_param,_options_param2, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs, read_pins, read_conda_packages,_all_extras_param
+from .util import _options_param,_options_param2, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs, read_pins, read_conda_packages,_all_extras_param, read_conda_namespace_map
 # TODO: for caching env on travis, what about links? option to copy?
 
 try:
@@ -406,10 +406,20 @@ def _join_the_club(dep):
     new = re.sub(r'\[.*?\]','',dep)
     # not much point warning only here, since it happens in other places too
     #if new!=dep:warnings.warn("Changed your dep from %s to %s"%(dep,new))
+
+    # should be read just once rather than for each dep!
+    nsmap = read_conda_namespace_map('setup.cfg')
+
     ms = MatchSpec(new)
-    out = "%s"%ms.name
+    out = "%s"%nsmap.get(ms.name,ms.name)
     if ms.version is not None:
-        out+= " %s"%ms.version
+        # why it doesn't include == already?
+        if '==' in new:
+            assert "===" not in new # sorry
+            out+= " =="
+        else:
+            out+= " "
+        out+= "%s"%ms.version
     return out
 
 
