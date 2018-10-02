@@ -117,7 +117,7 @@ from .util import _get_dependencies
 
 def _conda_build_deps(channel):
     buildreqs = get_buildreqs()
-    deps = " ".join('"%s"'%dep for dep in buildreqs)
+    deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
     if len(buildreqs)>0:
         return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
     else:
@@ -564,7 +564,7 @@ def task_package_build():
             f.write("{%% set pname = %s %%}\n"%package_name)
             f.write("{%% set extras = %s %%}\n"%extras)
             buildreqs = get_buildreqs()
-            buildeps = "["+ ",".join('"%s"'%dep for dep in buildreqs) + "]"
+            buildeps = "["+ ",".join('"%s"'%_join_the_club(dep) for dep in buildreqs) + "]"
             f.write("{%% set builddeps = %s %%}\n"%buildeps)
             f.write(r)
 
@@ -610,7 +610,7 @@ def task_package_build():
     def thing0(channel):
         buildreqs = get_buildreqs()
         if len(buildreqs)>0:
-            deps = " ".join('"%s"'%dep for dep in buildreqs)
+            deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
             return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
         else:
             return 'echo "no build reqs"'    
