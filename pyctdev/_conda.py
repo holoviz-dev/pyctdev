@@ -48,7 +48,7 @@ except ImportError:
     yaml = None
 
 from doit.action import CmdAction
-from .util import _options_param,_options_param2, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs, read_pins, read_conda_packages,_all_extras_param, read_conda_namespace_map
+from .util import _options_param,_options_param2, test_python, test_group, test_requires, get_tox_deps, get_tox_cmds, get_tox_python, get_env, pkg_tests, test_matrix, echo, get_buildreqs, read_pins, read_conda_packages,_all_extras_param, read_conda_namespace_map, _get_setup_metadata2
 # TODO: for caching env on travis, what about links? option to copy?
 
 try:
@@ -558,23 +558,27 @@ def task_package_build():
             print("conda.recipe/meta.yaml exists; not overwriting without --force")
             return
 
-        # TODO: should support setup.py too
-        import setuptools.config
-        cfg = setuptools.config.read_configuration("setup.cfg")
-        try:
-            package_name = cfg['metadata']['name']
-        except:
-            raise ValueError("--package-name not supplied and not found in setup.cfg")
+        package_name_supplied = True
+        if package_name == '':
+            package_name_supplied = False
+            try:
+                package_name = _get_setup_metadata2('name')
+            except KeyError:
+                raise ValueError("--package-name not supplied and not found in setup.cfg/setup.py")
 
-        # read from setup.cfg
-        extras = str(read_conda_packages('setup.cfg',package_name))
+        # read from setup.cfg (not supporting doing it in setup.py)
+        try:
+            extras = str(read_conda_packages('setup.cfg',package_name))
+        except KeyError:
+            if package_name_supplied:
+                raise ValueError("You requested package name %s but no entry found in setup.cfg; omit --package-name or ensure you have defined conda package(s) in setup.cfg"%package_name)
+            extras = '[]'
         
         r = open(os.path.join(os.path.dirname(__file__),"condatemplate.yaml")).read()
 
         # hack https://github.com/conda/conda-build/issues/2475
         r = r.replace(r"{{ pname }}",package_name)
         
-
         if not os.path.exists("conda.recipe"): # could do better/race
             os.makedirs("conda.recipe")
 

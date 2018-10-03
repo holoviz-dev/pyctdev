@@ -162,6 +162,9 @@ def echo(msg):
 
 ##### only for conda really
 
+# TODO: drop support for pyviz custom dict stuff in setup.py
+# (i.e. migrate all to setup.cfg) and then this stuff will become much
+# simpler...
 def _get_setup_metadata():
     meta = None
     if os.path.exists("setup.cfg"):
@@ -181,7 +184,27 @@ def _get_setup_metadata():
                 raise ValueError("Could not find dependencies in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)")
 
     return meta
-    
+
+def _get_setup_metadata2(k):
+    meta = None
+    if os.path.exists("setup.cfg"):
+        from setuptools.config import read_configuration
+        setupcfg = read_configuration("setup.cfg")
+        if k in setupcfg['metadata']:
+            return setupcfg['metadata'][k]
+        elif k in setupcfg['options']:
+            return setupcfg['options'][k]
+
+    if meta is None:
+        try:
+            from setup import meta
+        except ImportError:
+            try:
+                from setup import setup_args as meta
+            except ImportError:
+                raise ValueError("Could not find %s in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)"%k)
+        return meta[k]
+
 
 # TODO: what do people who install dependencies via conda actually do?
 # Have their own list via other/previous development work? Read from
@@ -265,11 +288,7 @@ def read_conda_packages(f,name):
     except configparser.NoOptionError:
         packages_raw = ''
 
-    try:
-        packages = ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
-    except KeyError:
-        packages = []
-    return packages
+    return ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
 
 
 def read_conda_namespace_map(f):
