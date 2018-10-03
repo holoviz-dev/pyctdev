@@ -77,6 +77,7 @@ env_name_again = {
     'default':''}
 ##
 
+# this is about selecting groups of optional extras
 package_name = {'name':'package_name',
                 'long':'package-name',
                 'type':str,
@@ -542,17 +543,32 @@ def task_package_build():
         'type':str,
         'default':''}
 
-    def create_base_recipe(package_name):
+    force = {
+        'name':'force',
+        'long':'force',
+        'type':bool,
+        'default':False}
+
+    
+    def create_base_recipe(package_name,force):
 
         # TODO: need to replace this with checking for existing recipe and using that.
         # and fall back to package name in normal setup.cfg
-        if package_name=='':
+        if os.path.exists("conda.recipe/meta.yaml") and not force:
+            print("conda.recipe/meta.yaml exists; not overwriting without --force")
             return
-        
+
+        # TODO: should support setup.py too
+        import setuptools.config
+        cfg = setuptools.config.read_configuration("setup.cfg")
+        try:
+            package_name = cfg['metadata']['name']
+        except:
+            raise ValueError("--package-name not supplied and not found in setup.cfg")
+
         # read from setup.cfg
         extras = str(read_conda_packages('setup.cfg',package_name))
         
-#        assert package_name in setup.cfg
         r = open(os.path.join(os.path.dirname(__file__),"condatemplate.yaml")).read()
 
         # hack https://github.com/conda/conda-build/issues/2475
@@ -700,7 +716,7 @@ def task_package_build():
         CmdAction(thing2),
     ],
             'teardown': [remove_recipe_append_and_clobber],
-            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests, pin_deps_as_env,no_pin_deps,package_name]}
+            'params': [_channel_param, recipe_param, test_python, test_group, test_requires, pkg_tests, pin_deps_as_env,no_pin_deps,package_name, force]}
 
 
 

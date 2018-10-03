@@ -217,7 +217,11 @@ def get_buildreqs():
     return buildreqs
 
 
-# TODO: can i use more of setuptools config parsing?
+# TODO: can i use more of setuptools config parsing?  There was some
+# reason I didn't use setuptools.config.read_configuration, but I
+# can't remember what it was now. (I think it was to do with needing a
+# % sign for the git format (autover), but that breaking some version
+# of config reading.) Replace bit by bit and see what happens?
 def read_pins(f):
     from setuptools.config import ConfigHandler
     # duplicates some earlier configparser stuff (which doesn't
@@ -241,9 +245,6 @@ def read_pins(f):
     return ConfigHandler._parse_dict(pins_raw)
 
 def read_conda_packages(f,name):
-    if name == '':
-        return []
-    
     from setuptools.config import ConfigHandler
     # duplicates some earlier configparser stuff (which doesn't
     # support py2; need to clean up)
@@ -257,17 +258,18 @@ def read_conda_packages(f,name):
     pyctdev_section = 'tool:pyctdev.conda'
     
     if pyctdev_section not in config.sections():
-        if name!='':
-            raise ValueError("Requested package name %s but not defined in setup.cfg"%name)
-        else:
-            return []
+        return []
 
     try:
         packages_raw = config.get(pyctdev_section,'packages')
     except configparser.NoOptionError:
         packages_raw = ''
 
-    return ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
+    try:
+        packages = ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
+    except KeyError:
+        packages = []
+    return packages
 
 
 def read_conda_namespace_map(f):
@@ -291,3 +293,4 @@ def read_conda_namespace_map(f):
         namespacemap_raw = ''
     
     return ConfigHandler._parse_dict(namespacemap_raw)
+
