@@ -52,7 +52,6 @@ jobs:
       ## install miniconda (using git pyctdev)
       - pip install -e . && doit miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - conda install -y "python=3.6" # required because conda-build isn't noarch, so otherwise causes python downgrade later on
       ## build conda package (using git pyctdev)
       - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
