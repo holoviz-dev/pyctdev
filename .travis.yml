@@ -98,7 +98,7 @@ jobs:
     <<: *conda_default
     stage: conda_dev_package
     env: PYCTDEV_ECOSYSTEM=conda CHANS=$CHANS_DEV LABELS=$LABELS_DEV
-    install: doit package_build $CHANS --test-python=py36 --test-python=py27 $PKG_TEST_GROUP
+    install: doit package_build $CHANS --test-python=py37 --test-python=py36 --test-python=py27 $PKG_TEST_GROUP
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
 
   - <<: *conda_pkg_default
