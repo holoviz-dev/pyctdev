@@ -246,7 +246,7 @@ def task_ecosystem_setup():
 
     def thing2(channel):
         # TODO: beware pin here and in setup.py!
-        return 'conda install -y %s anaconda-client "conda-build=3.10.1"'%" ".join(['-c %s'%c for c in channel])
+        return 'conda install -y %s anaconda-client "conda-build=3.10.9"'%" ".join(['-c %s'%c for c in channel])
 
     return {
         'actions': [

@@ -49,7 +49,7 @@ setup_args = dict(
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
         # TODO: beware pin here and in _conda.py!
-        'ecosystem_conda': ['conda >=4.4', 'conda-build ==3.10.1']
+        'ecosystem_conda': ['conda >=4.4', 'conda-build ==3.10.9']
     }
 )
 
