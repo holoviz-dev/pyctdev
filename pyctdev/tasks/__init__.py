@@ -1,7 +1,8 @@
-"""
-The basic types of task that pyctdev knows about.
+"""The basic types of task that pyctdev knows about/expects
+ecosystems to support.
 
 E.g. building docs, generating packages, running tests
+
 """
 
 import os
@@ -40,6 +41,9 @@ def concrete_tasks():
     return d.values()
 
 ##################################################
+
+# TODO: this list of tasks is not complete, tasks are not well named,
+# parameters aren't really declared here very well, etc.
 
 
 # TODO: these params are probably specific to nbsite

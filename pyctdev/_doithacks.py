@@ -14,11 +14,23 @@
     patch doit.cmdparse.TaskParse.parse.
 
   * Print the command that will be run before it's run. How? Subclass
-    PythonAction, CommandAction.
+    PythonAction, CommandAction. Not just after a command has failed.
 
   * Support limited dry_run. How? Subclass PythonAction, CommandAction.
 
+  * Full docstring display in help. How? Preserve the full docstring
+    by patching doit.task.Task._init_doc, and display by patching
+    doit.cmd_help.Help.
+
 """
+
+# The other things you could maybe consider for _doithacks:
+#
+#   - custom task loader (pyctdev.__main__)
+#
+#   - pyctdev.task's DoitTask
+
+
 
 # TODO: accidentally autopep8'd this file. Which will make it harder
 # to see the changes from doit for PythonAction, CommandAction. Should
@@ -27,10 +39,6 @@
 # TODO: move this file to util?
 
 import sys
-
-# TODO: record that you have started to diverge more from
-# doit than when you wrote the rest of the notes. E.g. adding checking,
-# dry run, etc. Should re-thing the plan.
 
 from .util import log_message
 
