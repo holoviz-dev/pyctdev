@@ -119,6 +119,9 @@ def populate_task_options(task,values):
                 args_no_vars.append(arg)
         #### bit 2
         tc = doit.cmdparse.TaskParse([doit.cmdparse.CmdOption(opt) for opt in task.params])
+        if len(args_no_vars) > 0 and args_no_vars[0] == 'info':
+            log_message("...not setting %s.options because I think we're in 'help'", task)
+            return None # TODO: I just hacked this 'info' detection in so info will run for tasks with required args
         while args_no_vars:
             try:
                 task_options, seq = tc.parse([args_no_vars.pop()])
