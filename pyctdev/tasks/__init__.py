@@ -53,52 +53,71 @@ class build_docs(ProjectTask):
 
 
 class list_test_envs(ProjectTask):
-    """List all available test envs"""
-
+    """List all available test envs."""
+    params = []
 
 class env_capture(PyctdevTask):
-    """Report all information required to recreate current environment"""
-
+    """Report all information required to recreate current environment."""
+    params = []
 
 # class ecosystem_setup(PyctdevTask):
 #    """Whatever's required to configure build tools etc so they are in expected state. Build tools etc are optional dependencies of pyctdev, so depending what happened at install time..."""
 
 
 class develop_test(ProjectTask):
-    """Run specified tests in current environment"""
+    """Run specified tests in current environment.
+
+    Examples:
+
+      pyctdev develop_test --test_group=examples
+      pyctdev develop_test --test_group=examples --test_what=pkg
+
+    """
     params = ['test_group', 'test_requires', 'test_what']
 
 
 class develop_install(ProjectTask):
-    """python develop install with specified optional groups of dependencies.
+    """python develop install.
 
-    Typically ``pip install -e .[tests]`` but where dependencies are installed with ecosystem's package manager (e.g. conda).
+    Typically pip install -e .[tests], but where dependencies are
+    installed by the ecosystem's package manager (e.g. conda).
 
-    E.g.
+    Examples:
 
-    ``doit develop_install --channel conda-forge``
-
-    ``doit develop_install --extra examples --extra tests``
-    ``doit develop_install --all-extras``
+      pyctdev develop_install --channel conda-forge
+      pyctdev develop_install --extra examples --extra tests
+      pyctdev develop_install --all-extras
 
     """
     params = ['extra', 'channel', 'all_extras']
 
 
 class env_dependency_graph(PyctdevTask):
-    """Write out dependency graph of named environment"""
+    """Write out dependency graph of named environment."""
     params = ['env_name', 'with_graphviz']
 
 
+# TODO: isn't this missing option for exporting everything?
+# (i.e. dependencies recursively)
 class env_export(PyctdevTask):
-    """Turn an existing, installed environment into an environment specification, filtering against project's specified dependencies"""
-    # TODO: filtering doc/param?
-    # TODO required_params = ['env_name']
+    """Turn an existing, installed environment into an environment specification. 
+
+    Can filter and pin dependencies using info in setup.cfg.
+
+    """
+    # TODO: missing advert
+    params = ['env_file', 'env_name', 'extra', 'all_extras', 'pin_deps']
 
 
+# TODO: isn't this missing option for exporting everything?
+# (i.e. dependencies recursively)
 class env_file_generate(ProjectTask):
-    """Create an environment specification from info declared in project's setup.py/setup.cfg"""
-    # TODO required params?
+    """Create an environment specification.
+
+    Can filter and pin dependencies using info in setup.cfg.
+
+    """
+    params = ['env_file', 'env_name', 'extra', 'all_extras', 'pin_deps']
 
 
 # TODO: conda is missing a create env command that's ok with an env
@@ -108,9 +127,22 @@ class env_create(PyctdevTask):
 
     env will be empty except for python and pyctdev+deps.
     """
+    params = ['python', 'env_name', 'channel']
 
 
 class package_test(ProjectTask):
+    """Test existing package.
+
+    Specify a "test matrix" (kind of) via repeated --test-python,
+    --test-group, and --test-requires.
+
+    You might call this (1) to test a package against some group of tests
+    for that package, or you might call it (2) to test a package in
+    some other environment.
+
+    Available options are defined in tox.ini.
+
+    """
     params = ['channel',
               'test_python',
               'test_group',
@@ -118,12 +150,21 @@ class package_test(ProjectTask):
 
 
 class package_build(ProjectTask):
+    """Build a package.
+
+    Won't rebuild if version hasn't changed since package last
+    built. Will always rebuild if 'dirty' in versoin.
+
+    """
     params = ['channel',
               'pin_deps',
               'pin_deps_as_env']
 
 
 class package_upload(ProjectTask):
+    """Upload a package.
+
+    """
     params = ['password', 'user']
 
 

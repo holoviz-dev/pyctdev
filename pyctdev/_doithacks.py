@@ -18,9 +18,11 @@
 
   * Support limited dry_run. How? Subclass PythonAction, CommandAction.
 
-  * Full docstring display in help. How? Preserve the full docstring
-    by patching doit.task.Task._init_doc, and display by patching
-    doit.cmd_help.Help.
+  * Full docstring display in help (rather than just the first line,
+    which is all doit stores. How? Preserve the full docstring by
+    patching doit.task.Task._init_doc, and display by patching
+    doit.cmd_help.Help. (Also: includes param help in 'help', which
+    was previously only included in 'info' - so no need to run both.)
 
 """
 

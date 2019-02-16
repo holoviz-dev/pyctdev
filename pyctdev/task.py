@@ -21,9 +21,10 @@ class DoitTask(param.Parameterized):
     """
     read_only = param.Boolean(default=False)
 
-    # TODO: pick right param types, e.g. classselector
+    # TODO: pick right param types, e.g. classselector.
+    # TODO: add docs
     task_type = param.Parameter()
-    additional_doc = param.String()
+    additional_doc = param.String() # Anything specific to the implementation of the task i.e. beyond the abstract task defition
     uptodate = param.Parameter()
     actions = param.List()
     params = param.List()
@@ -42,7 +43,7 @@ class DoitTask(param.Parameterized):
         # check params as expected from defn
         my_params = set([p['name'] for p in self.params])
         expected_params = set(self.task_type.params)
-        if not my_params == expected_params:
+        if not my_params.issuperset(expected_params):
             # TODO: warning not heplful for a user of the task - this
             # is for a developer of the task
 

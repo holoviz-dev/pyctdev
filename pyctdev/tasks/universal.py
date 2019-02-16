@@ -43,7 +43,7 @@ register(
 register(
     DoitTask(
         task_type=develop_test,
-        additional_doc="someting somehing\n\n" + str(faketox.get_docs()),
+        additional_doc="Possible values of test_group for this project:\n\n" + str(faketox.get_docs()),
         params=[test_requires,
                 test_what,
                 test_group],

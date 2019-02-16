@@ -31,7 +31,6 @@ register(
 
 # TODO: missing vs. conda
 #  - env_dependency_graph
-#  - package_test
 #  - env_file_generate
 #  - env_create
 
@@ -49,7 +48,7 @@ register(
 register(
     DoitTask(
         task_type=package_upload,
-        additional_doc="""upload pip packages to pypi""",
+        additional_doc="""Package will be uploaded to a pypi server.""",
         task_dep=["package_test"],
         params=[
             params.sdist,
@@ -66,17 +65,6 @@ register(
 register(
     DoitTask(
         task_type=package_build,
-        additional_doc="""Build pip package, then install and test all_quick (or other
-    specified env) in venv
-
-    Won't rebuild if version hasn't changed. Will always rebuild if 'dirty' in versoin.
-
-    E.g.
-
-    ``doit package_build --formats=bdist_wheel``
-    ``doit package_build -e all_quick-Ewith_numpy``
-
-        """,
         uptodate=[pkg_exists],
         params=[  # TODO missing some form of
             # params.pin_deps
@@ -89,7 +77,8 @@ register(
             {'name': 'sdist_install_build_deps',
              'long': 'sdist-install-build-deps',
              'type': bool,
-             'default': False},
+             'default': False,
+             'help': 'python setup.py sdist does not install build dependencies. Specify this parameter if your project has build dependencies and you want them to be installed for you (will permanently affect your current environment). This is a limitation of pip not yet supporting building of sdist: https://github.com/pypa/pip/issues/5407, https://github.com/pypa/pip/issues/5401'},
         ],
         actions=[CmdAction2(_maybe_sdist_build_deps),
                  CmdAction2(build_pkg),

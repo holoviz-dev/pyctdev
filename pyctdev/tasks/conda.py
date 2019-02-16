@@ -38,7 +38,6 @@ register(
 register(
     DoitTask(
         task_type=env_capture,
-        additional_doc="Report all information required to recreate current conda environment",
         actions=[CmdAction2("conda info"),
                  CmdAction2("conda list"),
                  CmdAction2("conda env export")])
@@ -70,7 +69,7 @@ register(
 register(
     DoitTask(
         task_type=package_upload,
-        additional_doc="""Upload package built from conda.recipe/ (or specified alternative).""",
+        additional_doc="""Package will be uploaded to anaconda.org.""",
         actions=[CmdAction2(conda_upload)],
         params=[
             params.user,
@@ -101,20 +100,12 @@ register(
 register(
     DoitTask(
         task_type=package_build,
-        additional_doc="""Build and then test conda.recipe/ (or specified alternative).
-
-    Specify --no-pkg-tests to avoid running any tests other than those
-    defined explicitly in the recipe (i.e. to run only vanilla conda
-    build, without any modifications).
-
-    Specify a "test matrix" (kind of) via repeated --test-python,
-    --test-group, and --test-requires.
-
-    Note that whatever channels you supply at build time must be
-    supplied by users of the package at install time for users to get
-    the same(ish) dependencies as used at build time. (TODO: will be
-    able to improve this with conda 4.4.)
-        """,
+        additional_doc="""Creates recipe in conda.recipe/ then builds with conda-build.
+        
+        Note that any channels you supply at build time must be
+        supplied by users of the package at install time for users to
+        be able to get the same(ish) dependencies as used at build
+        time.  """,
         # hacks to get a quick version of
         # https://github.com/conda/conda-build/issues/2648
         params=[params.channel,
@@ -138,8 +129,6 @@ register(
 register(
     DoitTask(
         task_type=env_file_generate,
-        additional_doc="""Generate a pinned environment.yaml from setup.cfg info""",
-
         # TODO: support channel pins too maybe. Either as a separate thing that can
         # also be requested (like version pins), or maybe just use channel::pkg in
         # pins?
@@ -158,11 +147,6 @@ register(
 register(
     DoitTask(
         task_type=env_export,
-        additional_doc="""
-    Generate a pinned environment.yaml from specified (existing) env.
-
-    Can filter against any given groups of deps (extras).
-        """,
         params=[
             params.env_file,
             params.env_name,
@@ -197,15 +181,7 @@ register(
 register(
     DoitTask(
         task_type=package_test,
-        additional_doc="""Test existing package
-
-    Specify a "test matrix" (kind of) via repeated --test-python,
-    --test-group, and --test-requires.
-
-    You might call this (1) to test a package against predefined tests
-    for that package (test map defined in setup.cfg), or you might call
-    it (2) to test in some other environment (env defined in tox.ini).
-        """,
+        additional_doc="tests_map for mapping test groups to conda packages defined in setup.cfg",
         # it's doing something like this multiple times:
         #   conda build -c pyviz/label/dev -t "d:\\mc3\\envs\\pddev\\conda-bld\\noarch\\pyct-core-0.4.5.post5+g6246ef7-py_0.tar.bz2" --append-file conda.recipe//recipe_append--pyct-core-py36-cmd_examples-default-pkg.yaml && conda build purge'
         # where the recipe append is adding the various tests, deps, etc

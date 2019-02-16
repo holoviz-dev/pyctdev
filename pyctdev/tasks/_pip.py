@@ -90,7 +90,7 @@ def test_package(test_python, test_requires, test_group, channel, sdist):
 def _maybe_sdist_build_deps(sdist, sdist_install_build_deps):
     if sdist:
         if not sdist_install_build_deps:
-            warnings.warn("If the project (for which you are building an sdist) has build-time dependencies, you will need to specify --sdist-install-build-deps to have them installed for you (which will permanently affect your current environment). Alternatively, install the build dependencies yourself first. This is a limitation of pip not yet supporting building of sdist; https://github.com/pypa/pip/issues/5407, https://github.com/pypa/pip/issues/5401")
+            warnings.warn("If the project (for which you are building an sdist) has build-time dependencies, you will need to specify --sdist-install-build-deps, or install them yourself first.")
             return echo("not installing sdist build deps")
         else:
             buildreqs = get_buildreqs()
