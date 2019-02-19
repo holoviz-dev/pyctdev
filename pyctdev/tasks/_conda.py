@@ -194,17 +194,21 @@ def _conda_list(prefix):
     return json.loads(conda_run_command(
         conda_Commands.LIST, "-p %s --json" % prefix)[0])
 
-def _update_conda(channel):
-    return "conda update -y %s conda" % " ".join(
-        ['-c %s' % c for c in channel])
-
-
-def _install_pkg_tools(channel):
-    # TODO: beware pin here and in setup.py! (will be .cfg)
-    # instead, should read from setup
-    return 'conda install -y %s anaconda-client "conda-build=3.10.1"' % " ".join(
-        ['-c %s' % c for c in channel])
-
+#####
+# TODO: these two were part of ecosystem_setup, which is now gone. But
+# maybe it needs to come back (possibly as a set of tasks).
+#
+# def _update_conda(channel):
+#     return "conda update -y %s conda" % " ".join(
+#         ['-c %s' % c for c in channel])
+#
+#
+# def _install_pkg_tools(channel):
+#     # TODO: beware pin here and in setup.py! (will be .cfg)
+#     # instead, should read from setup
+#     return 'conda install -y %s anaconda-client "conda-build=3.10.1"' % " ".join(
+#         ['-c %s' % c for c in channel])
+#####
 
 # TODO rewrite and move somewhere common
 def buildgraphandwriteitdown(env_name,with_graphviz):
