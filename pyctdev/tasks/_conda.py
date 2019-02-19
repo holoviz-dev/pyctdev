@@ -23,24 +23,6 @@ from collections import OrderedDict, Counter
 # yaml is always included with conda so should be safe
 import yaml
 
-# is setuptools a dep of conda/build?
-try:
-    from setuptools._vendor.packaging.requirements import Requirement
-except BaseException:
-    from pkg_resources._vendor.packaging.requirements import Requirement
-
-# TODO: possible to replace with internal dep?
-try:
-    import setuptools.config as setuptools_config
-except ImportError:
-    setuptools_config = None
-
-# TODO: still got to decide what to do about this...
-try:
-    from setuptools._vendor.packaging.version import Version as packaging_Version
-except ImportError:
-    packaging_Version = None
-
 
 ############################################################
 ## external imports
@@ -70,7 +52,7 @@ from conda_env.env import from_environment as conda_env_from_environment, Enviro
 
 from ..util import echo, log_message, _test_matrix_thing, log_warning, doithack_join_cmds, faketox
 from ..util.pyproject import get_buildreqs
-from ..util.setuptools import read_pins, _get_dependencies, SETUP_CFG, read_extras_provide, read_provides
+from ..util.setuptools import read_pins, _get_dependencies, SETUP_CFG, read_extras_provide, read_provides, get_cfg, Requirement, parse_version_with_packaging_Version
 from ..util.setuptools4conda import python2condaV, python2conda, get_packages, get_pkg_tests, read_conda_packages, get_package_dependencies
 
 from .. import _doithacks
@@ -286,14 +268,11 @@ def add_pyctdev(env_name):
     # when installing selfi nto environment, get from appropriate channel
     # (doing this is a hack anyway/depends how env stacking ends up going)
     # TODO: part of env stack issue
-    from .. import __version__
     selfchan = "pyviz"
-    global packaging_Version
-    if packaging_Version is None:
-        # trigger the error here so people know what's wrong.
-        from setuptools._vendor.packaging.version import Version as packaging_Version
-        
-    if packaging_Version(__version__).is_prerelease:
+
+    from .. import __version__
+    version = parse_version_with_packaging_Version(__version__)
+    if version.is_prerelease:
         selfchan += "/label/dev"
     if "PYCTDEV_SELF_CHANNEL" in os.environ:
         selfchan = os.environ["PYCTDEV_SELF_CHANNEL"]
@@ -301,6 +280,7 @@ def add_pyctdev(env_name):
     if selfchan != "":
         selfchan = " -c " + selfchan
     return "conda install -y --name %(env_name)s " + selfchan + " pyctdev"
+
 
 # TODO: verify there should be no all_extras here
 def create_recipe(package, force, pin_deps, pin_deps_as_env):
@@ -332,7 +312,7 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
 
     # TODO: support conda verify
 
-    cfg = setuptools_config.read_configuration("setup.cfg")
+    cfg = get_cfg()
 
     meta = OrderedDict()
 

@@ -16,6 +16,13 @@ except BaseException:
 
 from setuptools.config import ConfigHandler, read_configuration
 
+# TODO: still got to decide what to do about this...
+try:
+    from setuptools._vendor.packaging.version import Version as packaging_Version
+except ImportError:
+    packaging_Version = None
+
+
 from . import log_message
 
 
@@ -60,6 +67,10 @@ def _get_setup_metadata2(k):
             "'%s' not found under 'metadata' or 'options' in %s" % (k, SETUP_CFG))
     log_message("...value: %s", ans)
     return ans
+
+
+def get_cfg():
+    return read_configuration(SETUP_CFG)
 
 ###########################
 
@@ -187,3 +198,13 @@ def get_package_path(sdist=False):
     pname = pname.replace("-dirty", ".dirty")
     # TODO: assumption about location
     return os.path.join("dist", pname)
+
+
+# TODO: is this used much? or it's just to get pyctdev's version?
+def parse_version_with_packaging_Version(version):
+    global packaging_Version
+    if packaging_Version is None:
+        # trigger the error here so people know what's wrong.
+        from setuptools._vendor.packaging.version import Version as packaging_Version
+
+    return packaging_Version(version)
