@@ -12,7 +12,7 @@ env:
     - CHANS_DEV="-c pyviz/label/dev"
     - CHANS_REL="-c pyviz"
     - LABELS_DEV="--label=dev"
-    - LABELS_REL="--label=dev --label=main"        
+    - LABELS_REL="--label=dev --label=main"
     # will be overridden later to upload only wheel for py27 (sdist from py36)
     - PIP_FORMATS="sdist bdist_wheel"
 
@@ -30,19 +30,20 @@ stages:
 jobs:
   include:
 
-  ########## TEST DEVELOPER INSTALL ##########  
+  ########## TEST DEVELOPER INSTALL ##########
 
   ## pip
-  
+
   - &pip_default
     stage: test
+    env: PYCTDEV_ECOSYSTEM=pip
     # (pyctdev requires itself to test itself)
     before_install: pip install -e .
-    install: doit develop_install
+    install: python -m develop_install
     script:
-      - doit test_all
-      - doit --dir=examples/one test_all
-      #- doit --dir=examples/two test_all
+      - python -m pyctdev test_all
+      - python -m pyctdev --dir=examples/one test_all
+      #- python -m pyctdev --dir=examples/two test_all
 
   ## conda
 
@@ -50,23 +51,23 @@ jobs:
     stage: test
     env: PYCTDEV_ECOSYSTEM=conda
     before_install:
-      ## install miniconda (using git pyctdev)
-      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - pip install -e .   # install local pyctdev
+      - python -m pyctdev miniconda_install   # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - conda install -y "python=3.6" # required because conda-build isn't noarch, so otherwise causes python downgrade later on
-      ## build conda package (using git pyctdev)
-      - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - conda install 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
+      - python -m pyctdev package_build $CHANNELS
+      - pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyctdev
-    install: doit develop_install
+    install: python -m pyctdev develop_install
     script:
-      - doit test_all
+      - python -m pyctdev test_all
       - conda config --add channels file:///$HOME/miniconda/conda-bld
       - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
-      - doit --dir=examples/one test_all
-      - doit --dir=examples/one test_export
+      - python -m pyctdev --dir=examples/one test_all
+      - python -m pyctdev --dir=examples/one test_export
       # TODO: still need to update conda stuff e.g. remove recipe
-      - doit --dir=examples/two test_export
+      - python -m pyctdev --dir=examples/two test_export
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
 
@@ -77,12 +78,12 @@ jobs:
 
   - &pip_pkg_default
     stage: pip_dev_package
-    env: PYENV_VERSION=2.7 PYPI=testpypi PIP_FORMATS="bdist_wheel"
+    env: PYCTDEV_ECOSYSTEM=pip PYENV_VERSION=2.7 PYPI=testpypi PIP_FORMATS="bdist_wheel"
     before_install:
       - pip install -e .
-      - doit ecosystem_setup
-    install: doit package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
-    script: doit package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
+      - python -m pyctdev ecosystem_setup
+    install: python -m pyctdev package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
+    script: python -m pyctdev package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
 
   - <<: *pip_pkg_default
     env: PYENV_VERSION=3.6 PYPI=testpypi
@@ -102,8 +103,8 @@ jobs:
     <<: *conda_default
     stage: conda_dev_package
     env: PYCTDEV_ECOSYSTEM=conda CHANS=$CHANS_DEV LABELS=$LABELS_DEV
-    install: doit package_build $CHANS --test-python=py36 --test-python=py27 $PKG_TEST_GROUP
-    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
+    install: python -m pyctdev package_build $CHANS --test-python=py36 --test-python=py27 $PKG_TEST_GROUP
+    script: python -m pyctdev package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
 
   - <<: *conda_pkg_default
     stage: conda_package
