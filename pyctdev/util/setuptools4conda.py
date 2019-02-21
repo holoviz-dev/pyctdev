@@ -1,6 +1,6 @@
 from . import log_message
 
-from .setuptools import _get_from_setup_cfg, tidyextras, Requirement, SETUP_CFG, _get_setup_metadata2
+from .setuptools import _get_from_setup_cfg, tidyextras, Requirement, SETUP_CFG, get_setup_args
 
 
 def read_conda_packages():
@@ -62,7 +62,7 @@ def get_package_dependencies():
     deps = read_conda_package_dependencies()
 
     # setup.cfg:
-    # package_dependencies = 
+    # package_dependencies =
     #   a = b, c
     #   b = d
 
@@ -71,7 +71,7 @@ def get_package_dependencies():
     # b --depends--> d
 
     # no checking for stuff like cycles
-    
+
     return deps
 
 
@@ -82,9 +82,9 @@ def get_packages(requested_packages=None):
     defined_packages = read_conda_packages().keys()
     if len(defined_packages) == 0:
         try:
-            defined_packages = [_get_setup_metadata2('name')]
+            defined_packages = [get_setup_args('name')]
         except KeyError:
-            raise ValueError("No name or packages defined in setup.cfg.")
+            raise ValueError("No name or packages defined in setup.py.")
 
     if len(requested_packages) == 0:
         return defined_packages

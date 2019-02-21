@@ -100,7 +100,7 @@ class env_dependency_graph(PyctdevTask):
 # TODO: isn't this missing option for exporting everything?
 # (i.e. dependencies recursively)
 class env_export(PyctdevTask):
-    """Turn an existing, installed environment into an environment specification. 
+    """Turn an existing, installed environment into an environment specification.
 
     Can filter and pin dependencies using info in setup.cfg.
 

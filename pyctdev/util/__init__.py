@@ -1,6 +1,13 @@
 import sys
 import itertools
 
+
+def get_role():
+    import doit
+
+    # role can be user or dev - default also set in util.log_message
+    return doit.get_var("role", "user")
+
 ##################################################
 # TODO: temp wrapper
 # - might want to link to doit's verbosity too?
@@ -14,7 +21,8 @@ def log_warning(msg, *args, **kw):
 
 
 def log_message(msg, *args, **kw):
-    _l.message(msg, *args, **kw)
+    if get_role() == 'dev':
+        _l.message(msg, *args, **kw)
 
 
 def log_verbose(msg, *args, **kw):

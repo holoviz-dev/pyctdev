@@ -3,7 +3,7 @@
 
 import param
 
-from .util import log_warning
+from .util import log_warning, get_role
 
 from . import _doithacks
 
@@ -33,6 +33,7 @@ class DoitTask(param.Parameterized):
     task_dep = param.List()
     targets = param.List()
     getargs = param.Parameter()
+    role = get_role()
 
     def create_doit_tasks(self):
         return self.__call__()
@@ -43,13 +44,7 @@ class DoitTask(param.Parameterized):
         # check params as expected from defn
         my_params = set([p['name'] for p in self.params])
         expected_params = set(self.task_type.params)
-        if not my_params.issuperset(expected_params):
-            # TODO: warning not heplful for a user of the task - this
-            # is for a developer of the task
-
-            # TODO: and what if a specific backend wants to provide an
-            # extra option. Should probably check that implementation
-            # is a superset of params
+        if not my_params.issuperset(expected_params) and self.role == 'dev':
             log_warning(
                 "Task type %s (from ecosystem=%s) should have params %s but got %s",
                 self.task_type.__name__,
@@ -57,7 +52,7 @@ class DoitTask(param.Parameterized):
                     self,
                     '_ecosystem') else "unknown",
                 expected_params,
-                my_params)
+                my_params or 'none')
 
         # build up full docs
         docs = [self.task_type.__doc__, self.additional_doc, "task type: %s.%s\n" % (

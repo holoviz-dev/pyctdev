@@ -52,7 +52,7 @@ from conda_env.env import from_environment as conda_env_from_environment, Enviro
 
 from ..util import echo, log_message, _test_matrix_thing, log_warning, doithack_join_cmds, faketox
 from ..util.pyproject import get_buildreqs
-from ..util.setuptools import read_pins, _get_dependencies, SETUP_CFG, read_extras_provide, read_provides, get_cfg, Requirement, parse_version_with_packaging_Version
+from ..util.setuptools import read_pins, _get_dependencies, read_extras_provide, read_provides, SETUP_CFG, get_setup_args, Requirement, parse_version_with_packaging_Version
 from ..util.setuptools4conda import python2condaV, python2conda, get_packages, get_pkg_tests, read_conda_packages, get_package_dependencies
 
 from .. import _doithacks
@@ -130,10 +130,10 @@ def _conda_install(
     """
     if extras is None:
         extras = []
-        
+
     if channel is None:
         channel = []
-    
+
     # TODO: list vs. string form for _pin
     deps = _get_dependencies(['install_requires'] +
                              extras, all_extras=all_extras, pypi_only=False)
@@ -174,7 +174,7 @@ def _conda_debug_info():
                         'default_prefix',
                         'root_prefix',
                         'envs'])
-    
+
     maybe_useful_info = {k:v for k,v in info.items() if k in maybe_useful}
     return pprint.pformat(maybe_useful_info, indent=4)
 
@@ -291,7 +291,7 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
 
     if pin_deps and pin_deps_as_env:
         raise ValueError("Can't --pin-deps and --pin-deps-as-env")
-    
+
     if os.path.exists("conda.recipe/meta.yaml"):
         if force:
             log_message('Overwriting existing recipe: conda.recipe/meta.yaml')
@@ -309,20 +309,20 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
     # (but could also add ability to have dependencies between extras,
     # although that doesn't exist in python land). How to know the
     # core one?
-    
+
     # TODO: in general, any setup.cfg field might need conversion
     # from python to conda e.g. license (e.g. conda-forge exact
     # licnese name might be different from pypi's?)
 
     # TODO: support conda verify
 
-    cfg = get_cfg()
+    setup_args = get_setup_args()
 
     meta = OrderedDict()
 
     meta['package'] = OrderedDict((
-        ('name', cfg['metadata']['name'] + "-split"),  # TODO ???
-        ('version', cfg['metadata']['version']),
+        ('name', setup_args['name'] + "-split"),  # TODO ???
+        ('version', setup_args['version']),
     ))
 
     meta['source'] = OrderedDict((
@@ -355,16 +355,16 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
             deps = ["%s ==%s" % (
                 conda_MatchSpec(d).name, packagesd[conda_MatchSpec(d).name]['version']) for d in deps]
         elif pin_deps:
-            log_message("Pinning dependencies as setup.cfg")
+            log_message("Pinning dependencies as setup.py")
             deps = _pin(deps)
         else:
             pass
 
-        version = cfg['metadata']['version']
+        version = setup_args['version']
         # any interpackage dependencies?
-        
+
         # TODO: should there be this dep in host too?
-        
+
         # TODO: I forget without looking, should there be run_constrained in the
         # package that's doing the depending?
         pkgdeps=["%s == %s"%(pd,version) for pd in package_dependencies.get(pkgname,[])]
@@ -379,7 +379,7 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
                     if sigh not in run_constrained: # ???
                         run_constrained.append(sigh)
         run_constrained = sorted(run_constrained)
-        
+
         r = open(os.path.join(os.path.dirname(
             __file__), "condatemplate.yaml")).read()
         # hack https://github.com/conda/conda-build/issues/2475
@@ -417,10 +417,8 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
             provides += extras_provide.get(extra, [])
 
         if len(provides) == 0:
-            # default: assume package name is import name
-            # TODO: assumes package name is sane...no hyphens...sigh. At least add some instructions
-            # to the subsequent error message
-            provides = [cfg['options']['packages']]
+            log_message('Assumes package name is import name - no hypnens.')
+            provides = [setup_args['packages']]
 
         output['test'] = OrderedDict((
             ('requires', sorted(tdeps)),
@@ -432,10 +430,19 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
     meta['outputs'] = outputs
 
     meta['about'] = OrderedDict((
-        ('home', cfg['metadata']['url']),
-        ('summary', cfg['metadata']['description']),
-        ('license', cfg['metadata']['license'])))
-    # TODO: more fields, doc_url etc from cfg['metadata']['project_urls']
+        ('home', setup_args['url']),
+        ('summary', setup_args['description']),
+        ('license', setup_args['license'])),
+    )
+
+    optional_fields= ['license_file']
+    for field in optional_fields:
+        if field in setup_args:
+            meta['about'][field] = setup_args[field]
+
+    if 'project_urls' in setup_args:
+        if 'Source Code' in setup_args['project_urls']:
+            meta['about']['dev_url'] = setup_args['project_urls']['Source Code']
 
     if not os.path.exists("conda.recipe"):  # could do better/race
         os.makedirs("conda.recipe")
@@ -482,8 +489,8 @@ def _create_conda_env_file(pin_deps, package, extra, channel,
             _get_dependencies(
                 ['install_requires'] + extras,
                 all_extras = all_extras,
-                pypi_only=False))  
-        
+                pypi_only=False))
+
         deps2 = [python2conda(d) for d in _get_dependencies(
             ['install_requires'] + extras, all_extras=all_extras,pypi_only=False)]
         assert deps == deps2 # TODO why??
@@ -565,7 +572,7 @@ def create_recipe_appends(test_python, test_requires,
     if len(package) == 0:
         log_message("No packages specified; defaulting to all available: %s", available_packages)
         package = available_packages
-    
+
     package_tests = get_pkg_tests(test_group,package)
 
     n_pkgs_being_tested = 0
@@ -580,7 +587,11 @@ def create_recipe_appends(test_python, test_requires,
     if n_pkgs_being_tested == 0:
         raise ValueError("No packages being tested.")  # say what to do...
     elif len(package) > n_pkgs_being_tested:
-        log_message("Not all packages are being explicitly tested; the supplied --test-group(s) do not cover all packages. If that is accidental, either pass more --test-group(s) and/or ensure %s's pyctdev.conda.tests_map covers all the packages you expect it to.", SETUP_CFG)
+        log_message("Not all packages are being explicitly tested; the "
+                    "supplied --test-group(s) do not cover all packages. If "
+                    "that is accidental, either pass more --test-group(s) "
+                    "and/or ensure %s's pyctdev.conda.tests_map covers all "
+                    "the packages you expect it to.", SETUP_CFG)
 
     existing_packages = conda_build_api.get_output_file_paths(
         "conda.recipe")

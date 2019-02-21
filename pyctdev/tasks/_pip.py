@@ -3,7 +3,7 @@
 import os
 import warnings
 
-from ..util.setuptools import _get_setup_metadata, get_package_path
+from ..util.setuptools import get_setup_args, get_package_path
 from ..util.pyproject import get_buildreqs
 from ..util import echo, test_matrix, doithack_join_cmds, faketox, log_message
 
@@ -50,10 +50,7 @@ def _pip_install_with_options(extra, channel, all_extras):
     cmd += "-e ."
 
     if all_extras:
-        meta = _get_setup_metadata()
-        extra = set(meta.get('extras_require', {}))
-        # don't know why I had this...
-        #options = set(options).union(set(extras))
+        extra = set(get_setup_args().get('extras_require', {}))
 
     if len(extra) > 0:
         cmd += "[%s]" % (",".join(extra))

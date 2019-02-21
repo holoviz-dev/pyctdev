@@ -38,39 +38,18 @@ def tidyextras(x):
     return x
 
 
-###########################
-# TODO: will be deleting these; to be replaced by setup.py
+def get_setup_args(must_contain=[]):
+    """Get dict from setup.py - augmented with setup.cfg"""
+    from setup import setup_args
 
-def _get_setup_metadata():
-    log_message("Attempting to get metadata from 'options' in %s.", SETUP_CFG)
-    setupcfg = read_configuration(SETUP_CFG)
-    # TODO: is this "the minimum required to count as filled in metadata", or what???
-    # assert x in y...
-    assert 'options' in setupcfg
-    assert 'install_requires' in setupcfg['options']
-    return setupcfg['options']
+    # adding in any info from setup.cfg
+    cfg = read_configuration(SETUP_CFG)
+    setup_args.update(**cfg['metadata'])
+    setup_args.update(**cfg['options'])
 
-
-def _get_setup_metadata2(k):
-    log_message("Attempting to get metadata '%s' from %s...", k, SETUP_CFG)
-    setupcfg = read_configuration(SETUP_CFG)
-    # TODO: is this "the minimum required to count as filled in metadata", or what???
-    # assert x in y...
-    if k in setupcfg['metadata']:
-        ans = setupcfg['metadata'][k]
-        log_message("...found under 'metadata'")
-    elif k in setupcfg['options']:
-        ans = setupcfg['options'][k]
-        log_message("...found under 'options'")
-    else:
-        raise ValueError(
-            "'%s' not found under 'metadata' or 'options' in %s" % (k, SETUP_CFG))
-    log_message("...value: %s", ans)
-    return ans
-
-
-def get_cfg():
-    return read_configuration(SETUP_CFG)
+    for arg in must_contain:
+        assert arg in setup_args
+    return setup_args
 
 ###########################
 
@@ -82,7 +61,7 @@ def get_cfg():
 # and install conda package then remove --force?
 def _get_dependencies(groups, all_extras=False, pypi_only=True):
     """get dependencies from setup.cfg"""
-    meta = _get_setup_metadata()
+    meta = get_setup_args()
     deps = []
     if all_extras:
         assert groups is None

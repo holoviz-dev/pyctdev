@@ -16,7 +16,7 @@ from doit.doit_cmd import DoitMain
 from doit.cmd_base import DodoTaskLoader
 from doit.exceptions import InvalidDodoFile
 
-from .util import log_message
+from .util import log_message, get_role
 from . import _doithacks
 
 _doithacks.preserve_docstrings()
@@ -36,8 +36,10 @@ class PyctdevLoader(DodoTaskLoader):
           * loads tasks and config from dodo.py (later tasks & options
             replace earlier ones).
         """
+        role = get_role()
+
         default_DOIT_CONFIG = {
-            'verbosity': 2,
+            'verbosity': 2 if role=='dev' else 1,
             'backend': 'sqlite3',
         }
 

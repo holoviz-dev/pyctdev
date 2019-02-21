@@ -56,7 +56,7 @@ def hackparse(self, in_args):
     # add_filtered_task(), which is defined in _process_filter(), but
     # I couldn't see easy way to get it in there.
     #
-    # 2. ideally should be feature of doit anyway    
+    # 2. ideally should be feature of doit anyway
     params, args = _orig_TaskParse_parse(self, in_args)
     missing_but_required = [pname for pname,
                             pval in params.items() if pval is NotImplemented]
@@ -133,7 +133,7 @@ def populate_task_options(task,values):
                     break
             except doit.cmdparse.CmdParseError:
                 pass
-            
+
         log_message("...%s.options set to: %s", task, task.options)
     return None # TODO: check None has no impact on actual uptodate calc.
 
@@ -240,7 +240,7 @@ class CmdAction2(CmdAction):
             log_message("Dry run; skipping: %s" % action)  # pyctdev addition
             return                                         # pyctdev addition
         log_message("Running: %s" % action)                # pyctdev addition
-        
+
         # spawn task process
         process = subprocess.Popen(
             action,
@@ -343,7 +343,7 @@ class PythonAction2(PythonAction):
         ####################################################
         # pyctdev addition
         if self.dry_run and not self.read_only:
-            log_message("Dry run; skipping: %s (%s)" % 
+            log_message("Dry run; skipping: %s (%s)" %
                         (self.py_callable.__name__,
                          self.py_callable))
             return
