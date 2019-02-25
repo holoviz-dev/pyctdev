@@ -62,6 +62,10 @@ setup_args = dict(
                             'conda-build ==3.17.8',
                             'anaconda-client ==1.7.2'],
         'graphs': ['python-graphviz'],
+        'build': [
+            'setuptools >=30.3.0',
+            'wheel',
+        ]
     }
 )
 
