@@ -69,8 +69,8 @@ class develop_test(ProjectTask):
 
     Examples:
 
-      pyctdev develop_test --test_group=examples
-      pyctdev develop_test --test_group=examples --test_what=pkg
+      pyctdev develop_test --test-group=examples
+      pyctdev develop_test --test-group=examples --test-what=pkg
 
     """
     params = ['test_group', 'test_requires', 'test_what']

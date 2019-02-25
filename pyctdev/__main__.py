@@ -39,7 +39,7 @@ class PyctdevLoader(DodoTaskLoader):
         role = get_role()
 
         default_DOIT_CONFIG = {
-            'verbosity': 2 if role=='dev' else 1,
+            'verbosity': 2 if role=='user' else 3,
             'backend': 'sqlite3',
         }
 
@@ -120,7 +120,7 @@ class PyctdevLoader(DodoTaskLoader):
         return tasks, config
 
 
-if __name__ == "__main__":
+def main():
     # TODO: most of below is hack to support --dry-run (including
     # switch out db during a dry run)
     tmpdb = None
@@ -138,3 +138,7 @@ if __name__ == "__main__":
     finally:
         if tmpdb is not None:
             os.unlink(tmpdb.name)
+
+
+if __name__ == "__main__":
+    main()

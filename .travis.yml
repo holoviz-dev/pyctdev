@@ -8,16 +8,14 @@ language: generic
 env:
   global:
     - PYENV_VERSION=3.6
-    - PKG_TEST_GROUP="--test-group=all"
     - CHANS_DEV="-c pyviz/label/dev"
     - CHANS_REL="-c pyviz"
     - LABELS_DEV="--label=dev"
     - LABELS_REL="--label=dev --label=main"
-    # will be overridden later to upload only wheel for py27 (sdist from py36)
-    - PIP_FORMATS="sdist bdist_wheel"
 
 stages:
-  - test
+  - pip_test
+  - conda_test
   - name: conda_dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$
   - name: pip_dev_package
@@ -35,39 +33,29 @@ jobs:
   ## pip
 
   - &pip_default
-    stage: test
-    env: PYCTDEV_ECOSYSTEM=pip
+    stage: pip_test
     # (pyctdev requires itself to test itself)
     before_install: pip install -e .[ecosystem_pip]
-    install: python -m pyctdev develop_install
+    install: pyctdev ecosystem=pip develop_install  # installs test deps
     script:
-      - python -m pyctdev test_all
-      - python -m pyctdev --dir=examples/one test_all
-      #- python -m pyctdev --dir=examples/two test_all
+      - pyctdev ecosystem=pip develop_test --test-group=all
 
   ## conda
 
   - &conda_default
-    stage: test
-    env: PYCTDEV_ECOSYSTEM=conda
+    stage: conda_test
     before_install:
       - pip install -e .   # install local pyctdev
-      - python -m pyctdev miniconda_install   # install miniconda
+      - pyctdev miniconda_install   # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
       - conda install 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
-      - python -m pyctdev package_build $CHANNELS
+      - pyctdev ecosystem=conda package_build $CHANNELS
       - pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyctdev
-    install: python -m pyctdev develop_install
+    install: pyctdev ecosystem=conda develop_install
     script:
-      - python -m pyctdev test_all
-      - conda config --add channels file:///$HOME/miniconda/conda-bld
-      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
-      - python -m pyctdev --dir=examples/one test_all
-      - python -m pyctdev --dir=examples/one test_export
-      # TODO: still need to update conda stuff e.g. remove recipe
-      - python -m pyctdev --dir=examples/two test_export
+      - pyctdev ecosystem=conda develop_test --test-group=all
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
 
@@ -78,19 +66,19 @@ jobs:
 
   - &pip_pkg_default
     stage: pip_dev_package
-    env: PYCTDEV_ECOSYSTEM=pip PYENV_VERSION=2.7 PYPI=testpypi PIP_FORMATS="bdist_wheel"
-    before_install:
-      - pip install -e .
-      - python -m pyctdev ecosystem_setup
-    install: python -m pyctdev package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
-    script: python -m pyctdev package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
+    env: PYENV_VERSION=2.7 PYPI=testpypi
+    before_install: pip install -e .[ecosystem_pip]
+    script:
+      - pyctdev ecosystem=pip package_build
+      - pyctdev ecosystem=pip package_test --test-group all
+      - pyctdev ecosystem=pip package_upload -u $PYPIUSR -p $PYPIPWD --pypi ${PYPI}
 
   - <<: *pip_pkg_default
     env: PYENV_VERSION=3.6 PYPI=testpypi
 
   - <<: *pip_pkg_default
     stage: pip_package
-    env: PYENV_VERSION=2.7 PYPI=pypi PIP_FORMATS="bdist_wheel"
+    env: PYENV_VERSION=2.7 PYPI=pypi
 
   - <<: *pip_pkg_default
     stage: pip_package
@@ -100,12 +88,18 @@ jobs:
   ##### conda
 
   - &conda_pkg_default
-    <<: *conda_default
     stage: conda_dev_package
-    env: PYCTDEV_ECOSYSTEM=conda CHANS=$CHANS_DEV LABELS=$LABELS_DEV
-    install: python -m pyctdev package_build $CHANS --test-python=py36 --test-python=py27 $PKG_TEST_GROUP
-    script: python -m pyctdev package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
+    env: CHANS=$CHANS_DEV LABELS=$LABELS_DEV
+    before_install:
+      - pip install -e .   # install local pyctdev
+      - pyctdev miniconda_install   # install miniconda
+      - export PATH="$HOME/miniconda/bin:$PATH"
+      - conda install 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
+    script:
+      - pyctdev ecosystem=conda package_build $CHANS
+      - pyctdev ecosystem=conda package_test --test-group all
+      - pyctdev ecosystem=conda package_upload -u $CONDAUSR -p $CONDAPWD $LABELS
 
   - <<: *conda_pkg_default
     stage: conda_package
-    env: PYCTDEV_ECOSYSTEM=conda CHANS=$CHANS_REL LABELS=$LABELS_REL
+    env: CHANS=$CHANS_REL LABELS=$LABELS_REL

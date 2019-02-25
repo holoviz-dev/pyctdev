@@ -68,7 +68,7 @@ test_python = {
     'default': [],
     'help': ('Version of python with which to run tests. Must be as listed \n'
              'in %s, e.g. likely to be py27 or py36 etc. Specify multiple \n'
-             'times for multiple pythons.' % TOX_INI + _test_matrix)
+             'times for multiple pythons.\n' % TOX_INI + _test_matrix)
 }
 
 test_group = {
@@ -78,7 +78,7 @@ test_group = {
     'default': [],
     'help': ('Which group of tests to run. Must be as listed in %s, e.g. \n'
              'likely to include "unit", "flakes", etc. Specify multiple \n'
-             'times for multiple groups.' % TOX_INI + _test_matrix)
+             'times for multiple groups.\n' % TOX_INI + _test_matrix)
 }
 
 test_requires = {
@@ -89,7 +89,7 @@ test_requires = {
     'help': ('Additional packages that should be present during testing, \n'
              'e.g. to check there is no conflict/malfunction when that \n'
              'package is present. Must be listed in %s. Specify multiple \n'
-             'times for multiple packages.' % TOX_INI + _test_matrix)
+             'times for multiple packages.\n' % TOX_INI + _test_matrix)
 }
 
 test_what = {
@@ -100,7 +100,7 @@ test_what = {
     'help': ('Optional extra test specifications, e.g. commands to run. \n'
              'Must be defined and used in %s. E.g. "pkg" might be extra \n'
              'commands that apply to packages only. Can specify multiple \n'
-             'times.' % TOX_INI + _test_matrix)
+             'times.\n' % TOX_INI + _test_matrix)
 }
 
 
