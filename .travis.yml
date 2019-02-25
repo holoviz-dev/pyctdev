@@ -39,7 +39,7 @@ jobs:
     env: PYCTDEV_ECOSYSTEM=pip
     # (pyctdev requires itself to test itself)
     before_install: pip install -e .
-    install: python -m develop_install
+    install: python -m pyctdev develop_install
     script:
       - python -m pyctdev test_all
       - python -m pyctdev --dir=examples/one test_all
