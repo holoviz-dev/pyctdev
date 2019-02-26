@@ -50,7 +50,7 @@ jobs:
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install    # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - conda install 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
+      - conda install -y 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
       - pyctdev ecosystem=conda package_build -c pyviz
       - pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
@@ -97,7 +97,7 @@ jobs:
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install   # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
-      - conda install 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
+      - conda install -y 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
     script:
       - pyctdev ecosystem=conda package_build $CHANS
       - pyctdev ecosystem=conda package_test --test-group all
