@@ -48,7 +48,7 @@ setup_args = dict(
         # Use it e.g. to be able to read pyproject.toml
         # Also many conda packages use it to build anyway.
         'pip >=10',
-#        'setuptools >=39' # for its vendoring of stuff
+        'setuptools >=39' # for its vendoring of stuff
     ],
     extras_require={
         'tests': ['flake8'],
@@ -61,7 +61,7 @@ setup_args = dict(
         'ecosystem_conda': ['conda ==4.6.4',
                             'conda-build ==3.17.8',
                             'anaconda-client ==1.7.2'],
-        'graphs': ['python-graphviz'],
+        'graphs': ['graphviz'],
         'build': [
             'setuptools >=30.3.0',
             'wheel',

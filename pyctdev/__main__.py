@@ -9,6 +9,7 @@ available).
 import sys
 import os
 import tempfile
+import importlib
 
 import doit
 import doit.loader
@@ -68,9 +69,9 @@ class PyctdevLoader(DodoTaskLoader):
             log_message("...defaulting to ecosystem=pip")
 
         # TODO: consider some kind of plugins dir?
-        import pyctdev.tasks.universal
-        # TODO at least use importlib or whatever it is
-        exec("import pyctdev.tasks.%s" % ecosystem)
+        import pyctdev.tasks
+        for mod in ['universal', ecosystem]:
+            importlib.import_module('pyctdev.tasks.{}'.format(mod))
 
         task_fns = pyctdev.tasks.get_tasks(ecosystem)
 
