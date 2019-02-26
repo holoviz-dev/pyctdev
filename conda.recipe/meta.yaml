@@ -30,10 +30,9 @@ test:
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
     - "{{ dep }}"
-    {% endfor %}    
+    {% endfor %}
   source_files:
     # since we're testing itself...
-    - dodo.py
     - tox.ini
 
 

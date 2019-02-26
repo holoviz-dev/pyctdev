@@ -5,7 +5,7 @@ try:
 except ImportError:
     from urllib import urlretrieve
 
-from ..util import faketox, test_matrix, doithack_join_cmds
+from ..util import faketox, test_matrix, doithack_join_cmds, log_message
 
 
 miniconda_url = {
@@ -19,7 +19,7 @@ miniconda_installer = platform_url.split('/')[-1]
 
 
 def download_miniconda(targets):
-    return urlretrieve(platform_url, miniconda_installer)
+    urlretrieve(platform_url, miniconda_installer)
 
 
 # TODO: this is another doit param hack :(

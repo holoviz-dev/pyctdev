@@ -74,7 +74,6 @@ register(
     DoitTask(
         task_type=miniconda_download,
         targets=[miniconda_installer],
-        uptodate=[True],
         actions=[PythonAction2(download_miniconda)]))
 
 register(

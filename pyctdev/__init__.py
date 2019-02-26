@@ -7,11 +7,16 @@ del get_versions
 
 import doit
 
-from .util import log_message
+try:
+    from .util import log_message
 
-log_message("This is pyctdev %s (from %s)", __version__, __file__)
-log_message("Using doit %s (from %s)", ".".join(str(x)
-                                                for x in doit.__version__), doit.__file__)
+    log_message("This is pyctdev %s (from %s)", __version__, __file__)
+    log_message("Using doit %s (from %s)", ".".join(str(x)
+                                                    for x in doit.__version__), doit.__file__)
+    del log_message
+except ModuleNotFoundError:
+    # it's not a big deal if that doesn't work
+    pass
 
 # TODO probably need to move this elsewhere (actually probably remove
 # and drop py27 support?)
@@ -24,4 +29,4 @@ except AttributeError:
     doit_cmd.reset_vars()
     del doit_cmd
 
-del log_message, doit
+del doit
