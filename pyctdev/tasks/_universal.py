@@ -5,7 +5,7 @@ try:
 except ImportError:
     from urllib import urlretrieve
 
-from ..util import faketox, test_matrix, doithack_join_cmds, log_message
+from ..util import faketox, test_matrix, doithack_join_cmds
 
 
 miniconda_url = {
