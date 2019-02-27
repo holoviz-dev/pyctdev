@@ -39,6 +39,8 @@ jobs:
     install: pyctdev ecosystem=pip develop_install  # installs test deps
     script:
       - pyctdev ecosystem=pip develop_test --test-group=all
+      - pyctdev ecosystem=pip package_build
+      - pyctdev ecosystem=pip package_test
 
   ## conda
 
@@ -50,7 +52,9 @@ jobs:
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install    # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
+      - pyctdev ecosystem=conda env_capture
       - conda install -y 'conda ==4.6.4' 'conda-build ==3.17.8' 'anaconda-client ==1.7.2'  # duplicated from setup.py
+      - pyctdev ecosystem=conda env_capture
       - pyctdev ecosystem=conda package_build -c pyviz
       - pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
