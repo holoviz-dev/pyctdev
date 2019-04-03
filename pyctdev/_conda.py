@@ -250,7 +250,6 @@ def task_ecosystem_setup():
 
     return {
         'actions': [
-            CmdAction(thing1),
             CmdAction(thing2)
         ],
         'params': [_channel_param]}
