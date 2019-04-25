@@ -65,11 +65,11 @@ _channel_param = {
 
 # TODO: not sure what conda-using developers do/prefer...
 # pip develop and don't install missing deps
-python_develop = "pip install --no-deps -e ."
+# python_develop = "pip install --no-deps -e ."
 # pip develop and pip install missing deps
 #  python_develop = "pip install -e ."
 # setuptools develop and don't install missing deps
-#  python_develop = "python setup.py develop --no-deps"
+python_develop = "python setup.py develop --no-deps"
 # setuptools develop and easy_install missing deps:
 #  python_develop = "python setup.py develop"
 
