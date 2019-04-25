@@ -82,7 +82,7 @@ def _conda_build_deps(channel):
         return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
     else:
         return echo("Skipping conda install (no build dependencies)")
-    
+
 
 def _conda_install_with_options(options,channel,env_name_again):
     deps = get_dependencies(['install_requires']+options)
@@ -142,8 +142,8 @@ def task_env_export():
         from conda.models.match_spec import MatchSpec
 
         deps = set([MatchSpec(d).name for d in _get_dependencies(['install_requires']+options)])
-        
-        for what in E.dependencies:                    
+
+        for what in E.dependencies:
             E.dependencies[what] = [d for d in E.dependencies[what] if MatchSpec(d).name in deps]
 
         # fix up conda channels TODO: should probably just use non-env
@@ -152,7 +152,7 @@ def task_env_export():
             packages = {package['name']:package for package in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])}
             E.dependencies['conda'] = ["%s%s"%( (packages[MatchSpec(x).name]['channel']+"::" if packages[MatchSpec(x).name]['channel']!="defaults" else '') ,x) for x in E.dependencies['conda']]
             E.channels = ["defaults"]
-            
+
         # what could go wrong?
         E.dependencies.raw = []
         if len(E.dependencies.get('conda',[]))>0:
@@ -250,6 +250,7 @@ def task_ecosystem_setup():
 
     return {
         'actions': [
+            CmdAction(thing1),
             CmdAction(thing2)
         ],
         'params': [_channel_param]}
@@ -296,7 +297,7 @@ def task_package_test():
                                                  "%(recipe)s")
         return cmd
 
-    
+
     def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe):
         cmds = []
         if pkg_tests:
@@ -317,7 +318,7 @@ def task_package_test():
         if yaml is None:
             raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
 
-        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
             environment = get_env(p,g,r,w)
             deps = get_tox_deps(environment,hack_one=True) # note the hack_one, which is different from package_build
             deps = [_join_the_club(d) for d in deps]
@@ -347,7 +348,7 @@ def task_package_test():
             os.remove(p)
         except:
             pass
-        
+
         if not pkg_tests:
             return
 
@@ -398,13 +399,13 @@ def task_package_build():
         'type':str,
         'default':''}
 
-    
+
     def create_recipe_clobber(recipe,pin_deps_as_env):
         if pin_deps_as_env == '':
             return
         else:
             requirements_run = []
-            
+
             # TODO: unify with conda in env_export
             env_name = pin_deps_as_env
             import collections
@@ -423,7 +424,7 @@ def task_package_build():
             # TODO: could add channel to the pin...
             from conda.models.match_spec import MatchSpec
             requirements_run = ["%s ==%s"%(MatchSpec(d).name,packagesd[MatchSpec(d).name]['version']) for d in deps]
-                        
+
             with open("conda.recipe/%s/_pyctdev_recipe_clobber.yaml"%recipe,'w') as f:
                 f.write(yaml.dump(
                     {
@@ -439,8 +440,8 @@ def task_package_build():
             deps = " ".join('"%s"'%dep for dep in buildreqs)
             return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
         else:
-            return 'echo "no build reqs"'    
-    
+            return 'echo "no build reqs"'
+
     def thing(channel,pin_deps_as_env,recipe):
         cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
@@ -468,7 +469,7 @@ def task_package_build():
         if yaml is None:
             raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
 
-        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
             environment = get_env(p,g,r,w)
             deps = [_join_the_club(d) for d in get_tox_deps(environment)]
             cmds = get_tox_cmds(environment)
@@ -497,7 +498,7 @@ def task_package_build():
             os.remove(p)
         except:
             pass
-        
+
         if not pkg_tests:
             return
 
@@ -555,7 +556,7 @@ def task_package_upload():
         'long':'user',
         'type':str,
         'default':'pyviz'}
-    
+
     return {'actions': [CmdAction(thing)],
             'params': [label_param,token_param,recipe_param,user_param]}
 
@@ -608,8 +609,8 @@ def task_env_create():
             selfchan+="/label/dev"
 
         return "conda install -y --name %(name)s -c " + selfchan + " pyctdev"
-    
-    
+
+
     return {
         'params': [python,name,_channel_param],
         'uptodate': [uptodate],
@@ -634,9 +635,9 @@ def _env_exists(task,values):
     else:
         from conda.cli.python_api import Commands, run_command
         return name in [os.path.basename(e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
-                
-        
-    
+
+
+
 
 # TODO: doit - how to share parameters with dependencies? Lots of
 # awkwardness here to work around that...
@@ -651,7 +652,7 @@ def _env_exists(task,values):
 def task_develop_install():
     """python develop install, with specified optional groups of dependencies (installed by conda only).
 
-    Typically ``conda install "test dependencies" && pip install -e . --no-deps``. 
+    Typically ``conda install "test dependencies" && pip install -e . --no-deps``.
 
     Pass --options multiple times to specify other optional groups
     (see project's setup.py for available options).
@@ -716,7 +717,7 @@ def task_env_dependency_graph():
                     f.write("%s\n"%n)
                 f.write("\n***** dependencies *****\n")
                 for e in edges:
-                    f.write("%s -> %s\n"%e)                    
+                    f.write("%s -> %s\n"%e)
             print("wrote %s.txt (install graphviz for svg)"%env_name)
 
     return {'actions': [_x,], 'params':[env_name,]}
