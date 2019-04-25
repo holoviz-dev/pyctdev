@@ -9,7 +9,7 @@ setup_args = dict(
     name = 'pyctdev',
     description = 'python packaging common tasks for developers',
     long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",    
+    long_description_content_type="text/markdown",
     version = versioneer.get_version().lstrip('v'),
     cmdclass = versioneer.get_cmdclass(),
     license = 'BSD-3',
@@ -49,7 +49,7 @@ setup_args = dict(
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
         # TODO: beware pin here and in _conda.py!
-        'ecosystem_conda': ['conda <4.6', 'conda-build ==3.10.1']
+        'ecosystem_conda': ['conda >=4.4', 'conda-build ==3.10.1']
     }
 )
 
