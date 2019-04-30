@@ -33,7 +33,7 @@ _channel_param = {
 }
 
 def _pip_install_with_options(options,channel,all_extras):
-    cmd = "pip install --upgrade " 
+    cmd = "pip install --upgrade "
 
     if 'testpypi' in channel:
         # note: should pre always be used maybe? Or more likely,
@@ -82,11 +82,9 @@ def task_env_capture():
 def task_ecosystem_setup():
     """Common pip setup
 
-    Updates to latest pip, tox, twine, and wheel.
+    Updates to latest tox, twine, and wheel.
     """
-    # TODO: will need to become something like the following w/ pip10
-    # d:\python36\python.exe -m pip install --upgrade pip tox twine wheel
-    return {'actions': ["pip install --upgrade pip tox twine wheel"]}
+    return {'actions': ["pip install --upgrade tox twine wheel"]}
 
 
 ########## PACKAGING ##########
@@ -97,7 +95,7 @@ def task_package_build():
     """Build pip package, then install and test all_quick (or other
     specified env) in venv
 
-    E.g. 
+    E.g.
 
     ``doit package_build --formats=bdist_wheel``
     ``doit package_build -e all_quick-Ewith_numpy``
@@ -126,7 +124,7 @@ def task_package_build():
         'default':'sdist --formats=gztar bdist_wheel --universal'
     }
     # TODO: missing support for pypi channels
-    
+
     def thing(test_group,test_python,test_requires,pkg_tests,sdist=False):
         if pkg_tests:
             enviros = []
@@ -154,7 +152,7 @@ def task_package_build():
                 return echo("not running sdist tests")
         else:
             return echo("no sdist")
-        
+
     def sdist_build_deps(formats,sdist_install_build_deps):
         if 'sdist' in formats:
             if not sdist_install_build_deps:
@@ -172,7 +170,7 @@ def task_package_build():
 
 
     # TODO: would be able to use the packages created by tox if
-    # https://github.com/tox-dev/tox/issues/232 were done    
+    # https://github.com/tox-dev/tox/issues/232 were done
     return {'actions': [CmdAction(wheel),
                         CmdAction(sdist_build_deps),
                         CmdAction(sdist),
@@ -205,7 +203,7 @@ def task_package_upload():
         'type':str,
         'default':''
     }
-    
+
     pypi = {
         'name':'pypi',
         'long':'pypi',
@@ -242,15 +240,15 @@ def task_env_create():
 
 def task_develop_install():
     """python develop install with specified optional groups of dependencies.
-    
-    Typically ``pip install -e .[tests]``. 
+
+    Typically ``pip install -e .[tests]``.
 
     Pass --options multiple times to specify other optional groups
     (see project's setup.py for available options).
 
     Pass --channel multiple times to specify other pypi servers.
 
-    E.g. 
+    E.g.
 
     ``doit develop_install -o examples -o tests``
     ``doit develop_install -o all``

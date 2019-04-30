@@ -9,7 +9,7 @@ setup_args = dict(
     name = 'pyctdev',
     description = 'python packaging common tasks for developers',
     long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",    
+    long_description_content_type="text/markdown",
     version = versioneer.get_version().lstrip('v'),
     cmdclass = versioneer.get_cmdclass(),
     license = 'BSD-3',
@@ -39,7 +39,7 @@ setup_args = dict(
 
         # Pretty much part of every python distribution now anyway.
         # Use it e.g. to be able to read pyproject.toml
-        'pip >=10'
+        'pip ==19.0.3'
     ],
     extras_require={
         'tests': ['flake8'],
