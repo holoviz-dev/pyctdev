@@ -39,7 +39,8 @@ setup_args = dict(
 
         # Pretty much part of every python distribution now anyway.
         # Use it e.g. to be able to read pyproject.toml
-        'pip >=10'
+        # pinning to avoid https://github.com/pyviz/pyctdev/issues/12
+        'pip ==19.0.3'
     ],
     extras_require={
         'tests': ['flake8'],
