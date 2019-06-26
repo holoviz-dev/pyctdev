@@ -50,6 +50,7 @@ jobs:
       - conda install -y 'conda ==4.7.5' 'conda-build ==3.18.5' 'anaconda-client ==1.7.2' 'pyyaml'   # duplicated from setup.py
       - conda info
       - conda list
+      - which python
       - pyctdev ecosystem=conda env_capture
     install:
       - pyctdev ecosystem=conda package_build $CHANS
