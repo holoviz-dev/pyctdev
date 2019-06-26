@@ -41,16 +41,16 @@ jobs:
 
   - &conda_default
     stage: test
-    env: CHANS=$CHANS_REL
+    env: CHANS=$CHANS_REL PYCTDEV_ECOSYSTEM=conda
     before_install:
       - pip install -e .   # install local pyctdev
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install   # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
+      - conda install -y 'conda ==4.7.5' 'conda-build ==3.18.5' 'anaconda-client ==1.7.2' 'pyyaml'   # duplicated from setup.py
       - pyctdev ecosystem=conda env_capture
-      - conda install -y 'conda ==4.7.5' 'conda-build ==3.18.5' 'anaconda-client ==1.7.2'  # duplicated from setup.py
     install:
-      - pyctdev ecosystem=conda package_build -c pyviz
+      - pyctdev ecosystem=conda package_build $CHANS
       - pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyctdev
@@ -67,7 +67,7 @@ jobs:
 
   - &pip_pkg_default
     stage: dev_package
-    env: PYENV_VERSION=2.7 PYPI=testpypi
+    env: PYENV_VERSION=2.7 PYPI=testpypi PYCTDEV_ECOSYSTEM=conda
     before_install: pip install -e .[ecosystem_pip]
     script:
       - pyctdev ecosystem=pip package_build
