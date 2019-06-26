@@ -60,7 +60,8 @@ setup_args = dict(
         # TODO: does this work out practically vs ecosystem_setup? E.g. what about updating to latest conda? Or just rely on miniconda to provide that (then what about e.g. caching on travis?)
         'ecosystem_conda': ['conda ==4.7.5',
                             'conda-build ==3.18.5',
-                            'anaconda-client ==1.7.2'],
+                            'anaconda-client ==1.7.2',
+                            'pyyaml'],
         'graphs': ['graphviz'],
         'build': [
             'setuptools >=30.3.0',
