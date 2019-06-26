@@ -46,7 +46,7 @@ jobs:
       - pip install -e .   # install local pyctdev don't install ecosystem_conda because conda isn't available on pypi
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install   # install miniconda
-      - export PATH="$HOME/miniconda/bin:$PATH"
+      - export PATH="$HOME/miniconda/bin:$PATH" && hash -r
       - conda install -y 'conda ==4.7.5' 'conda-build ==3.18.5' 'anaconda-client ==1.7.2' 'pyyaml'   # duplicated from setup.py
       - conda info
       - conda list
