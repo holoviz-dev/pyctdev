@@ -14,15 +14,10 @@ env:
     - LABELS_REL="--label=dev --label=main"
 
 stages:
-  - pip_test
-  - conda_test
-  - name: conda_dev_package
+  - test
+  - name: dev_package
     if: tag =~ ^v(\d+|\.)*[a-z]\d*$
-  - name: pip_dev_package
-    if: tag =~ ^v(\d+|\.)*[a-z]\d*$
-  - name: conda_package
-    if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
-  - name: pip_package
+  - name: release_package
     if: tag =~ ^v(\d+|\.)*[^a-z]\d*$
 
 jobs:
@@ -33,7 +28,7 @@ jobs:
   ## pip
 
   - &pip_default
-    stage: pip_test
+    stage: test
     # (pyctdev requires itself to test itself)
     before_install: pip install -e .[ecosystem_pip]
     install: pyctdev ecosystem=pip develop_install  # installs test deps
@@ -45,7 +40,7 @@ jobs:
   ## conda
 
   - &conda_default
-    stage: conda_test
+    stage: test
     env: CHANS=$CHANS_REL
     before_install:
       - pip install -e .   # install local pyctdev
@@ -71,7 +66,7 @@ jobs:
   # that pypi displays 3's metadata; issue at pypa TODO)
 
   - &pip_pkg_default
-    stage: pip_dev_package
+    stage: dev_package
     env: PYENV_VERSION=2.7 PYPI=testpypi
     before_install: pip install -e .[ecosystem_pip]
     script:
@@ -83,11 +78,11 @@ jobs:
     env: PYENV_VERSION=3.6 PYPI=testpypi
 
   - <<: *pip_pkg_default
-    stage: pip_package
+    stage: release_package
     env: PYENV_VERSION=2.7 PYPI=pypi
 
   - <<: *pip_pkg_default
-    stage: pip_package
+    stage: release_package
     env: PYENV_VERSION=3.6 PYPI=pypi
 
 
@@ -95,7 +90,7 @@ jobs:
 
   - &conda_pkg_default
     <<: *conda_default
-    stage: conda_dev_package
+    stage: dev_package
     env: CHANS=$CHANS_DEV LABELS=$LABELS_DEV
     install: true
     script:
@@ -104,5 +99,5 @@ jobs:
       - pyctdev ecosystem=conda package_upload -u $CONDAUSR -p $CONDAPWD $LABELS
 
   - <<: *conda_pkg_default
-    stage: conda_package
+    stage: release_package
     env: CHANS=$CHANS_REL LABELS=$LABELS_REL
