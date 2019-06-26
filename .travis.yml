@@ -41,9 +41,9 @@ jobs:
 
   - &conda_default
     stage: test
-    env: CHANS=$CHANS_REL PYCTDEV_ECOSYSTEM=conda
+    env: CHANS=$CHANS_REL
     before_install:
-      - pip install -e .[ecosystem_conda]   # install local pyctdev
+      - pip install -e .   # install local pyctdev don't install ecosystem_conda because conda isn't available on pypi
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install   # install miniconda
       - export PATH="$HOME/miniconda/bin:$PATH"
