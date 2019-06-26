@@ -46,12 +46,11 @@ jobs:
       - pip install -e .   # install local pyctdev don't install ecosystem_conda because conda isn't available on pypi
       - pyctdev role=dev miniconda_download   # download miniconda
       - pyctdev role=dev miniconda_install   # install miniconda
-      - export PATH="$HOME/miniconda/bin:$PATH" && hash -r && pip uninstall -y doit
-      - conda install -y 'conda ==4.7.5' 'conda-build ==3.18.5' 'anaconda-client ==1.7.2' pyyaml doit  # duplicated from setup.py
+      - export PATH="$HOME/miniconda/bin:$PATH" && hash -r
+      - conda install -y 'conda ==4.7.5' 'conda-build ==3.18.5' 'anaconda-client ==1.7.2' # duplicated from setup.py
       - conda info
       - conda list
       - which python
-      - pyctdev ecosystem=conda env_capture
     install:
       - pyctdev ecosystem=conda package_build $CHANS
       - pip uninstall -y doit pyctdev && rm -f .doit.db
@@ -95,7 +94,8 @@ jobs:
     <<: *conda_default
     stage: dev_package
     env: CHANS=$CHANS_DEV LABELS=$LABELS_DEV
-    install: true
+    install:
+      - pyctdev env_capture
     script:
       - pyctdev ecosystem=conda package_build $CHANS
       - pyctdev ecosystem=conda package_test --test-group all
