@@ -58,8 +58,8 @@ setup_args = dict(
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
         # TODO: does this work out practically vs ecosystem_setup? E.g. what about updating to latest conda? Or just rely on miniconda to provide that (then what about e.g. caching on travis?)
-        'ecosystem_conda': ['conda ==4.6.4',
-                            'conda-build ==3.17.8',
+        'ecosystem_conda': ['conda ==4.7.5',
+                            'conda-build ==3.18.5',
                             'anaconda-client ==1.7.2'],
         'graphs': ['graphviz'],
         'build': [
