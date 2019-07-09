@@ -40,7 +40,7 @@ setup_args = dict(
         # Pretty much part of every python distribution now anyway.
         # Use it e.g. to be able to read pyproject.toml
         # pinning to avoid https://github.com/pyviz/pyctdev/issues/12
-        'pip ==19.0.3'
+        'pip >=19.1.1'
     ],
     extras_require={
         'tests': ['flake8'],
@@ -49,8 +49,7 @@ setup_args = dict(
         # install them outside of root/base env, and when api appeared;
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
-        # TODO: beware pin here and in _conda.py!
-        'ecosystem_conda': ['conda >=4.4', 'conda-build ==3.10.1']
+        'ecosystem_conda': ['conda >=4.4', 'conda-build >=3.10.1']
     }
 )
 
