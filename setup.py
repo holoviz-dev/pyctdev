@@ -22,6 +22,9 @@ setup_args = dict(
         # be fixed in doit)
         'doit' if sys.version_info[0]>2 else 'doit <0.30',
 
+        # doit requires cloudpickle but does not specify the dependency
+        'cloudpickle',
+
         ## tox
         # because tox.ini is currently the master list of
         # tests/environments, some of tox is required - just the
