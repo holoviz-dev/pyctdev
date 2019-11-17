@@ -37,7 +37,9 @@ jobs:
   - &pip_default
     stage: test
     # (pyctdev requires itself to test itself)
-    before_install: pip install -e .
+    before_install:
+      - pyenv install 3.6.3
+      - pip install -e .
     install: doit develop_install
     script:
       - doit test_all
@@ -50,6 +52,7 @@ jobs:
     stage: test
     env: PYCTDEV_ECOSYSTEM=conda
     before_install:
+      - pyenv install 3.6.3
       ## install miniconda (using git pyctdev)
       - pip install -e . && doit miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
