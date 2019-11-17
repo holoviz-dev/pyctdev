@@ -12,7 +12,6 @@ env:
     - CHANS_REL="-c pyviz"
     - LABELS_DEV="--label=dev"
     - LABELS_REL="--label=dev --label=main"        
-    # will be overridden later to upload only wheel for py27 (sdist from py36)
     - PIP_FORMATS="sdist bdist_wheel"
 
 stages:
@@ -71,24 +70,14 @@ jobs:
 
   ##### pip
 
-  # (pip ones are deliberately split up...upload 2.7 packages first so
-  # that pypi displays 3's metadata; issue at pypa TODO)
-
   - &pip_pkg_default
     stage: pip_dev_package
-    env: PYENV_VERSION=2.7 PYPI=testpypi PIP_FORMATS="bdist_wheel"
+    env: PYENV_VERSION=3.7 PYPI=testpypi
     before_install:
       - pip install -e .
       - doit ecosystem_setup
     install: doit package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
     script: doit package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
-
-  - <<: *pip_pkg_default
-    env: PYENV_VERSION=3.7 PYPI=testpypi
-
-  - <<: *pip_pkg_default
-    stage: pip_package
-    env: PYENV_VERSION=2.7 PYPI=pypi PIP_FORMATS="bdist_wheel"
 
   - <<: *pip_pkg_default
     stage: pip_package
@@ -101,7 +90,7 @@ jobs:
     <<: *conda_default
     stage: conda_dev_package
     env: PYCTDEV_ECOSYSTEM=conda CHANS=$CHANS_DEV LABELS=$LABELS_DEV
-    install: doit package_build $CHANS --test-python=py36 --test-python=py27 $PKG_TEST_GROUP
+    install: doit package_build $CHANS --test-python=py36 --test-python=py37 $PKG_TEST_GROUP
     script: doit package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
 
   - <<: *conda_pkg_default
