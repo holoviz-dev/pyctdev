@@ -103,6 +103,8 @@ no_pin_deps = {
     'inverse':'pin-deps'
 }
 
+# hack around envs inside envs etc
+CONDA_ROOT_EXE = os.environ.get('CONDA_EXE','conda') # TODO should at least warn if conda_exe not there; will be fixed as part of 0.7
 
 # TODO: not sure what conda-using developers do/prefer...
 # pip develop and don't install missing deps
@@ -794,7 +796,7 @@ def task_env_create():
         uptodate = False
 
     def _morex(channel):
-        return "conda create -y %s"%(" ".join(['-c %s'%c for c in channel])) + " --name %(name)s python=%(python)s"
+        return CONDA_ROOT_EXE + " create -y %s"%(" ".join(['-c %s'%c for c in channel])) + " --name %(name)s python=%(python)s"
 
     def _morexx():
         # when installing selfi nto environment, get from appropriate channel
@@ -809,7 +811,7 @@ def task_env_create():
 
         if selfchan!="":
             selfchan = " -c " + selfchan
-        return "conda install -y --name %(name)s " + selfchan + " pyctdev"
+        return CONDA_ROOT_EXE + " install -y --name %(name)s " + selfchan + " pyctdev"
 
 
     return {
