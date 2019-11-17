@@ -110,7 +110,7 @@ python_develop = "pip install --no-deps -e ."
 # pip develop and pip install missing deps
 #  python_develop = "pip install -e ."
 # setuptools develop and don't install missing deps
-#  python_develop = "python setup.py develop --no-deps"
+# python_develop = "python setup.py develop --no-deps"
 # setuptools develop and easy_install missing deps:
 #  python_develop = "python setup.py develop"
 
@@ -123,7 +123,7 @@ def _conda_build_deps(channel):
         return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
     else:
         return echo("Skipping conda install (no build dependencies)")
-    
+
 
 def _pin(deps):
 
@@ -278,7 +278,7 @@ def task_env_export():
             packages = {package['name']:package for package in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])}
             E.dependencies['conda'] = ["%s%s"%( (packages[MatchSpec(x).name]['channel']+"::" if packages[MatchSpec(x).name]['channel']!="defaults" else '') ,x) for x in E.dependencies['conda']]
             E.channels = ["defaults"]
-            
+
         # what could go wrong?
         E.dependencies.raw = []
         if len(E.dependencies.get('conda',[]))>0:
@@ -372,7 +372,7 @@ def task_ecosystem_setup():
 
     def thing2(channel):
         # TODO: beware pin here and in setup.py!
-        return 'conda install -y %s anaconda-client "conda-build=3.10.1"'%" ".join(['-c %s'%c for c in channel])
+        return 'conda install -y %s anaconda-client conda-build'%" ".join(['-c %s'%c for c in channel])
 
     return {
         'actions': [
@@ -441,7 +441,7 @@ def task_package_test():
                                                  "%(recipe)s")
         return cmd
 
-    
+
     def thing2(channel,pkg_tests,test_python,test_group,test_requires,recipe):
         cmds = []
         if pkg_tests:
@@ -462,7 +462,7 @@ def task_package_test():
         if yaml is None:
             raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
 
-        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
             environment = get_env(p,g,r,w)
             deps = get_tox_deps(environment,hack_one=True) # note the hack_one, which is different from package_build
             deps = [_join_the_club(d) for d in deps]
@@ -492,7 +492,7 @@ def task_package_test():
             os.remove(p)
         except:
             pass
-        
+
         if not pkg_tests:
             return
 
@@ -635,8 +635,8 @@ def task_package_build():
             deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
             return "conda install -y %s %s"%(" ".join(['-c %s'%c for c in channel]),deps)
         else:
-            return 'echo "no build reqs"'    
-    
+            return 'echo "no build reqs"'
+
     def thing(channel,pin_deps_as_env,recipe,no_pin_deps):
         cmd = "conda build %s conda.recipe/%s"%(" ".join(['-c %s'%c for c in channel]),
                                                  "%(recipe)s")
@@ -664,7 +664,7 @@ def task_package_build():
         if yaml is None:
             raise ValueError("Install pyyaml or equivalent; see extras_require['ecosystem_conda'].")
 
-        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']): 
+        for (p,g,r,w) in test_matrix(test_python,test_group,test_requires,['pkg']):
             environment = get_env(p,g,r,w)
             deps = [_join_the_club(d) for d in get_tox_deps(environment)]
             cmds = get_tox_cmds(environment)
@@ -693,7 +693,7 @@ def task_package_build():
             os.remove(p)
         except:
             pass
-        
+
         if not pkg_tests:
             return
 
@@ -753,7 +753,7 @@ def task_package_upload():
         'long':'user',
         'type':str,
         'default':'pyviz'}
-    
+
     return {'actions': [CmdAction(thing)],
             'params': [label_param,token_param,recipe_param,user_param]}
 
@@ -810,8 +810,8 @@ def task_env_create():
         if selfchan!="":
             selfchan = " -c " + selfchan
         return "conda install -y --name %(name)s " + selfchan + " pyctdev"
-    
-    
+
+
     return {
         'params': [python,name,_channel_param],
         'uptodate': [uptodate],
@@ -836,9 +836,9 @@ def _env_exists(task,values):
     else:
         from conda.cli.python_api import Commands, run_command
         return name in [os.path.basename(e) for e in json.loads(run_command(Commands.INFO,"--json")[0])['envs']]
-                
-        
-    
+
+
+
 
 # TODO: doit - how to share parameters with dependencies? Lots of
 # awkwardness here to work around that...
@@ -853,7 +853,7 @@ def _env_exists(task,values):
 def task_develop_install():
     """python develop install, with specified optional groups of dependencies (installed by conda only).
 
-    Typically ``conda install "test dependencies" && pip install -e . --no-deps``. 
+    Typically ``conda install "test dependencies" && pip install -e . --no-deps``.
 
     Pass --options multiple times to specify other optional groups
     (see project's setup.py for available options).
@@ -917,7 +917,7 @@ def task_env_dependency_graph():
                     f.write("%s\n"%n)
                 f.write("\n***** dependencies *****\n")
                 for e in edges:
-                    f.write("%s -> %s\n"%e)                    
+                    f.write("%s -> %s\n"%e)
             print("wrote %s.txt (install graphviz for svg)"%env_name)
 
     return {'actions': [_x,], 'params':[env_name,]}

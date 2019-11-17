@@ -22,6 +22,9 @@ setup_args = dict(
         # be fixed in doit)
         'doit' if sys.version_info[0]>2 else 'doit <0.30',
 
+        # doit requires cloudpickle but does not specify the dependency
+        'cloudpickle',
+
         ## tox
         # because tox.ini is currently the master list of
         # tests/environments, some of tox is required - just the
@@ -39,7 +42,8 @@ setup_args = dict(
 
         # Pretty much part of every python distribution now anyway.
         # Use it e.g. to be able to read pyproject.toml
-        'pip ==19.0.3'
+        # pinning to avoid https://github.com/pyviz/pyctdev/issues/12
+        'pip >=19.1.1'
     ],
     extras_require={
         'tests': ['flake8'],
@@ -48,8 +52,7 @@ setup_args = dict(
         # install them outside of root/base env, and when api appeared;
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
-        # TODO: beware pin here and in _conda.py!
-        'ecosystem_conda': ['conda >=4.4', 'conda-build ==3.10.1']
+        'ecosystem_conda': ['conda >=4.4', 'conda-build >=3.10.1']
     }
 )
 

@@ -1,7 +1,7 @@
 # pyctdev: python packaging common tasks for developers
 
 Tools (and documentation) to support common tasks across many similar
-projects, focusing on those making up [PyViz.org](http://pyviz.org).
+projects, focusing on those making up [HoloViz.org](http://holoviz.org).
 
 **Note: documentation is draft/currently being written**
 
@@ -20,7 +20,7 @@ ecosystem_setup   Common pip setup
 env_capture       Report all information required to recreate current environment.
 env_create        TODO: create named environment if it doesn't already exist.
 env_export        TODO
-list_envs         
+list_envs
 package_build     Build pip package, then install and test all_quick (or other
 package_upload    Upload pip packages to pypi
 test_all          Run "all" tests
@@ -35,7 +35,7 @@ ecosystem_setup      Common conda setup (must be run in base env).
 env_capture          Report all information required to recreate current conda environment
 env_create           Create named environment if it doesn't already exist
 env_export           Generate a pinned environment.yaml from specified env, filtering against specified groups of deps.
-list_envs            
+list_envs
 miniconda_download   Download Miniconda3-latest
 miniconda_install    Install Miniconda3-latest to location if not already present
 package_build        Build and then test conda.recipe/ (or specified alternative).
@@ -52,13 +52,13 @@ so that people can run commands independently without installing
 doit+pyctdev. This means pyctdev can be viewed as:
 
   * documentation of what all the common tasks are
-  
+
   * documentation of the commands necessary to perform those tasks
 
   * a way to expose gaps in underlying tools that we might like to
     fill (or exposes our lack of knowledge of how to use them, so we
     can be corrected :) )
-  
+
   * a way to map relatively unchanging "high level tasks" (e.g. "run
     the unit tests") to underlying specific commands that might change over
     time (e.g. as the python packaging ecosystem changes) or that vary
@@ -67,7 +67,7 @@ doit+pyctdev. This means pyctdev can be viewed as:
   * our current best understanding of how to perform the various tasks
     (balancing the best possible way with what's practically possible
     in general, given what tools are currently widely available).
-    
+
 The accompanying [background](background.md) document (even more draft
 than this one!) contains more details, along with explanations for
 choices. It's broken into the same sections, so can be read alongside
@@ -110,7 +110,7 @@ configuration files). (And once any python's available, doit can be
 used to install other pythons if necessary - currently miniconda and
 anaconda.) Having the same command to run on each platform helps ensure
 that testing, package building, and related tasks are done consistently
-across platforms, which is particularly important when developers use 
+across platforms, which is particularly important when developers use
 one platform but users will download packages for another.
 
 Other suggested tools used by pyctdev are also cross platform: tox,
@@ -124,7 +124,7 @@ conda ecosystem. E.g. `doit develop_install` will typically run `pip
 install -e .[tests]`, which installs the dependencies using pip and
 then does an editable install. Alternatively, `doit ecosystem=conda
 develop install` will install dependencies using conda, followed by an
-editable install. Projects can set a default ecosystem. 
+editable install. Projects can set a default ecosystem.
 
 The ability to install with pip or conda, create reproducible/isolated
 environments with python tools (virtualenv+pip, or pipenv) or with
@@ -150,13 +150,13 @@ widely supported by both python and conda tools. The dependencies
 listed in setup.py are used for:
 
   * end-user pip packages
-    
+
   * end-user conda packages
-    
+
   * developers using conda
-    
+
   * developers using pip
-    
+
   * generating environment files (e.g. examples environment.yml)
 
 The abstract dependencies may be transformed to more concrete ones,
@@ -244,16 +244,16 @@ package metadata only once. Currently this is in setup.py. Templating
 is then used for conda build. This prevents the common situation where
 descriptions, URLs, licenses, etc, are mismatched.
 
-pyctdev expects project is being released first on pypi and on an 
+pyctdev expects project is being released first on pypi and on an
 anaconda.org channel. From these sources, conda-forge can be updated, followed by
 anaconda defaults (but we are not necessarily the maintainers of those
 channels).
 
 pyctdev is currently primarily supporting pure Python packages. While
 they may often have complex, platform specific dependencies, the
-packages controlled by pyct are so far all pure Python. Therefore 
+packages controlled by pyct are so far all pure Python. Therefore
 we build noarch:python conda packages where possible.  If we start
-maintaining packages with binary code, pyct will be extended 
+maintaining packages with binary code, pyct will be extended
 to support platform-specific packages, but for now none of our
 packages require that.
 
@@ -263,7 +263,7 @@ packages require that.
 For python/pip: typically just pypi.org. But other 'channels' can be
 specified. E.g. test.pypi.org, or a private server.
 
-The conda packages we maintain for PyViz.org can usually be installed
+The conda packages we maintain for HoloViz.org can usually be installed
 on top of either anaconda defaults or conda-forge. We currently put
 them on anaconda.org pyviz (releases) and pyviz/label/dev (dev
 versions), and only our specific packages are on this channel. For a
@@ -280,7 +280,7 @@ conda-forge and defaults should be updated.
 ### 11. How to structure project
 
 Although it's not necessary, a common structure simplifies things
-across multiple similar projects. Pyviz projects typically have
+across multiple similar projects. HoloViz projects typically have
 repositories that look like:
 
 ```
@@ -318,7 +318,7 @@ projects, and how? Would rather not have a config file for pyctdev...)
 ### 13. What's tested, and how.
 
 There are various tools for running tests (e.g. pytest, nose). An aim
-of pyctdev is for our pyviz projects to all end up using the same
+of pyctdev is for our HoloViz projects to all end up using the same
 developer tools where possible. And to configure those tools in the
 same kind of way.
 
@@ -329,9 +329,9 @@ same kind of way.
 * examples:
 
     * notebooks run without error: pytest plugin nbsmoke
-    
+
     * notebooks flakes: pytest plugin nbsmoke
-    
+
     * notebooks "data tests": pytest plugin nbva
 
 * performance/benchmark tests: (pytest-benchmark, custom stuff,
@@ -367,7 +367,7 @@ needs to know version (`__init__.py`; packaging: `setup.py`,
 
 Storing in one place, and it being the tag rather than in the git repo
 source code, makes it easier to automate various other 'release time'
-tasks. Our pyviz projects generally use
+tasks. Our projects generally use
 [autover](https://github.com/pyviz/autover) (via param).
 
 Versioning scheme:
