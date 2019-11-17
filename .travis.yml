@@ -1,5 +1,4 @@
 dist: bionic
-sudo: false
 language: generic
 
 # quick hack to determine what tag is (improvements welcomed)
