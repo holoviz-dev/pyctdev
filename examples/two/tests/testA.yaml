@@ -1,0 +1,4 @@
+name: _pyctdev_test_two
+dependencies:
+  - holoviews ==1.10.0
+  - hypothesis ==3.56.0

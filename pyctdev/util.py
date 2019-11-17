@@ -88,6 +88,25 @@ _options_param = {
     'default':['tests']
 }
 
+# the hack for above default
+_options_param2 = {
+    'name':'options2',
+    'long':'options2',
+    'short': 'o2',
+    'type':list,
+    'default':[]
+}
+
+
+# TODO: very related to options_param :(
+# TODO: couldn't pip support this, or some kind of pattern matching?
+_all_extras_param = {
+    'name':'all_extras',
+    'long':'all-extras',
+    'type':bool,
+    'default':False
+}
+
 test_python = {
     'name':'test_python',
     'long':'test-python',
@@ -143,13 +162,10 @@ def echo(msg):
 
 ##### only for conda really
 
-# TODO: what do people who install dependencies via conda actually do?
-# Have their own list via other/previous development work? Read from
-# travis? Translate from setup.py?  Read from meta.yaml? Install from
-# existing anaconda.org conda package and then remove --force?  Build
-# and install conda package then remove --force?
-def _get_dependencies(groups):
-    """get dependencies from setup.cfg or otherwise setup.py"""
+# TODO: drop support for pyviz custom dict stuff in setup.py
+# (i.e. migrate all to setup.cfg) and then this stuff will become much
+# simpler...
+def _get_setup_metadata():
     meta = None
     if os.path.exists("setup.cfg"):
         from setuptools.config import read_configuration
@@ -167,7 +183,41 @@ def _get_dependencies(groups):
             except ImportError:
                 raise ValueError("Could not find dependencies in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)")
 
+    return meta
+
+def _get_setup_metadata2(k):
+    meta = None
+    if os.path.exists("setup.cfg"):
+        from setuptools.config import read_configuration
+        setupcfg = read_configuration("setup.cfg")
+        if k in setupcfg['metadata']:
+            return setupcfg['metadata'][k]
+        elif k in setupcfg['options']:
+            return setupcfg['options'][k]
+
+    if meta is None:
+        try:
+            from setup import meta
+        except ImportError:
+            try:
+                from setup import setup_args as meta
+            except ImportError:
+                raise ValueError("Could not find %s in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)"%k)
+        return meta[k]
+
+
+# TODO: what do people who install dependencies via conda actually do?
+# Have their own list via other/previous development work? Read from
+# travis? Translate from setup.py?  Read from meta.yaml? Install from
+# existing anaconda.org conda package and then remove --force?  Build
+# and install conda package then remove --force?
+def _get_dependencies(groups,all_extras=False):
+    """get dependencies from setup.cfg or otherwise setup.py"""
+    meta = _get_setup_metadata()
     deps = []
+    if all_extras:
+        extras = meta.get('extras_require',{})
+        groups = set(groups).union(set(extras))
     for group in groups:
         if group in ('install_requires','tests_require'):
             deps += meta.get(group,[])
@@ -176,8 +226,8 @@ def _get_dependencies(groups):
             deps += meta.get('extras_require',{}).get(group,[])
     return deps
 
-def get_dependencies(groups):
-    return " ".join('"%s"'%dep for dep in _get_dependencies(groups))
+def get_dependencies(groups,all_extras=False):
+    return " ".join('"%s"'%dep for dep in _get_dependencies(groups,all_extras=all_extras))
 
 
 def get_buildreqs():
@@ -188,3 +238,78 @@ def get_buildreqs():
         if 'build-system' in pp:
             buildreqs += pp['build-system'].get("requires",[])
     return buildreqs
+
+
+# TODO: can i use more of setuptools config parsing?  There was some
+# reason I didn't use setuptools.config.read_configuration, but I
+# can't remember what it was now. (I think it was to do with needing a
+# % sign for the git format (autover), but that breaking some version
+# of config reading.) Replace bit by bit and see what happens?
+def read_pins(f):
+    from setuptools.config import ConfigHandler
+    # duplicates some earlier configparser stuff (which doesn't
+    # support py2; need to clean up)
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser # python2 (also prevents dict-like access)
+    pyctdev_section = 'tool:pyctdev'
+    config = configparser.ConfigParser()
+    config.read(f)
+
+    if pyctdev_section not in config.sections():
+        return {}
+
+    try:
+        pins_raw = config.get(pyctdev_section,'pins')
+    except configparser.NoOptionError:
+        pins_raw = ''
+    
+    return ConfigHandler._parse_dict(pins_raw)
+
+def read_conda_packages(f,name):
+    from setuptools.config import ConfigHandler
+    # duplicates some earlier configparser stuff (which doesn't
+    # support py2; need to clean up)
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser # python2 (also prevents dict-like access)
+    config = configparser.ConfigParser()
+    config.read(f)
+
+    pyctdev_section = 'tool:pyctdev.conda'
+    
+    if pyctdev_section not in config.sections():
+        return []
+
+    try:
+        packages_raw = config.get(pyctdev_section,'packages')
+    except configparser.NoOptionError:
+        packages_raw = ''
+
+    return ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
+
+
+def read_conda_namespace_map(f):
+    from setuptools.config import ConfigHandler
+    # duplicates some earlier configparser stuff (which doesn't
+    # support py2; need to clean up)
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser # python2 (also prevents dict-like access)
+    pyctdev_section = 'tool:pyctdev.conda'
+    config = configparser.ConfigParser()
+    config.read(f)
+
+    if pyctdev_section not in config.sections():
+        return {}
+
+    try:
+        namespacemap_raw = config.get(pyctdev_section,'namespace_map')
+    except configparser.NoOptionError:
+        namespacemap_raw = ''
+    
+    return ConfigHandler._parse_dict(namespacemap_raw)
+

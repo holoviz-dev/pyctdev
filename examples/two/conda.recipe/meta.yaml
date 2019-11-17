@@ -1,7 +1,7 @@
 {% set sdata = load_setup_py_data() %}
 
 package:
-  name: pyctdev
+  name: two
   version: {{ sdata['version'] }}
 
 source:
@@ -12,7 +12,7 @@ build:
   script: python setup.py install --single-version-externally-managed --record=record.txt
 
 requirements:
-  host:
+  build:
     - python
     - setuptools
   run:
@@ -20,22 +20,14 @@ requirements:
     {% for dep in sdata.get('install_requires',{}) %}
     - "{{ dep }}"
     {% endfor %}
-    {% for dep in sdata['extras_require']['ecosystem_conda'] %}
-    - "{{ dep }}"
-    {% endfor %}
 
 test:
   imports:
-    - pyctdev
+    - two
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
     - "{{ dep }}"
     {% endfor %}    
-  source_files:
-    # since we're testing itself...
-    - dodo.py
-    - tox.ini
-
 
 about:
   home: {{ sdata['url'] }}
