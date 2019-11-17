@@ -2,5 +2,5 @@ name: _pyctdev_test_one
 channels:
   - defaults
 dependencies:
-  - holoviews=1.10.0
-  - hypothesis=3.56.0
+  - pkgs/main::holoviews=1.10.0
+  - pkgs/main::hypothesis=3.56.0

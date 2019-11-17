@@ -275,7 +275,7 @@ def task_env_export():
         # fix up conda channels TODO: should probably just use non-env
         # commands all along instead of conda env
         if 'conda' in E.dependencies:
-            packages = {package['name']:package for package in json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])}
+            packages = {package['name']:package for package in json.loads(run_command(Commands.LIST,"-p", prefix, "--json")[0])}
             E.dependencies['conda'] = ["%s%s"%( (packages[MatchSpec(x).name]['channel']+"::" if packages[MatchSpec(x).name]['channel']!="defaults" else '') ,x) for x in E.dependencies['conda']]
             E.channels = ["defaults"]
 
