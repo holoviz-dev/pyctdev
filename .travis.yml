@@ -36,11 +36,11 @@ jobs:
     stage: test
     # (pyctdev requires itself to test itself)
     before_install: pip install -e .
-    install: doit develop_install
+    install: pyctdev develop_install
     script:
-      - doit test_all
-      - doit --dir=examples/one test_all
-      #- doit --dir=examples/two test_all
+      - pyctdev test_all
+      - pyctdev --dir=examples/one test_all
+      #- pyctdev --dir=examples/two test_all
 
   ## conda
 
@@ -49,21 +49,21 @@ jobs:
     env: PYCTDEV_ECOSYSTEM=conda
     before_install:
       ## install miniconda (using git pyctdev)
-      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - pip install -e . && pyctdev miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       ## build conda package (using git pyctdev)
-      - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - pip install -e . && pyctdev ecosystem_setup && pyctdev package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyctdev
-    install: doit develop_install
+    install: pyctdev develop_install
     script:
-      - doit test_all
+      - pyctdev test_all
       - conda config --add channels file:///$HOME/miniconda/conda-bld
       - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
-      - doit --dir=examples/one test_all
-      - doit --dir=examples/one test_export
+      - pyctdev --dir=examples/one test_all
+      - pyctdev --dir=examples/one test_export
       # TODO: still need to update conda stuff e.g. remove recipe
-      - doit --dir=examples/two test_export
+      - pyctdev --dir=examples/two test_export
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
 
@@ -74,9 +74,9 @@ jobs:
     env: PYENV_VERSION=3.7 PYPI=testpypi
     before_install:
       - pip install -e .
-      - doit ecosystem_setup
-    install: doit package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
-    script: doit package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
+      - pyctdev ecosystem_setup
+    install: pyctdev package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
+    script: pyctdev package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
 
   - <<: *pip_pkg_default
     stage: pip_package
@@ -89,8 +89,8 @@ jobs:
     <<: *conda_default
     stage: conda_dev_package
     env: PYCTDEV_ECOSYSTEM=conda CHANS=$CHANS_DEV LABELS=$LABELS_DEV
-    install: doit package_build $CHANS --test-python=py36 --test-python=py37 $PKG_TEST_GROUP
-    script: doit package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
+    install: pyctdev package_build $CHANS --test-python=py36 --test-python=py37 $PKG_TEST_GROUP
+    script: pyctdev package_upload --token=$CONDA_UPLOAD_TOKEN $LABELS
 
   - <<: *conda_pkg_default
     stage: conda_package
