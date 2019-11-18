@@ -192,7 +192,9 @@ def _conda_envs(env_name):
 
 def _conda_list(prefix):
     return json.loads(conda_run_command(
-        conda_Commands.LIST, "-p %s --json" % prefix)[0])
+        conda_Commands.LIST, "-p", prefix, "--json")[0])
+        # TODO: likely to be broken now (also elsewhere?)
+        #conda_Commands.LIST, "-p %s --json" % prefix)[0])
 
 #####
 # TODO: these two were part of ecosystem_setup, which is now gone. But
@@ -261,6 +263,8 @@ def conda_upload(label):
     return 'anaconda --token %(password)s upload --user %(user)s ' + ' '.join(
         ['--label %s' % l for l in label]) + ' '.join(existing_packages)
 
+# hack around envs inside envs etc
+# CONDA_ROOT_EXE = os.environ.get('CONDA_EXE','conda') # TODO should at least warn if conda_exe not there; will be fixed as part of 0.7
 # U R HERE sorting this command out and places that use it
 def conda_create(channel,env_name,python):
     #import pdb;pdb.set_trace()
