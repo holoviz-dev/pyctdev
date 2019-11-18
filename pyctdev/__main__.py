@@ -117,8 +117,7 @@ class PyctdevLoader(DodoTaskLoader):
 
         return tasks, config
 
-
-if __name__ == "__main__":
+def main():
     # TODO: most of below is hack to support --dry-run (including
     # switch out db during a dry run)
     tmpdb = None
@@ -136,3 +135,7 @@ if __name__ == "__main__":
     finally:
         if tmpdb is not None:
             os.unlink(tmpdb.name)
+
+
+if __name__ == "__main__":
+    main()
