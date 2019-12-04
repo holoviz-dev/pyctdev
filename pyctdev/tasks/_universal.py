@@ -19,7 +19,8 @@ miniconda_installer = platform_url.split('/')[-1]
 
 
 def download_miniconda(targets):
-    return urlretrieve(platform_url, miniconda_installer)
+    fname, _ = urlretrieve(platform_url, miniconda_installer)
+    return fname
 
 
 # TODO: this is another doit param hack :(
