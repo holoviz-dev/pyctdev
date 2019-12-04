@@ -180,7 +180,7 @@ def preserve_docstrings():
 # Additions marked with "pyctdev addition".
 
 import os
-import subprocess, sys
+import subprocess
 from io import StringIO
 from threading import Thread
 
