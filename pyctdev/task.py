@@ -29,9 +29,9 @@ class DoitTask(param.Parameterized):
     actions = param.List()
     params = param.List()
     teardown = param.List(default=None)
-    file_dep = param.List()
+    file_dep = param.List(default=None)
     task_dep = param.List()
-    targets = param.List()
+    targets = param.List(default=None)
     getargs = param.Parameter()
 
     def create_doit_tasks(self):
@@ -71,10 +71,14 @@ class DoitTask(param.Parameterized):
 
         doit_task['uptodate'] = [_doithacks.populate_task_options]
         # are these ifs necessary? won't default do (i.e. isn't None ok for
-        # doit)?
+        # doit)? and could surely automate
         if self.teardown is not None:
             doit_task['teardown'] = self.teardown
         if self.uptodate is not None:
             doit_task['uptodate'] += self.uptodate
+        if self.file_dep is not None:
+            doit_task['file_dep'] = self.file_dep
+        if self.targets is not None:
+            doit_task['targets'] = self.targets
 
         return doit_task
