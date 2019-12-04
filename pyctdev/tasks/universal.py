@@ -87,7 +87,6 @@ register(
                  'short': 'l',
                  'type': str,
                  'default': os.path.abspath(os.path.expanduser('~/miniconda'))}],
-
         file_dep=[miniconda_installer],
         uptodate=[mc_installed],
         actions=[
