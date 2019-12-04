@@ -38,9 +38,9 @@ jobs:
     before_install: pip install -e .
     install: pyctdev develop_install
     script:
-      - pyctdev test_all
-      - pyctdev --dir=examples/one test_all
-      #- pyctdev --dir=examples/two test_all
+      - pyctdev develop_test --test-group=all
+#      - pyctdev --dir=examples/one test_all
+#      - pyctdev --dir=examples/two test_all
 
   ## conda
 
@@ -57,13 +57,13 @@ jobs:
       - conda install -y --use-local pyctdev
     install: pyctdev develop_install
     script:
-      - pyctdev test_all
-      - conda config --add channels file:///$HOME/miniconda/conda-bld
-      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
-      - pyctdev --dir=examples/one test_all
-      - pyctdev --dir=examples/one test_export
-      # TODO: still need to update conda stuff e.g. remove recipe
-      - pyctdev --dir=examples/two test_export
+      - pyctdev develop_test --test-group=all
+#      - conda config --add channels file:///$HOME/miniconda/conda-bld
+#      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
+#      - pyctdev --dir=examples/one test_all
+#      - pyctdev --dir=examples/one test_export
+#      # TODO: still need to update conda stuff e.g. remove recipe
+#      - pyctdev --dir=examples/two test_export
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
 
