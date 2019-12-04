@@ -49,7 +49,7 @@ jobs:
     env: PYCTDEV_ECOSYSTEM=conda
     before_install:
       ## install miniconda (using git pyctdev)
-      - pip install -e . && pyctdev miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - pip install -e . && pyctdev ecosystem=universal miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       ## build conda package (using git pyctdev)
       - pip install -e . && pyctdev ecosystem_setup && pyctdev package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
