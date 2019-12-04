@@ -24,10 +24,10 @@ setup_args = dict(
     },
     install_requires=[
         "param",
-        # otherwise py2 users will just get an error (should really
+        # py2: <0.30 otherwise py2 users will just get an error (should really
         # be fixed in doit)
-        # TODO: pin. (and py3 only now?)
-        'doit' if sys.version_info[0]>2 else 'doit <0.30',
+        # py3 pin because we should evaluate new major releases
+        'doit ==0.31' if sys.version_info[0]>2 else 'doit <0.30',
 
         # doit requires cloudpickle but does not specify the dependency
         'cloudpickle',
