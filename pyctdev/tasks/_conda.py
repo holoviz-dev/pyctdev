@@ -18,13 +18,6 @@ import pprint
 from collections import OrderedDict, Counter
 
 ############################################################
-## conda/build stdlib-like imports
-
-# yaml is always included with conda so should be safe
-import yaml
-
-
-############################################################
 ## external imports
 
 # optional
@@ -36,6 +29,8 @@ except ImportError:
 
 ############################################################
 ## conda/build imports
+
+import yaml
 
 import conda
 from conda.models.match_spec import MatchSpec as conda_MatchSpec

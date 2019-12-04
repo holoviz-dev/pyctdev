@@ -52,7 +52,9 @@ jobs:
       - pip install -e . && pyctdev ecosystem=universal miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       ## build conda package (using git pyctdev)
-      - pip install -e . && pyctdev ecosystem_setup && pyctdev package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
+      # TODO: pycytdev should be able to supply list of deps for conda, since it can already translate them
+      - conda install -y param "doit ==0.31.*" cloudpickle pluggy py "pip >=19.1.1" pyyaml "conda >=4.4" "conda-build >=3.10.1" anaconda-client
+      - pip install -e . --no-deps && pyctdev package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyctdev
     install: pyctdev develop_install
