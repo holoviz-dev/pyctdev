@@ -1,0 +1,5 @@
+[build-system]
+# TODO: incomplete, and going to switch to param version
+requires = [
+    "versioneer",
+]
