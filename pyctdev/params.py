@@ -136,7 +136,14 @@ env_name = {
     'long': 'env-name',
     'type': str,
     'default': NotImplemented,
-    'help': "Name of environment to use"}
+    'help': "Name of environment (required)."}
+
+env_name_override = {
+    'name': 'env_name_override',
+    'long': 'env-name-override',
+    'type': str,
+    'default': None,
+    'help': "Typically the active environment is used, but supply a different name here if desired"}
 
 advert = {
     'name': 'advert',
@@ -170,6 +177,12 @@ pin_deps_as_env = {
     'default': None,
     'help': 'Pin dependencies to the versions currently installed in the specified environment.'}
 
+add_pyctdev = {
+    'name': 'add_pyctdev',
+    'long': 'add-pyctdev',
+    'type': bool,
+    'default': False,
+    'help': 'Also install pyctdev into env (could be useful for stacked envs)'}
 
 ##################################################
 ##################################################

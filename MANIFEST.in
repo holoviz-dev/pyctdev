@@ -2,6 +2,6 @@ include versioneer.py
 include LICENSE.txt
 include README.md
 include pyctdev/_version.py
-include pyctdev/_vendor/*.*
+include pyctdev/util/_vendor/*.*
 include pyctdev/tasks/condatemplate.yaml
 include tox.ini

@@ -8,8 +8,8 @@ env:
   global:
     - PYENV_VERSION=3.7
     - PKG_TEST_GROUP="--test-group=all"
-    - CHANS_DEV="-c pyviz/label/dev"
-    - CHANS_REL="-c pyviz"
+    - CHANS_DEV="-c pyviz/label/dev -c conda-forge"
+    - CHANS_REL="-c pyviz -c conda-forge"
     - LABELS_DEV="--label=dev"
     - LABELS_REL="--label=dev --label=main"        
     - PIP_FORMATS="sdist bdist_wheel"
@@ -39,6 +39,7 @@ jobs:
     install: pyctdev develop_install
     script:
       - pyctdev develop_test --test-group=all
+      # TODO add check that package tests are running      
 #      - pyctdev --dir=examples/one test_all
 #      - pyctdev --dir=examples/two test_all
 
@@ -46,7 +47,7 @@ jobs:
 
   - &conda_default
     stage: test
-    env: PYCTDEV_ECOSYSTEM=conda
+    env: PYCTDEV_ECOSYSTEM=conda CHANNELS=$CHANS_DEV
     before_install:
       ## install miniconda (using git pyctdev)
       - pip install -e . && pyctdev ecosystem=universal miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
@@ -60,9 +61,9 @@ jobs:
     install: pyctdev develop_install
     script:
       - pyctdev develop_test --test-group=all
-#      - conda config --add channels file:///$HOME/miniconda/conda-bld
-#      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
-#      - pyctdev --dir=examples/one test_all
+      - conda config --add channels file:///$HOME/miniconda/conda-bld
+      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
+      - cd examples/one && pyctdev develop_test --test-group=all
 #      - pyctdev --dir=examples/one test_export
 #      # TODO: still need to update conda stuff e.g. remove recipe
 #      - pyctdev --dir=examples/two test_export

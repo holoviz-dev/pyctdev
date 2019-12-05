@@ -14,7 +14,6 @@ from ..util.faketox import TOX_INI
 from ..util.setuptools import SETUP_CFG
 
 task_handlers = {}
-support_tasks = {}
 
 ##################################################
 
@@ -77,7 +76,7 @@ class develop_test(ProjectTask):
 
 
 class develop_install(ProjectTask):
-    """python develop install.
+    """develop install.
 
     Typically pip install -e .[tests], but where dependencies are
     installed by the ecosystem's package manager (e.g. conda).
@@ -94,7 +93,7 @@ class develop_install(ProjectTask):
 
 class env_dependency_graph(PyctdevTask):
     """Write out dependency graph of named environment."""
-    params = ['env_name', 'with_graphviz']
+    params = ['env_name_override', 'with_graphviz']
 
 
 # TODO: isn't this missing option for exporting everything?
@@ -106,7 +105,7 @@ class env_export(PyctdevTask):
 
     """
     # TODO: missing advert
-    params = ['env_file', 'env_name', 'extra', 'all_extras', 'pin_deps']
+    params = ['env_file', 'env_name_override', 'extra', 'all_extras', 'pin_deps']
 
 
 # TODO: isn't this missing option for exporting everything?
@@ -125,9 +124,14 @@ class env_file_generate(ProjectTask):
 class env_create(PyctdevTask):
     """create named environment if it doesn't already exist.
 
-    env will be empty except for python and pyctdev+deps.
+    env will be 'empty' by ecosystem standards (e.g. will contain
+    python and basic low-level libs).
+
+    Can also contain pyctdev+deps if requested.
+
     """
-    params = ['python', 'env_name', 'channel']
+    params = ['python', 'env_name', 'channel', 'add_pyctdev']
+    # TODO: add to params: 'include_self'
 
 
 class package_test(ProjectTask):
@@ -167,24 +171,20 @@ class package_upload(ProjectTask):
     """
     params = ['password', 'user']
 
+class install_deps_only(ProjectTask):
+    """install project's deps to named environment"""
+
+# TODO: can't remember why these are here
+class _conda_build_deps(ProjectTask):
+    params = ['channel']
+
+class _conda_develop_install(ProjectTask):
+    params = ['extra','all_extras','channel']
+
+
 
 ############################################################
 ############################################################
-
-# TODO register/register_support was an experiment. Needs cleaning
-# up/replacing in future.
-
-# TODO: repeated code register vs register_support
-
-def register_support(ecosystem, x):
-    if ecosystem not in support_tasks:
-        #log_message("New ecosystem registered: %s", ecosystem)
-        support_tasks[ecosystem] = {}
-
-    assert x.__name__ not in support_tasks[ecosystem]
-    support_tasks[ecosystem][x.__name__] = x
-    # hmm
-    x._ecosystem = ecosystem
 
 
 def register(ecosystem, x):
@@ -235,7 +235,7 @@ def get_task(ecosystem, task_type):
 
 
 def get_tasks(ecosystem):
-    t = dict(support_tasks.get(ecosystem, {}))
+    t = {}
     for task_type in concrete_tasks():
         tname, tfn = get_task(ecosystem, task_type)
         if tfn is not None:

@@ -37,6 +37,7 @@ from conda.models.match_spec import MatchSpec as conda_MatchSpec
 from conda.cli.python_api import Commands as conda_Commands, run_command as conda_run_command
 
 import conda_build
+import conda_build.render as conda_build_render
 import conda_build.utils as conda_build_utils
 import conda_build.api as conda_build_api
 
@@ -45,16 +46,17 @@ from conda_env.env import from_environment as conda_env_from_environment, Enviro
 ############################################################
 ## internal/pyctdev imports
 
+from ..task import DoitTask
 from ..util import echo, log_message, _test_matrix_thing, log_warning, doithack_join_cmds, faketox
 from ..util.pyproject import get_buildreqs
 from ..util.setuptools import read_pins, _get_dependencies, SETUP_CFG, read_extras_provide, read_provides, get_cfg, Requirement, parse_version_with_packaging_Version
 from ..util.setuptools4conda import python2condaV, python2conda, get_packages, get_pkg_tests, read_conda_packages, get_package_dependencies
 
-from .. import _doithacks
 from .._doithacks import CmdAction2
 from .. import params
 
-from . import register_support as some_register_support
+#from . import register_support as some_register_support, conda_build_deps
+from . import register as some_register, _conda_build_deps, _conda_develop_install#, _some_conda_install#, _some_conda_install2
 
 
 log_message("Imported conda %s (from %s)", conda.__version__, conda.__file__)
@@ -74,6 +76,8 @@ python_develop = "pip install --no-deps -e ."
 
 
 # conda build doesn't support pyproject.toml/PEP518
+# https://github.com/conda/conda-build/issues/2458
+# https://github.com/conda/conda-build/issues/3507
 # TODO: this should be requested by flag! like for pip
 def __conda_build_deps(channel): # todo: rename - __ temporary
     # return command to install build deps (from pyproject.toml)
@@ -83,9 +87,9 @@ def __conda_build_deps(channel): # todo: rename - __ temporary
         cmd = "conda install -y %s %s" % (
             " ".join(['-c %s' % c for c in channel]), deps)
         log_message(
-            "At some point later, I'll just install build dependencies into your current environment (sorry!) by running: %s", cmd)
+            "Build dependencies: will at some point later be installed into your current environment by running: %s", cmd)
     else:
-        cmd = echo("(no build dependencies were declared in pyproject.toml)")
+        cmd = echo("Build dependencies: none found in pyproject.toml)")
     return cmd
 
 
@@ -117,21 +121,27 @@ def _pin(deps):
     return pinneddeps
 
 
+# the thing is you wnat conda to have all deps at once to consider and not install
+# separately for several reasons (performance slow, different solution for multiple runs vs all in one).
 def _conda_install(
-        extras=None, all_extras=False, channel=None, env_name=None, pin_deps=False):
+        extra=None, all_extras=False, channel=None, env_name_override=None, pin_deps=False):
     """Beyond conda: supporting options and pinning
 
     Supports channel
     """
-    if extras is None:
-        extras = []
+    if extra is None:
+        extra = []
         
     if channel is None:
         channel = []
-    
+
+    if env_name_override is None:
+        info = json.loads(conda_run_command(conda_Commands.INFO, "--json")[0])
+        active_prefix = info['active_prefix']
+        
     # TODO: list vs. string form for _pin
     deps = _get_dependencies(['install_requires'] +
-                             extras, all_extras=all_extras, pypi_only=False)
+                             extra, all_extras=all_extras, pypi_only=False)
     deps = python2condaV(deps)
     #deps = [python2conda(d) for d in deps]
 
@@ -139,7 +149,7 @@ def _conda_install(
         deps = _pin(deps) if pin_deps else deps
         deps = " ".join('"%s"' % dep for dep in deps)
         # TODO and python2conda() ??
-        e = '' if env_name is None else '-n %s' % env_name
+        e = '-n %s' % env_name_override if env_name_override is not None else '-p %s' % active_prefix
         return "conda install -y " + e + \
             " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
     else:
@@ -208,7 +218,7 @@ def _conda_list(prefix):
 #####
 
 # TODO rewrite and move somewhere common
-def buildgraphandwriteitdown(env_name,with_graphviz):
+def buildgraphandwriteitdown(env_name_override,with_graphviz):
     if with_graphviz:
         global graphviz
         if graphviz is None:
@@ -220,8 +230,15 @@ def buildgraphandwriteitdown(env_name,with_graphviz):
     # build graph from packages' metadata
     nodes = set()
     edges = set()
-    for pkgmetafile in glob.glob(os.path.join(
-            _conda_env_prefix(env_name), 'conda-meta', '*.json')):
+    if env_name_override is not None:
+        prefix = _conda_env_prefix(env_name_override)
+        env_name = env_name_override
+    else:
+        info = json.loads(conda_run_command(conda_Commands.INFO, "--json")[0])
+        prefix = info['active_prefix']
+        env_name = info['active_prefix_name']
+    
+    for pkgmetafile in glob.glob(os.path.join(prefix, 'conda-meta', '*.json')):
         pkgmeta = json.load(open(pkgmetafile))
         pkgname = pkgmeta['name']
         nodes.add(pkgname)
@@ -267,7 +284,7 @@ def conda_create(channel,env_name,python):
         ['-c %s' % c for c in channel])) + " --name %(env_name)s python=%(python)s"
 
 
-def add_pyctdev(env_name):
+def _add_pyctdev(env_name, add_pyctdev):
     # when installing selfi nto environment, get from appropriate channel
     # (doing this is a hack anyway/depends how env stacking ends up going)
     # TODO: part of env stack issue
@@ -279,14 +296,28 @@ def add_pyctdev(env_name):
         selfchan += "/label/dev"
     if "PYCTDEV_SELF_CHANNEL" in os.environ:
         selfchan = os.environ["PYCTDEV_SELF_CHANNEL"]
-
     if selfchan != "":
         selfchan = " -c " + selfchan
-    return "conda install -y --name %(env_name)s " + selfchan + " pyctdev"
+
+    #if env_name_override is None:
+    #    info = json.loads(conda_run_command(conda_Commands.INFO, "--json")[0])
+    #    active_prefix = info['active_prefix']
+        
+    e = '-n %s' % env_name# if env_name_override is not None else '-p %s' % active_prefix
+
+    if add_pyctdev:
+        cmd = "conda install -y %s "%e + selfchan + " pyctdev"
+        log_message("pyctdev will be installed via: %s"%cmd)
+    else:
+        cmd = "echo '(not installing pyctdev)'"
+        log_message("pyctdev will not be installed to %s", e)
+    return cmd
 
 
 # TODO: verify there should be no all_extras here
 def create_recipe(package, force, pin_deps, pin_deps_as_env):
+#    import pdb;pdb.set_trace()
+    log_message("Create or use existing conda recipe...")
 
     if pin_deps and pin_deps_as_env:
         raise ValueError("Can't --pin-deps and --pin-deps-as-env")
@@ -331,9 +362,25 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
     extras_provide = read_extras_provide()
 
     outputs = []
+
+    default_extras = []
+    if len(read_conda_packages())==0:
+        log_message('There are no defined conda packages...')
+        # there are no defined conda packages, so we're making just one: default to it being 'fat'
+        assert len(packages) == 1
+
+        if 'all' in cfg['options']['extras_require']:
+            log_message("...'all' is defined; defaulting to that")
+            default_extras.append('all')
+        else:
+            log_message("...'all' not defined; default to all extras...")
+            default_extras += list(cfg['options']['extras_require'].keys())
+
+#    import pdb;pdb.set_trace()
     for pkgname in packages:
         output = OrderedDict()
-        extras = read_conda_packages().get(pkgname, None)
+        extras = read_conda_packages().get(pkgname, default_extras)
+        log_message("For output %s using extras %s", pkgname, extras)
 
         deps = python2condaV(
             _get_dependencies(
@@ -419,7 +466,7 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
             # default: assume package name is import name
             # TODO: assumes package name is sane...no hyphens...sigh. At least add some instructions
             # to the subsequent error message
-            provides = [cfg['options']['packages']]
+            provides = cfg['options']['packages']
 
         output['test'] = OrderedDict((
             ('requires', sorted(tdeps)),
@@ -436,16 +483,15 @@ def create_recipe(package, force, pin_deps, pin_deps_as_env):
         ('license', cfg['metadata']['license'])))
     # TODO: more fields, doc_url etc from cfg['metadata']['project_urls']
 
-    if not os.path.exists("conda.recipe"):  # could do better/race
-        os.makedirs("conda.recipe")
+    # hack to use conda build yaml creation
+    class FakeMetadata:
+        def __init__(self, meta):
+            self.meta = meta
+        def copy(self,*args,**kw):
+            return FakeMetadata(self.meta.copy())
 
-    # should be using conda build api throughout this fn instead
-    # of copying the representer here...
-    def odict_representer(dumper, data):
-        return dumper.represent_dict(data.items())
-    yaml.add_representer(OrderedDict, odict_representer)
-    with open("conda.recipe/meta.yaml", 'w') as f:
-        yaml.dump(meta, f, default_flow_style=False)
+    conda_build_render.output_yaml(FakeMetadata(meta), filename="conda.recipe/meta.yaml")
+        
 
 # TODO: support purge-all?
 def conda_build_purge(purge):
@@ -455,6 +501,7 @@ def conda_build_purge(purge):
         return "echo 'not doing conda build purge'"
 
 def conda_build(channel):
+    # TODO add keep old work as param? always have, and use cleanup to remove later? dunno
     return "conda build %s conda.recipe/" % (
         " ".join(['-c %s' % c for c in channel]))
 
@@ -475,7 +522,7 @@ def _create_conda_env_file(pin_deps, package, extra, channel,
 
     all_deps = []
     for pkgname in packages:
-        extras = read_conda_packages().get(pkgname, None)
+        extras = read_conda_packages().get(pkgname, [])
 
         deps = python2condaV(
             _get_dependencies(
@@ -512,8 +559,16 @@ def _create_conda_env_file(pin_deps, package, extra, channel,
 
 
 # existing env -> env file (conda env export)
-def _conda_env_export(env_name, extra, env_file, all_extras):
-    prefix = _conda_env_prefix(env_name)
+def _conda_env_export(env_name_override, extra, env_file, all_extras):
+
+    if env_name_override is not None:
+        prefix = _conda_env_prefix(env_name_override)
+        env_name = env_name_override
+    else:
+        info = json.loads(conda_run_command(conda_Commands.INFO, "--json")[0])
+        prefix = info['active_prefix']
+        env_name = info['active_prefix_name']
+
     E = conda_env_from_environment(
         env_name, prefix, no_builds=True, ignore_channels=False)
 
@@ -655,6 +710,10 @@ def _remove_recipe_append_and_clobber_tests(
 
 
 def pkg_exists(task,values):
+    if not os.path.exists("conda.recipe"):
+        log_message("No existing conda.recipe so cannot check for existing package.")
+        return False
+    log_message("Look for existing package...")
     pkg_files = conda_build_api.get_output_file_paths("conda.recipe")
     # TODO: always build if version is dirty
     # TODO: only rebuild whichever package is missing, not all of them
@@ -669,39 +728,40 @@ def pkg_exists(task,values):
 
 ######################################################################
 
-# TODO: decide what to do about register_support
+def register(x): return some_register('conda',x)
 
-def register_support(x): return some_register_support('conda',x)
+register(
+    DoitTask(
+        task_type=_conda_build_deps,
+        params=[params.channel],
+        actions = [ CmdAction2(__conda_build_deps) ]))
 
-@_doithacks.hidden_task
-def _conda_build_deps():
-    return { 'actions': [ CmdAction2(__conda_build_deps) ],
-             'params': [params.channel] }
-
-register_support(_conda_build_deps)
-
-@_doithacks.hidden_task
-def _conda_develop_install():
-    extra_with_tests_as_default = {**params.extra, 'default':['tests']}
-    return { 'actions': [ CmdAction2(_conda_install) ],
-             # TODO: consider including pin + rest of options here? (except env)
-             'params' : [ extra_with_tests_as_default,
-                          params.all_extras,
-                          params.channel ] }
-
-register_support(_conda_develop_install)
+register(
+    DoitTask(
+        task_type=_conda_develop_install,
+        # TODO: consider including pin + rest of options here? (except env)        
+        params=[ {**params.extra, 'default':['tests']},
+                 params.all_extras,
+                 params.channel ],
+        actions = [ CmdAction2(_conda_install) ]))
 
 
-# the thing is you wnat conda to have all deps at once to consider and not install
-# separately for several reasons (performance slow, different solution for multiple runs vs all in one).
-@_doithacks.hidden_task
-def _some_conda_install():
-    return { 'actions': [ CmdAction2(_conda_install) ],
-             # TODO: all I need?
-             'params' : [ params.env_name,
-                          params.pin_deps,
-                          params.extra,
-                          params.all_extras,
-                          params.channel ] }
 
-register_support(_some_conda_install)
+#register(
+#    DoitTask(
+#        task_type=_some_conda_install,
+#        params=[ params.env_name_override,
+#                 params.pin_deps,
+#                 params.extra,
+#                 params.all_extras,
+#                 params.channel ],
+#        actions = [ CmdAction2(_conda_install) ]))
+
+#register(
+#    DoitTask(
+#        task_type=_some_conda_install2,
+#        params=[ params.pin_deps,
+#                 params.extra,
+#                 params.all_extras,
+#                 params.channel ],
+#        actions = [ CmdAction2(_conda_install) ]))

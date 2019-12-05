@@ -4,3 +4,4 @@ channels:
 dependencies:
   - pkgs/main::holoviews=1.10.0
   - pkgs/main::hypothesis=3.56.0
+  - pkgs/main::python=3.6.9

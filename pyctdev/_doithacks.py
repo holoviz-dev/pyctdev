@@ -40,7 +40,7 @@
 
 # TODO: move this file to util?
 
-import sys
+import sys, getopt
 
 from .util import log_message
 
@@ -124,27 +124,20 @@ def populate_task_options(task,values):
         if len(args_no_vars) > 0 and args_no_vars[0] == 'info':
             log_message("...not setting %s.options because I think we're in 'help'", task)
             return None # TODO: I just hacked this 'info' detection in so info will run for tasks with required args
+        #### construct relevant argv
+        taskopts = []
         while args_no_vars:
-            try:
-                task_options, seq = tc.parse([args_no_vars.pop()])
-                if len(seq)==0:
-                    task.options = task_options
-                    log_message("...task.options set to %s", task.options)
-                    break
-            except doit.cmdparse.CmdParseError:
-                pass
-            
+            opts, args = getopt.getopt(args_no_vars, tc.get_short(), tc.get_long())
+            taskopts += opts
+            if args:
+                del args[0]
+            args_no_vars = args
+        relevant_argv = " ".join([" ".join(x) for x in taskopts]).split()
+        log_message("...sys argv got like: %s", relevant_argv)
+        
+        task.options, _ = tc.parse(relevant_argv)
         log_message("...%s.options set to: %s", task, task.options)
     return None # TODO: check None has no impact on actual uptodate calc.
-
-
-######################################################################
-
-# you seemingly can't define a private task as e.g. def _task_my_thing().
-
-def hidden_task(f):
-    f.create_doit_tasks = f  # yes really
-    return f
 
 
 ######################################################################

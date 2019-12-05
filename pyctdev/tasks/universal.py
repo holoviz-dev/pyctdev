@@ -74,6 +74,8 @@ register(
     DoitTask(
         task_type=miniconda_download,
         targets=[miniconda_installer],
+        # ??? a task has no file_dep and uptodate item equal to True
+        # http://pydoit.org/dependencies.html#attr-uptodate
         uptodate=[True],
         actions=[PythonAction2(download_miniconda)]))
 

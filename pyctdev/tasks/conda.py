@@ -8,11 +8,11 @@ conda command, or they use something from ._conda).
 from pyctdev.params import cleanup_meta_param, cleanup_param # TODO: you'll be removing these
 from pyctdev import params
 
-from ._conda import buildgraphandwriteitdown, python_develop, conda_upload, env_exists, add_pyctdev, conda_create, create_recipe, conda_build, _conda_env_export, _create_conda_env_file, create_recipe_appends, conda_build_purge, pkg_exists
+from ._conda import buildgraphandwriteitdown, python_develop, conda_upload, env_exists, conda_create, create_recipe, conda_build, _conda_env_export, _create_conda_env_file, create_recipe_appends, conda_build_purge, pkg_exists, _conda_install, _add_pyctdev
 
 from . import register as some_register, ProjectTask
 
-from . import env_capture, env_dependency_graph, env_create, env_export, env_file_generate, list_test_envs, develop_install, package_upload, package_build, package_test
+from . import env_capture, env_dependency_graph, env_create, env_export, env_file_generate, list_test_envs, develop_install, package_upload, package_build, package_test, install_deps_only
 
 from ..task import DoitTask
 from ..util.faketox import print_envs as print_tox_envs
@@ -38,7 +38,8 @@ register(
 register(
     DoitTask(
         task_type=env_capture,
-        actions=[CmdAction2("conda info"),
+        actions=[#CmdAction2("env"), # TODO windows, macos!
+                 CmdAction2("conda info"),
                  CmdAction2("conda list"),
                  CmdAction2("conda env export")])
 )
@@ -47,7 +48,7 @@ register(
     DoitTask(
         task_type=env_dependency_graph,
         actions=[PythonAction2(buildgraphandwriteitdown)],
-        params=[params.env_name,
+        params=[params.env_name_override,
                 # TODO: awkward way of doing it...
                 {'name': 'with_graphviz',
                  'long': 'with-graphviz',
@@ -64,6 +65,20 @@ register(
         task_dep=["_conda_build_deps",
                   "_conda_develop_install"],
         actions=[CmdAction2(python_develop)]))
+
+
+register(
+    DoitTask(
+        task_type=install_deps_only,
+        params=[ params.env_name_override,
+                 params.pin_deps,
+                 params.extra,
+                 params.all_extras,
+                 params.channel ],
+        task_dep=["_conda_build_deps"],
+        actions = [ CmdAction2(_conda_install) ]))
+
+
 
 # TODO: do we need support for "upload only if package doesn't exist"?
 register(
@@ -90,11 +105,12 @@ register(
         uptodate=[env_exists],
         params=[params.python,
                 params.env_name,
-                params.channel],
+                params.channel,
+                params.add_pyctdev],
+        actions=[CmdAction2(conda_create),
         # TODO note that when testing itself, pyctdev will use previous pyctdev
         # (but not yet testing this command...)
-        actions=[CmdAction2(conda_create),
-                 CmdAction2(add_pyctdev)]))
+                 CmdAction2(_add_pyctdev)]))
 
 
 register(
@@ -149,7 +165,7 @@ register(
         task_type=env_export,
         params=[
             params.env_file,
-            params.env_name,
+            params.env_name_override,
             params.extra,
             params.all_extras,
             params.pin_deps,

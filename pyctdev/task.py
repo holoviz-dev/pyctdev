@@ -1,5 +1,6 @@
 """
 """
+import itertools
 
 import param
 
@@ -44,20 +45,31 @@ class DoitTask(param.Parameterized):
         my_params = set([p['name'] for p in self.params])
         expected_params = set(self.task_type.params)
         if not my_params.issuperset(expected_params):
-            # TODO: warning not heplful for a user of the task - this
-            # is for a developer of the task
+            assert hasattr(self,'_ecosystem') # TODO decide about this and the if hasattr below
+            ### hack to get params of task deps!            
+            import pyctdev.tasks as T
+            deps_params = set(list(itertools.chain.from_iterable( [Z.params for Z in T.task_handlers[self._ecosystem] if Z.__name__ in self.task_dep] )))
 
-            # TODO: and what if a specific backend wants to provide an
-            # extra option. Should probably check that implementation
-            # is a superset of params
-            log_warning(
-                "Task type %s (from ecosystem=%s) should have params %s but got %s",
-                self.task_type.__name__,
-                self._ecosystem if hasattr(
-                    self,
-                    '_ecosystem') else "unknown",
-                expected_params,
-                my_params)
+            all_params = my_params|deps_params
+            ###
+            
+            if not (all_params).issuperset(expected_params):
+            
+                # TODO: warning not heplful for a user of the task - this
+                # is for a developer of the task
+    
+                # TODO: and what if a specific backend wants to provide an
+                # extra option. Should probably check that implementation
+                # is a superset of params
+                log_warning(
+                    "Task type %s (from ecosystem=%s) should have params %s but got %s%s",
+                    self.task_type.__name__,
+                    self._ecosystem if hasattr(
+                        self,
+                        '_ecosystem') else "unknown",
+                    expected_params,
+                    my_params,
+                    " (and %s from task_deps)"%deps_params if deps_params else "")
 
         # build up full docs
         docs = [self.task_type.__doc__, self.additional_doc, "task type: %s.%s\n" % (
