@@ -2,4 +2,8 @@
 # TODO: incomplete, and going to switch to param version
 requires = [
     "versioneer",
+    "setuptools >=40.8.0",
+    "wheel"
 ]
+
+build-backend = "setuptools.build_meta"
