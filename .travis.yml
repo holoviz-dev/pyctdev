@@ -11,7 +11,7 @@ env:
     - CHANS_DEV="-c pyviz/label/dev -c conda-forge"
     - CHANS_REL="-c pyviz -c conda-forge"
     - LABELS_DEV="--label=dev"
-    - LABELS_REL="--label=dev --label=main"        
+    - LABELS_REL="--label=dev --label=main"
     - PIP_FORMATS="sdist bdist_wheel"
 
 stages:
@@ -28,21 +28,26 @@ stages:
 jobs:
   include:
 
-  ########## TEST DEVELOPER INSTALL ##########  
+  ########## TEST DEVELOPER INSTALL ##########
 
   ## pip
-  
+
   - &pip_default
     stage: test
-    # (pyctdev requires itself to test itself)
+    #################################################################################
+    # (pyctdev requires itself to test itself - ideally need a better way to do this)
     before_install:
       - pip install -e .
       - pip freeze
-    install: pyctdev develop_install
+    #################################################################################
+    install:
+      - pyctdev develop_install
+      - pip freeze
     script:
       - pyctdev develop_test --test-group=all
       # TODO add check that package tests are running
       - cd examples/one && pyctdev develop_test --test-group=all
+      - cd examples/one && pyctdev develop_test --test-group=export
 #      - pyctdev --dir=examples/two test_all
 
   ## conda
@@ -54,22 +59,60 @@ jobs:
       ## install miniconda (using git pyctdev)
       - pip install -e . && pyctdev ecosystem=universal miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
-      ## build conda package (using git pyctdev)
-      # TODO: pycytdev should be able to supply list of deps for conda, since it can already translate them
+      #################################################################################
+      # (pyctdev requires itself to test itself - ideally need a better way to do this)
+      # TODO: pyctdev should be able to supply list of deps for conda, since it can already translate them
       - conda install -y param "doit ==0.31.*" cloudpickle pluggy py "pip >=19.1.1" pyyaml "conda >=4.4" "conda-build >=3.10.1" anaconda-client
-      - pip install -e . --no-deps && pyctdev package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
-      ## install conda package to use for rest of tests
-      - conda install -y --use-local pyctdev
+      - pip install -e . --no-deps
+      - conda info
       - conda list
-    install: pyctdev develop_install
+      #################################################################################
+    install:
+      - conda info
+      - which pyctdev
+      - pyctdev env_create --env-name testenv --python=3.7
+      - source activate testenv
+      - conda info
+      - conda list
+      - which pyctdev
+      - pyctdev develop_install
+      - conda list
     script:
+      - which pyctdev
+      - conda info
+      - conda list
       - pyctdev develop_test --test-group=all
-      - conda config --add channels file:///$HOME/miniconda/conda-bld
-      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
       - cd examples/one && pyctdev develop_test --test-group=all
-#      - pyctdev --dir=examples/one test_export
-#      # TODO: still need to update conda stuff e.g. remove recipe
+      - cd examples/one && pyctdev develop_test --test-group=export
 #      - pyctdev --dir=examples/two test_export
+
+####
+#  - &conda_default
+#    stage: test
+#    env: PYCTDEV_ECOSYSTEM=conda CHANNELS=$CHANS_DEV
+#    before_install:
+#      ## install miniconda (using git pyctdev)
+#      - pip install -e . && pyctdev ecosystem=universal miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
+#      - export PATH="$HOME/miniconda/bin:$PATH"
+#      ## build conda package (using git pyctdev)
+#      # TODO: pycytdev should be able to supply list of deps for conda, since it can already translate them
+#      - conda install -y param "doit ==0.31.*" cloudpickle pluggy py "pip >=19.1.1" pyyaml "conda >=4.4" "conda-build >=3.10.1" anaconda-client
+#      - pip install -e . --no-deps && pyctdev package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
+#      ## install conda package to use for rest of tests
+#      - conda install -y --use-local pyctdev
+#      - conda list
+#    install: pyctdev develop_install
+#    script:
+#      - pyctdev develop_test --test-group=all
+#      - conda config --add channels file:///$HOME/miniconda/conda-bld
+#      - export PYCTDEV_SELF_CHANNEL="" # so the above channel will be used
+#      - cd examples/one && pyctdev develop_test --test-group=all
+#      - cd examples/one && pyctdev develop_test --test-group=export
+##      - pyctdev --dir=examples/one test_export
+##      # TODO: still need to update conda stuff e.g. remove recipe
+##      - pyctdev --dir=examples/two test_export
+####
+
 
   ########## BUILD/TEST/UPLOAD END-USER PACKAGES ##########
 

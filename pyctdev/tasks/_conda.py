@@ -739,7 +739,8 @@ register(
 register(
     DoitTask(
         task_type=_conda_develop_install,
-        # TODO: consider including pin + rest of options here? (except env)        
+        # TODO: consider including pin + rest of options here? (except env)
+        # TODO: add env name here?
         params=[ {**params.extra, 'default':['tests']},
                  params.all_extras,
                  params.channel ],
