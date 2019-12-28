@@ -17,9 +17,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: "Install pyctdev to be able to install pyctdev :)"
         run: python -m pip install -e .
-      - name: Dev install
+      - name: pip dev install
         run: python -m pyctdev develop_install --extra=ecosystem_pip
-      - name: Dev tests
+      - name: pip dev tests
         run: |
           pyctdev develop_test --test-group=all
           cd examples/one
