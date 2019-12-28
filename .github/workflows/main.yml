@@ -16,7 +16,10 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install dependencies
-        run: pip install -e .[ecosystem_pip]
+        run: |
+          python --version
+          python -m pip install -e .[ecosystem_pip]
       - name: Tests
         run: |
+          python --version
           python -m pyctdev list
