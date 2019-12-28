@@ -39,8 +39,8 @@ jobs:
     install: pyctdev develop_install
     script:
       - pyctdev develop_test --test-group=all
-      # TODO add check that package tests are running      
-#      - pyctdev --dir=examples/one test_all
+      # TODO add check that package tests are running
+      - cd examples/one && pyctdev develop_test --test-group=all
 #      - pyctdev --dir=examples/two test_all
 
   ## conda
