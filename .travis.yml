@@ -41,7 +41,7 @@ jobs:
       - pip freeze
     #################################################################################
     install:
-      - pyctdev develop_install
+      - pyctdev develop_install --extra=ecosystem_pip
       - pip freeze
     script:
       - pyctdev develop_test --test-group=all
@@ -52,6 +52,8 @@ jobs:
 #      - pyctdev develop_test --test-group=export
       - cd ../two
       - pyctdev develop_test --test-group=all
+# TODO: haven't done for pip world yet
+#      - pyctdev develop_test --test-group=export
 
   ## conda
 
@@ -89,6 +91,7 @@ jobs:
       - pyctdev develop_test --test-group=all
       - pyctdev develop_test --test-group=export
       - cd ../two
+      - pyctdev develop_test --test-group=all      
       - pyctdev develop_test --test-group=export
 
 ####
