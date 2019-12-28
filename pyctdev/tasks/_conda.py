@@ -520,9 +520,13 @@ def _create_conda_env_file(pin_deps, package, extra, channel,
 
     packages = get_packages(package)
 
+    if extra and package:
+        log_message("You have specified package name(s) %s AND extra(s) %s", package, extra)
+
     all_deps = []
     for pkgname in packages:
         extras = read_conda_packages().get(pkgname, [])
+        extras+=extra # might result in duplicates if multiple packages, but they'll be filtered below
 
         deps = python2condaV(
             _get_dependencies(
