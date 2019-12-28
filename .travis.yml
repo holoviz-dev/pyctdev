@@ -46,8 +46,9 @@ jobs:
     script:
       - pyctdev develop_test --test-group=all
       # TODO add check that package tests are running
-      - cd examples/one && pyctdev develop_test --test-group=all
-      - cd examples/one && pyctdev develop_test --test-group=export
+      - cd examples/one
+      - pyctdev develop_test --test-group=all
+      - pyctdev develop_test --test-group=export
 #      - pyctdev --dir=examples/two test_all
 
   ## conda
@@ -75,15 +76,16 @@ jobs:
       - conda info
       - conda list
       - which pyctdev
-      - pyctdev develop_install
+      - pyctdev develop_install -o ecosystem_conda -o tests
       - conda list
     script:
       - which pyctdev
       - conda info
       - conda list
       - pyctdev develop_test --test-group=all
-      - cd examples/one && pyctdev develop_test --test-group=all
-      - cd examples/one && pyctdev develop_test --test-group=export
+      - cd examples/one
+      - pyctdev develop_test --test-group=all
+      - pyctdev develop_test --test-group=export
 #      - pyctdev --dir=examples/two test_export
 
 ####
