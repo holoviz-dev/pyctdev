@@ -127,7 +127,14 @@ def populate_task_options(task,values):
         #### construct relevant argv
         taskopts = []
         while args_no_vars:
-            opts, args = getopt.getopt(args_no_vars, tc.get_short(), tc.get_long())
+            try:
+                opts, args = getopt.getopt(args_no_vars, tc.get_short(), tc.get_long())
+            except getopt.GetoptError as err:
+                if err.opt == "":
+                    raise
+                assert args_no_vars[0].lstrip("-") == err.opt
+                opts = []
+                args = args_no_vars                
             taskopts += opts
             if args:
                 del args[0]
