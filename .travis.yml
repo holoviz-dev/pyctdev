@@ -48,8 +48,10 @@ jobs:
       # TODO add check that package tests are running
       - cd examples/one
       - pyctdev develop_test --test-group=all
-      - pyctdev develop_test --test-group=export
-#      - pyctdev --dir=examples/two test_all
+# TODO: haven't done for pip world yet
+#      - pyctdev develop_test --test-group=export
+      - cd ../two
+      - pyctdev develop_test --test-group=all
 
   ## conda
 
@@ -86,7 +88,8 @@ jobs:
       - cd examples/one
       - pyctdev develop_test --test-group=all
       - pyctdev develop_test --test-group=export
-#      - pyctdev --dir=examples/two test_export
+      - cd ../two
+      - pyctdev develop_test --test-group=export
 
 ####
 #  - &conda_default
