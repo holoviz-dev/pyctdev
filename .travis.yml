@@ -76,7 +76,7 @@ jobs:
       - conda info
       - conda list
       - which pyctdev
-      - pyctdev develop_install -o ecosystem_conda -o tests
+      - pyctdev develop_install --extra ecosystem_conda --extra tests
       - conda list
     script:
       - which pyctdev
