@@ -132,7 +132,7 @@ def populate_task_options(task,values):
             except getopt.GetoptError as err:
                 if err.opt == "":
                     raise
-                assert args_no_vars[0].lstrip("-") == err.opt
+                assert args_no_vars[0].lstrip("-").split("=",1)[0] == err.opt
                 opts = []
                 args = args_no_vars                
             taskopts += opts
