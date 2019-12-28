@@ -21,7 +21,7 @@ jobs:
         run: python -m pyctdev develop_install --extra=ecosystem_pip
       - name: Dev tests
         run: |
-          pytdev develop_test --test-group=all
+          pyctdev develop_test --test-group=all
           cd examples/one
           pyctdev develop_test --test-group=all
           cd ../two
