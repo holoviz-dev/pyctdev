@@ -30,31 +30,6 @@ jobs:
 
   ########## TEST DEVELOPER INSTALL ##########
 
-  ## pip
-
-  - &pip_default
-    stage: test
-    #################################################################################
-    # (pyctdev requires itself to test itself - ideally need a better way to do this)
-    before_install:
-      - pip install -e .
-      - pip freeze
-    #################################################################################
-    install:
-      - pyctdev develop_install --extra=ecosystem_pip
-      - pip freeze
-    script:
-      - pyctdev develop_test --test-group=all
-      # TODO add check that package tests are running
-      - cd examples/one
-      - pyctdev develop_test --test-group=all
-# TODO: haven't done for pip world yet
-#      - pyctdev develop_test --test-group=export
-      - cd ../two
-      - pyctdev develop_test --test-group=all
-# TODO: haven't done for pip world yet
-#      - pyctdev develop_test --test-group=export
-
   ## conda
 
   - &conda_default
