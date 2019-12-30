@@ -54,4 +54,8 @@ def echo(msg):
 def doithack_join_cmds(cmds):
     # Hack to support multiple commands :( Hopefully can remove when
     # easier to pass stuff between doit tasks.
-    return " && ".join(cmds)
+    cmds2 = []
+    for cmd in cmds:
+        cmds2.append("echo Running %s..."%cmd)
+        cmds2.append(cmd)
+    return " && ".join(cmds2)
