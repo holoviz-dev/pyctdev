@@ -55,7 +55,7 @@ python = {'name': 'python',
 # ? test_group:
 # ? test_requires: --test-in-presence-of ?? (this is names of packages...does it get translated to conda too?)
 # ? test_what:
-_test_matrix = 'Forms part of "test matrix": test_python, test_group, test_requires, test_what.'
+_test_matrix = ' Forms part of "test matrix": test_python, test_group, test_requires, test_what.'
 
 test_python = {
     'name': 'test_python',
@@ -78,7 +78,7 @@ test_requires = {
     'long': 'test-requires',
     'type': list,
     'default': [],
-    'help': 'Additional packages that should be present during testing, e.g. to check there is no conflict/malfunction when that package is present. Must be listed in %s. Specify multiple times for multiple packages.' % TOX_INI + _test_matrix
+    'help': 'Additional packages that should be present during testing, e.g. to check there is no conflict/malfunction when that package is present. If the packaging system supports it, will be installed before tests are run. Note: develop_test will not install any dependencies. Note: test dependencies should be listed in %s. Specify multiple times for multiple packages.' % TOX_INI + _test_matrix
 }
 
 test_what = {
