@@ -55,12 +55,13 @@ jobs:
       - conda info
       - conda list
       - which pyctdev
-      - pyctdev develop_install --extra ecosystem_conda --extra tests
+      - pyctdev develop_install --extra ecosystem_conda --extra tests --extra depgraph
       - conda list
     script:
       - which pyctdev
       - conda info
       - conda list
+      # TODO: should run these in their own envs
       - pyctdev develop_test --test-group=all
       - cd examples/one
       - pyctdev develop_test --test-group=all
@@ -68,6 +69,8 @@ jobs:
       - cd ../two
       - pyctdev develop_test --test-group=all      
       - pyctdev develop_test --test-group=export
+      - cd ../three
+      - pyctdev develop_test
 
 ####
 #  - &conda_default
