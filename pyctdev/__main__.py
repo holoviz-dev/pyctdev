@@ -118,6 +118,15 @@ class PyctdevLoader(DodoTaskLoader):
         return tasks, config
 
 def main():
+    # TODO: intercept verbose/debug/whatever. Also, use with other commands
+    #       that get called.
+    # TODO detect no command supplied -> help
+    # TODO: use argparse or similar here
+
+    if '--version' in sys.argv:
+        from . import __version__
+        return __version__
+
     # TODO: most of below is hack to support --dry-run (including
     # switch out db during a dry run)
     tmpdb = None
