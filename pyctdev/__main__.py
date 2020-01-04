@@ -117,18 +117,21 @@ class PyctdevLoader(DodoTaskLoader):
 
         return tasks, config
 
-def main():
-    # TODO: intercept verbose/debug/whatever. Also, use with other commands
-    #       that get called.
-    # TODO detect no command supplied -> help
-    # TODO: use argparse or similar here
 
-    if '--version' in sys.argv:
+
+def main():
+
+    # TODO: intercept verbose/debug/whatever to also use with commands
+    # that get called
+
+    # TODO: subclassing doitmain looks like it would be too much work (long methods...)
+
+    if len(sys.argv) > 1 and sys.argv[1] == '--version':
         from . import __version__
         return __version__
 
-    # TODO: most of below is hack to support --dry-run (including
-    # switch out db during a dry run)
+    # hack to support --dry-run (switch out db during a dry
+    # run)
     tmpdb = None
     if '--dry-run' in sys.argv:
         _doithacks.CmdAction2.dry_run = _doithacks.PythonAction2.dry_run = True
@@ -139,8 +142,14 @@ def main():
             tmpdb.name)
         sys.argv[sys.argv.index('--dry-run')] = '--db-file=%s' % tmpdb.name
 
+    dim = DoitMain(PyctdevLoader())
+    args = dim.process_args(sys.argv[1::]) # will be repeated later by doit itself
+    if len(args) == 0 or all(a.startswith('-') for a in args): # commands and tasks can't start with -
+        print("No command or task supplied; TODO display help")
+        return 1
+
     try:
-        sys.exit(DoitMain(PyctdevLoader()).run(sys.argv[1:]))
+        sys.exit(dim.run(sys.argv[1:]))
     finally:
         if tmpdb is not None:
             os.unlink(tmpdb.name)
