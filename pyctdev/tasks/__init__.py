@@ -52,7 +52,7 @@ class build_docs(ProjectTask):
 
 
 class list_test_envs(ProjectTask):
-    """List all available test envs."""
+    """List all defined test envs."""
     params = []
 
 class env_capture(PyctdevTask):
