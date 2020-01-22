@@ -107,8 +107,8 @@ no_pin_deps = {
 CONDA_ROOT_EXE = os.environ.get('CONDA_EXE','conda') # TODO should at least warn if conda_exe not there; will be fixed as part of 0.7
 
 # TODO: not sure what conda-using developers do/prefer...
-# pip develop and don't install missing deps
-python_develop = "pip install --no-deps -e ."
+# pip develop and don't install missing install deps or any build deps
+python_develop = "pip install --no-deps --no-build-isolation -e ."
 # pip develop and pip install missing deps
 #  python_develop = "pip install -e ."
 # setuptools develop and don't install missing deps
