@@ -307,9 +307,9 @@ def _hacked_conda_install_with_options(task,options,channel,env_name_again,no_pi
     return _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras)
 
 miniconda_url = {
-    "Windows": "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe",
-    "Linux": "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh",
-    "Darwin": "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
+    "Windows": "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe",
+    "Linux": "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh",
+    "Darwin": "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
 }
 
 # Download & install miniconda...Requires python already, so it might
