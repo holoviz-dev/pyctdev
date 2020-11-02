@@ -6,7 +6,7 @@ language: generic
 
 env:
   global:
-    - PYENV_VERSION=3.7
+    - PYTHON_VERSION=3.7
     - PKG_TEST_GROUP="--test-group=all"
     - CHANS_DEV="-c pyviz/label/dev"
     - CHANS_REL="-c pyviz"
@@ -71,7 +71,7 @@ jobs:
 
   - &pip_pkg_default
     stage: pip_dev_package
-    env: PYENV_VERSION=3.7 PYPI=testpypi
+    env: PYTHON_VERSION=3.7 PYPI=testpypi
     before_install:
       - pip install -e .
       - doit ecosystem_setup
@@ -80,7 +80,7 @@ jobs:
 
   - <<: *pip_pkg_default
     stage: pip_package
-    env: PYENV_VERSION=3.7 PYPI=pypi
+    env: PYTHON_VERSION=3.7 PYPI=pypi
 
 
   ##### conda
