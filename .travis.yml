@@ -35,7 +35,7 @@ jobs:
   - &pip_default
     stage: test
     # (pyctdev requires itself to test itself)
-    before_install: pip install -e .
+    before_install: python -m pip install -e .
     install: doit develop_install
     script:
       - doit test_all
@@ -49,10 +49,10 @@ jobs:
     env: PYCTDEV_ECOSYSTEM=conda
     before_install:
       ## install miniconda (using git pyctdev)
-      - pip install -e . && doit miniconda_install && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - python -m pip install -e . && doit miniconda_install && python -m pip uninstall -y doit pyctdev && rm -f .doit.db
       - export PATH="$HOME/miniconda/bin:$PATH"
       ## build conda package (using git pyctdev)
-      - pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && pip uninstall -y doit pyctdev && rm -f .doit.db
+      - python -m pip install -e . && doit ecosystem_setup && doit package_build $CHANNELS && python -m pip uninstall -y doit pyctdev && rm -f .doit.db
       ## install conda package to use for rest of tests
       - conda install -y --use-local pyctdev
     install: doit develop_install
@@ -73,7 +73,7 @@ jobs:
     stage: pip_dev_package
     env: PYENV_VERSION=3.7 PYPI=testpypi
     before_install:
-      - pip install -e .
+      - python -m pip install -e .
       - doit ecosystem_setup
     install: doit package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
     script: doit package_upload -u ceball -p $PYPIPWD --pypi ${PYPI}
