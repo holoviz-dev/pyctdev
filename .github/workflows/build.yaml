@@ -16,7 +16,7 @@ jobs:
         shell: bash -l {0}
     env:
       PKG_TEST_PYTHON: "--test-python=py37"
-      PKG_TEST_GROUP="--test-group=all"
+      PKG_TEST_GROUP: "--test-group=all"
       PYCTDEV_ECOSYSTEM: "conda"
     steps:
       - uses: actions/checkout@v2
@@ -57,7 +57,7 @@ jobs:
       run:
         shell: bash -l {0}
     env:
-      PKG_TEST_GROUP="--test-group=all"
+      PKG_TEST_GROUP: "--test-group=all"
       PYPI: "https://upload.pypi.org/legacy/"
       PIP_FORMATS: "sdist bdist_wheel"
       PYCTDEV_ECOSYSTEM: "pip"
