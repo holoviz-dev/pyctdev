@@ -35,6 +35,7 @@ jobs:
       - name: conda setup
         run: |
           conda config --set always_yes True
+          conda deactivate
           pip install -e .
           doit ecosystem_setup
           doit package_build
@@ -78,11 +79,6 @@ jobs:
           pip install -e .
           doit ecosystem_setup
       - name: pip build
-        run: |
-          eval "$(conda shell.bash hook)"
-          doit package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
+        run: doit package_build $PKG_TEST_GROUP --formats="$PIP_FORMATS" --sdist-run-tests
       - name: pip upload
-        run: |
-          eval "$(conda shell.bash hook)"
-          conda activate test-environment
-          doit ecosystem=pip package_upload -u ${{ secrets.PPU }} -p ${{ secrets.PPP }} -r $PYPI
+        run: doit ecosystem=pip package_upload -u ${{ secrets.PPU }} -p ${{ secrets.PPP }} -r $PYPI
