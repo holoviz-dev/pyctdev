@@ -49,10 +49,14 @@ jobs:
           doit package_build $PKG_TEST_PYTHON $PKG_TEST_GROUP
       - name: conda dev upload
         if: (contains(steps.vars.outputs.tag, 'a') || contains(steps.vars.outputs.tag, 'b') || contains(steps.vars.outputs.tag, 'rc'))
-        run: doit package_upload --token=${{ secrets.CONDA_UPLOAD_TOKEN }} --label=dev
+        run: |
+          eval "$(conda shell.bash hook)"
+          doit package_upload --token=${{ secrets.CONDA_UPLOAD_TOKEN }} --label=dev
       - name: conda main upload
         if: (!(contains(steps.vars.outputs.tag, 'a') || contains(steps.vars.outputs.tag, 'b') || contains(steps.vars.outputs.tag, 'rc')))
-        run: doit package_upload --token=${{ secrets.CONDA_UPLOAD_TOKEN }} --label=dev --label=main
+        run: |
+          eval "$(conda shell.bash hook)"
+          doit package_upload --token=${{ secrets.CONDA_UPLOAD_TOKEN }} --label=dev --label=main
   pip_build:
     name: Build PyPI Packages
     runs-on: 'ubuntu-latest'
