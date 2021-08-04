@@ -37,6 +37,7 @@ jobs:
           conda config --set always_yes True
           conda deactivate
           pip install -e .
+          conda install pip
           doit ecosystem_setup
           doit package_build
           pip uninstall -y doit pyctdev
