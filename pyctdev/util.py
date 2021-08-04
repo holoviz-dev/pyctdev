@@ -231,11 +231,7 @@ def get_dependencies(groups,all_extras=False):
 
 
 def get_buildreqs():
-    try:
-        import pip._vendor.pytoml as toml
-    except:
-        # pip>=20.1
-        import pip._vendor.toml as toml
+    import toml
     buildreqs = []
     if os.path.exists('pyproject.toml'):
         pp = toml.load(open('pyproject.toml'))
