@@ -39,7 +39,7 @@ jobs:
           pip install -e .
           conda install pip
           doit ecosystem_setup
-          doit package_build
+          doit package_build --no-pkg-tests
           pip uninstall -y doit pyctdev
           rm -f .doit.db
           doit ecosystem_setup
