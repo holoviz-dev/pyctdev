@@ -102,6 +102,17 @@ project_urls =
     Source Code = https://github.com/pyviz/yourproject
 ```
 
+A mapping from `pip` installable packages to `conda` installable packages can be added
+in the `setup.cfg` file as follows:
+
+```
+[tool:pyctdev.conda]
+namespace_map = 
+    pip_package1=conda_package1
+    pip_package2=conda_package2
+    ...
+```
+
 #### dependencies
 
 ```
