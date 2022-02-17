@@ -113,6 +113,10 @@ namespace_map =
     ...
 ```
 
+Note that `pyctdev` strips the extras defined in `setup.py` (e.g. `ibis[sqlite]` is converted to `ibis`) so it's not possible
+to define a mapping between an extra and a specific conda. For example declaring `ibis[sqlite]=ibis-sqlite` in `setup.cfg` won't be
+taken into account by `pyctdev` since `ibis[sqlite]` has already been transformed to `ibis` when the mapping is used.
+
 #### dependencies
 
 ```
