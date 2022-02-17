@@ -102,6 +102,21 @@ project_urls =
     Source Code = https://github.com/pyviz/yourproject
 ```
 
+A mapping from `pip` installable packages to `conda` installable packages can be added
+in the `setup.cfg` file as follows:
+
+```
+[tool:pyctdev.conda]
+namespace_map = 
+    geopandas=geopandas-base
+    graphviz=python-graphviz
+    ...
+```
+
+Note that `pyctdev` strips the extras defined in `setup.py` (e.g. `ibis[sqlite]` is converted to `ibis`) so it's not possible
+to define a mapping between an extra and a specific conda package. For example declaring `ibis[sqlite]=ibis-sqlite` in `setup.cfg` won't be
+taken into account by `pyctdev` since `ibis[sqlite]` has already been transformed to `ibis` when the mapping is used.
+
 #### dependencies
 
 ```
