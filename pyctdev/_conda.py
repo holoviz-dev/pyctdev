@@ -103,11 +103,11 @@ no_pin_deps = {
     'inverse':'pin-deps'
 }
 
-_mamba_param = {
-    'name': 'mamba',
-    'long': 'mamba',
-    'type': bool,
-    'default': False
+_conda_exe_param = {
+    'name': 'conda_exe',
+    'long': 'conda-exe',
+    'type': str,
+    'default': 'conda',
 }
 
 # hack around envs inside envs etc
@@ -125,12 +125,11 @@ python_develop = "pip install --no-deps --no-build-isolation -e ."
 
 from .util import _get_dependencies
 
-def _conda_build_deps(channel, mamba):
-    exe = 'conda' if not mamba else 'mamba'
+def _conda_build_deps(channel, conda_exe):
     buildreqs = get_buildreqs()
     deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
     if len(buildreqs)>0:
-        return "%s install -y %s %s" % (exe, " ".join(['-c %s' % c for c in channel]), deps)
+        return "%s install -y %s %s" % (conda_exe, " ".join(['-c %s' % c for c in channel]), deps)
     else:
         return echo("Skipping conda install (no build dependencies)")
 
@@ -159,25 +158,24 @@ def _pin(deps):
     return pinneddeps
 
     
-def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras,mamba):
+def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras,conda_exe):
     # TODO: list v string form for _pin
     deps = _get_dependencies(['install_requires']+options,all_extras=all_extras)
     deps = [_join_the_club(d) for d in deps]
-    exe = 'conda' if not mamba else 'mamba'
 
     if len(deps)>0:
         deps = _pin(deps) if no_pin_deps is False else deps
         deps = " ".join('"%s"'%dep for dep in deps)       
         # TODO and join the club? 
         e = '' if env_name_again=='' else '-n %s'%env_name_again
-        return "%s install -y " + e + " %s %s" % (exe, " ".join(['-c %s' % c for c in channel]), deps)
+        return "%s install -y " + e + " %s %s" % (conda_exe, " ".join(['-c %s' % c for c in channel]), deps)
     else:
         return echo("Skipping conda install (no dependencies)")
 
 
 # TODO: another parameter workaround
-def _conda_install_with_options_hacked(options,channel,no_pin_deps,all_extras,mamba):
-    return _conda_install_with_options(options,channel,'',no_pin_deps,all_extras,mamba)
+def _conda_install_with_options_hacked(options,channel,no_pin_deps,all_extras,conda_exe):
+    return _conda_install_with_options(options,channel,'',no_pin_deps,all_extras,conda_exe)
 
 ############################################################
 # TASKS...
@@ -879,7 +877,7 @@ def task_develop_install():
         CmdAction(_conda_build_deps),
         CmdAction(_conda_install_with_options_hacked),
         python_develop],
-            'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param,_mamba_param]}
+            'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param,_conda_exe_param]}
 
 
 def task_env_dependency_graph():
