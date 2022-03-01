@@ -133,7 +133,9 @@ def _conda_build_deps(channel, conda_mode):
     buildreqs = get_buildreqs()
     deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
     if len(buildreqs)>0:
-        return "%s install -y %s %s" % (conda_mode, " ".join(['-c %s' % c for c in channel]), deps)
+        cmd = "%s install -y %s %s" % (conda_mode, " ".join(['-c %s' % c for c in channel]), deps)
+        print('Install build dependencies with:', cmd)
+        return cmd
     else:
         return echo("Skipping conda install (no build dependencies)")
 
@@ -172,7 +174,9 @@ def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_e
         deps = " ".join('"%s"'%dep for dep in deps)       
         # TODO and join the club? 
         e = '' if env_name_again=='' else '-n %s'%env_name_again
-        return "%s install -y " % (conda_mode) + e + " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
+        cmd = "%s install -y " % (conda_mode) + e + " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
+        print('Install runtime dependencies with:', cmd)
+        return cmd
     else:
         return echo("Skipping conda install (no dependencies)")
 
