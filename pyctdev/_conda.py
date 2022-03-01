@@ -103,10 +103,14 @@ no_pin_deps = {
     'inverse':'pin-deps'
 }
 
-_conda_exe_param = {
-    'name': 'conda_exe',
-    'long': 'conda-exe',
+_conda_mode_param = {
+    'name': 'conda_mode',
+    'long': 'conda-mode',
     'type': str,
+    'choices': [
+        ('conda', 'with classic conda exe'),
+        ('mamba', 'with mamba exe (must be installed)'),
+    ],
     'default': 'conda',
 }
 
@@ -125,11 +129,11 @@ python_develop = "pip install --no-deps --no-build-isolation -e ."
 
 from .util import _get_dependencies
 
-def _conda_build_deps(channel, conda_exe):
+def _conda_build_deps(channel, conda_mode):
     buildreqs = get_buildreqs()
     deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
     if len(buildreqs)>0:
-        return "%s install -y %s %s" % (conda_exe, " ".join(['-c %s' % c for c in channel]), deps)
+        return "%s install -y %s %s" % (conda_mode, " ".join(['-c %s' % c for c in channel]), deps)
     else:
         return echo("Skipping conda install (no build dependencies)")
 
@@ -158,7 +162,7 @@ def _pin(deps):
     return pinneddeps
 
     
-def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras,conda_exe):
+def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras,conda_mode):
     # TODO: list v string form for _pin
     deps = _get_dependencies(['install_requires']+options,all_extras=all_extras)
     deps = [_join_the_club(d) for d in deps]
@@ -168,14 +172,14 @@ def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_e
         deps = " ".join('"%s"'%dep for dep in deps)       
         # TODO and join the club? 
         e = '' if env_name_again=='' else '-n %s'%env_name_again
-        return "%s install -y " + e + " %s %s" % (conda_exe, " ".join(['-c %s' % c for c in channel]), deps)
+        return "%s install -y " % (conda_mode) + e + " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
     else:
         return echo("Skipping conda install (no dependencies)")
 
 
 # TODO: another parameter workaround
-def _conda_install_with_options_hacked(options,channel,no_pin_deps,all_extras,conda_exe):
-    return _conda_install_with_options(options,channel,'',no_pin_deps,all_extras,conda_exe)
+def _conda_install_with_options_hacked(options,channel,no_pin_deps,all_extras,conda_mode):
+    return _conda_install_with_options(options,channel,'',no_pin_deps,all_extras,conda_mode)
 
 ############################################################
 # TASKS...
@@ -877,7 +881,7 @@ def task_develop_install():
         CmdAction(_conda_build_deps),
         CmdAction(_conda_install_with_options_hacked),
         python_develop],
-            'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param,_conda_exe_param]}
+            'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param,_conda_mode_param]}
 
 
 def task_env_dependency_graph():
