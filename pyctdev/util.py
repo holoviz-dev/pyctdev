@@ -13,7 +13,14 @@ except:
     for pkg in ('tox-3.0.0.zip', 'virtualenv-15.2.0.zip'):
         sys.path.append(os.path.join(os.path.dirname(__file__),'_vendor',pkg))
     import tox.config as tox_config
-    
+
+try:
+    import setuptools
+    from setuptools._vendor.packaging.version import Version
+    setuptools_version = Version(setuptools.__version__)
+except ImportError:
+    setuptools_version = None
+
 toxconf = tox_config.parseconfig('tox')
 # we later filter out any _onlytox commands...
 toxconf_pre = configparser.ConfigParser()
@@ -166,7 +173,12 @@ def echo(msg):
 def _get_setup_metadata():
     meta = None
     if os.path.exists("setup.cfg"):
-        from setuptools.config import read_configuration
+        if setuptools_version is None:
+            raise ImportError('setuptools is not installed.')
+        if setuptools_version >= Version('61.0.0'):
+            from setuptools.config.setupcfg import read_configuration
+        else:
+            from setuptools.config import read_configuration
         setupcfg = read_configuration("setup.cfg")
         if 'options' in setupcfg:
             if 'install_requires' in setupcfg['options']:
@@ -186,7 +198,12 @@ def _get_setup_metadata():
 def _get_setup_metadata2(k):
     meta = None
     if os.path.exists("setup.cfg"):
-        from setuptools.config import read_configuration
+        if setuptools_version is None:
+            raise ImportError('setuptools is not installed.')
+        if setuptools_version >= Version('61.0.0'):
+            from setuptools.config.setupcfg import read_configuration
+        else:
+            from setuptools.config import read_configuration
         setupcfg = read_configuration("setup.cfg")
         if k in setupcfg['metadata']:
             return setupcfg['metadata'][k]
@@ -254,7 +271,12 @@ def get_buildreqs():
 # % sign for the git format (autover), but that breaking some version
 # of config reading.) Replace bit by bit and see what happens?
 def read_pins(f):
-    from setuptools.config import ConfigHandler
+    if setuptools_version is None:
+        raise ImportError('setuptools is not installed.')
+    if setuptools_version >= Version('61.0.0'):
+        from setuptools.config.setupcfg import ConfigHandler
+    else:
+        from setuptools.config import ConfigHandler
     # duplicates some earlier configparser stuff (which doesn't
     # support py2; need to clean up)
     try:
@@ -276,7 +298,12 @@ def read_pins(f):
     return ConfigHandler._parse_dict(pins_raw)
 
 def read_conda_packages(f,name):
-    from setuptools.config import ConfigHandler
+    if setuptools_version is None:
+        raise ImportError('setuptools is not installed.')
+    if setuptools_version >= Version('61.0.0'):
+        from setuptools.config.setupcfg import ConfigHandler
+    else:
+        from setuptools.config import ConfigHandler
     # duplicates some earlier configparser stuff (which doesn't
     # support py2; need to clean up)
     try:
@@ -300,7 +327,12 @@ def read_conda_packages(f,name):
 
 
 def read_conda_namespace_map(f):
-    from setuptools.config import ConfigHandler
+    if setuptools_version is None:
+        raise ImportError('setuptools is not installed.')
+    if setuptools_version >= Version('61.0.0'):
+        from setuptools.config.setupcfg import ConfigHandler
+    else:
+        from setuptools.config import ConfigHandler
     # duplicates some earlier configparser stuff (which doesn't
     # support py2; need to clean up)
     try:
