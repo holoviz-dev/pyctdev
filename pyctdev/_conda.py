@@ -30,8 +30,6 @@ import os
 import glob
 import json
 import re
-import shlex
-import shutil
 import sys
 import warnings
 try:
@@ -176,13 +174,8 @@ def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_e
         deps = " ".join('"%s"'%dep for dep in deps)       
         # TODO and join the club? 
         e = '' if env_name_again=='' else '-n %s'%env_name_again
-        if conda_mode == 'mamba':
-            bin_path = shutil.which('mamba')
-        else:
-            bin_path = CONDA_ROOT_EXE
-        cmd = "%s install -y " % (bin_path) + e + " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
+        cmd = "%s install -y " % (conda_mode) + e + " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
         print('Install runtime dependencies with:', cmd)
-        cmd = shlex.split(cmd)
         return cmd
     else:
         return echo("Skipping conda install (no dependencies)")
@@ -890,7 +883,7 @@ def task_develop_install():
     """
     return {'actions': [
         CmdAction(_conda_build_deps),
-        CmdAction(_conda_install_with_options_hacked, shell=False),
+        CmdAction(_conda_install_with_options_hacked),
         python_develop],
             'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param,_conda_mode_param]}
 
