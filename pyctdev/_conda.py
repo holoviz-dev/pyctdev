@@ -882,8 +882,8 @@ def task_develop_install():
 
     """
     return {'actions': [
-        CmdAction(_conda_build_deps),
-        CmdAction(_conda_install_with_options_hacked),
+        CmdAction(_conda_build_deps, shell=False),
+        CmdAction(_conda_install_with_options_hacked, shell=False),
         python_develop],
             'params': [_options_param,_channel_param,no_pin_deps,_all_extras_param,_conda_mode_param]}
 
