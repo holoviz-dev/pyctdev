@@ -21,6 +21,12 @@ try:
 except ImportError:
     setuptools_version = None
 
+try:
+    import tomli as toml
+except ImportError:
+    # tomllib added to the stdlib in Python 3.11
+    import tomllib as toml
+
 toxconf = tox_config.parseconfig('tox')
 # we later filter out any _onlytox commands...
 toxconf_pre = configparser.ConfigParser()
@@ -246,19 +252,9 @@ def get_dependencies(groups,all_extras=False):
 
 
 def get_buildreqs():
-    try:
-        import pip._vendor.pytoml as toml
-    except Exception:
-        try:
-            # pip>=20.1
-            import pip._vendor.toml as toml
-        except Exception:
-            # pip>=21.2.1
-            import pip._vendor.tomli as toml
-
     buildreqs = []
     if os.path.exists('pyproject.toml'):
-        with open('pyproject.toml') as f:
+        with open('pyproject.toml', 'rb') as f:
             pp = toml.load(f)
         if 'build-system' in pp:
             buildreqs += pp['build-system'].get("requires",[])
