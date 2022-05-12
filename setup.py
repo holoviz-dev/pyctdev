@@ -45,7 +45,7 @@ setup_args = dict(
         # pinning to avoid https://github.com/pyviz/pyctdev/issues/12
         'pip >=19.1.1',
         # Added to no longer depend on tomli vendored by pip.
-        'tomli>=2;python_version<"3.11"',
+        'tomli',
     ],
     extras_require={
         'tests': ['flake8'],
