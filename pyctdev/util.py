@@ -3,6 +3,8 @@ import os
 import itertools
 import configparser
 
+import tomli as toml
+
 # Fallbacks for conda, which can't install tox from defaults (at
 # least, not as of June 2018). Allows to parse tox.ini (i.e. to use
 # tox.ini as single place where all test cmds and envs are stored)
@@ -20,12 +22,6 @@ try:
     setuptools_version = Version(setuptools.__version__)
 except ImportError:
     setuptools_version = None
-
-try:
-    import tomli as toml
-except ImportError:
-    # tomllib added to the stdlib in Python 3.11
-    import tomllib as toml
 
 toxconf = tox_config.parseconfig('tox')
 # we later filter out any _onlytox commands...
