@@ -110,6 +110,7 @@ _conda_mode_param = {
     'choices': [
         ('conda', 'with classic conda exe'),
         ('mamba', 'with mamba exe (must be installed)'),
+        ('libmamba', 'with conda and experimental libmamba solver (must be installed)'),
     ],
     'default': 'conda',
 }
@@ -131,13 +132,19 @@ from .util import _get_dependencies
 
 def _conda_build_deps(channel, conda_mode):
     buildreqs = get_buildreqs()
-    deps = " ".join('"%s"'%_join_the_club(dep) for dep in buildreqs)
-    if len(buildreqs)>0:
-        cmd = "%s install -y %s %s" % (conda_mode, " ".join(['-c %s' % c for c in channel]), deps)
-        print('Install build dependencies with:', cmd)
-        return cmd
-    else:
+    deps = " ".join('"%s"' % _join_the_club(dep) for dep in buildreqs)
+    if not len(buildreqs):
         return echo("Skipping conda install (no build dependencies)")
+
+    if conda_mode == 'libmamba':
+        conda_mode = 'conda'
+        options = '--experimental-solver=libmamba'
+    else:
+        options = ''
+    channels = " ".join(['-c %s' % c for c in channel])
+    cmd = "%s install %s -y %s %s" % (conda_mode, options, channels, deps)
+    print('Install build dependencies with:', cmd)
+    return cmd
 
 
 def _pin(deps):
@@ -154,7 +161,7 @@ def _pin(deps):
 
     if len(pinned_but_missing)!=0:
         raise ValueError("Pins specified for non-existent dependencies %s"%pinned_but_missing)
-    pinneddeps = []    
+    pinneddeps = []
     for d in deps:
         dname = MatchSpec(d).name
         if dname in pins:
@@ -163,22 +170,28 @@ def _pin(deps):
             pinneddeps.append("%s"%dname)
     return pinneddeps
 
-    
-def _conda_install_with_options(options,channel,env_name_again,no_pin_deps,all_extras,conda_mode):
+
+def _conda_install_with_options(options, channel, env_name_again, no_pin_deps, all_extras, conda_mode):
     # TODO: list v string form for _pin
     deps = _get_dependencies(['install_requires']+options,all_extras=all_extras)
     deps = [_join_the_club(d) for d in deps]
 
-    if len(deps)>0:
-        deps = _pin(deps) if no_pin_deps is False else deps
-        deps = " ".join('"%s"'%dep for dep in deps)       
-        # TODO and join the club? 
-        e = '' if env_name_again=='' else '-n %s'%env_name_again
-        cmd = "%s install -y " % (conda_mode) + e + " %s %s" % (" ".join(['-c %s' % c for c in channel]), deps)
-        print('Install runtime dependencies with:', cmd)
-        return cmd
-    else:
+    if not len(deps):
         return echo("Skipping conda install (no dependencies)")
+
+    deps = _pin(deps) if no_pin_deps is False else deps
+    deps = " ".join('"%s"' % dep for dep in deps)
+    # TODO and join the club?
+    env = '' if env_name_again == '' else '-n %s' % env_name_again
+    channels = " ".join(['-c %s' % c for c in channel])
+    if conda_mode == 'libmamba':
+        conda_mode = 'conda'
+        options = '--experimental-solver=libmamba'
+    else:
+        options = ''
+    cmd = f"%s install %s -y %s %s %s" % (conda_mode, options, env, channels, deps)
+    print('Install runtime dependencies with:', cmd)
+    return cmd
 
 
 # TODO: another parameter workaround
@@ -216,7 +229,7 @@ def task_env_export2():
         'inverse':'advert'
     }
 
-    
+
     def x(no_pin_deps,package_name,options2,channel,all_extras,env_file,env_name_again,no_advert):
         from conda_env.env import Environment
 
@@ -227,7 +240,7 @@ def task_env_export2():
             deps = _pin(deps)
 
         deps = [_join_the_club(d) for d in deps]
-            
+
         e = Environment(
             name=env_name_again,
             channels=channel,
@@ -243,7 +256,7 @@ def task_env_export2():
                 f.seek(0)
                 # probably more useful info could be put here
                 f.write("# file created by pyctdev:\n#   " + " ".join(sys.argv) + "\n\n" + content)
-        
+
     return {'actions':[x],
             'params': [_options_param2,_channel_param,_all_extras_param,no_pin_deps,package_name,env_file,env_name_again,no_advert]
     }
@@ -285,8 +298,8 @@ def task_env_export():
 
         deps = [_join_the_club(d) for d in _get_dependencies(['install_requires']+options,all_extras=all_extras)]
         deps = set([MatchSpec(d).name for d in deps])
-        
-        for what in E.dependencies:                    
+
+        for what in E.dependencies:
             E.dependencies[what] = [d for d in E.dependencies[what] if MatchSpec(d).name in deps]
 
         # fix up conda channels TODO: should probably just use non-env
@@ -553,7 +566,7 @@ def task_package_build():
     # hacks to get a quick version of
     # https://github.com/conda/conda-build/issues/2648
 
-    
+
     pin_deps_as_env = {
         'name':'pin_deps_as_env',
         'long':'pin-deps-as-env',
@@ -566,7 +579,7 @@ def task_package_build():
         'type':bool,
         'default':False}
 
-    
+
     def create_base_recipe(package_name,force):
 
         # TODO: need to replace this with checking for existing recipe and using that.
@@ -590,12 +603,12 @@ def task_package_build():
             if package_name_supplied:
                 raise ValueError("You requested package name %s but no entry found in setup.cfg; omit --package-name or ensure you have defined conda package(s) in setup.cfg"%package_name)
             extras = '[]'
-        
+
         r = open(os.path.join(os.path.dirname(__file__),"condatemplate.yaml")).read()
 
         # hack https://github.com/conda/conda-build/issues/2475
         r = r.replace(r"{{ pname }}",package_name)
-        
+
         if not os.path.exists("conda.recipe"): # could do better/race
             os.makedirs("conda.recipe")
 
@@ -607,7 +620,7 @@ def task_package_build():
             f.write("{%% set builddeps = %s %%}\n"%buildeps)
             f.write(r)
 
-            
+
     def create_recipe_clobber(recipe,pin_deps_as_env,no_pin_deps,package_name):
         if pin_deps_as_env == '' and no_pin_deps is True:
             return
@@ -626,17 +639,17 @@ def task_package_build():
                 counts = collections.Counter([x[0] for x in env_names])
                 assert counts[env_name]==1 # would need more than name to be sure...
                 prefix = dict(env_names)[env_name]
-    
+
                 packages = json.loads(run_command(Commands.LIST,"-p %s --json"%prefix)[0])
                 packagesd = {package['name']:package for package in packages}
-        
+
                 # TODO: could add channel to the pin...
                 requirements_run = ["%s ==%s"%(MatchSpec(d).name,packagesd[MatchSpec(d).name]['version']) for d in deps]
-                
+
             else:
                 requirements_run = _pin(deps)
-                
-                            
+
+
             with open("conda.recipe/%s/_pyctdev_recipe_clobber.yaml"%recipe,'w') as f:
                 f.write(yaml.dump(
                     {
