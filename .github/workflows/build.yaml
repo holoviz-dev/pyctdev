@@ -19,7 +19,7 @@ jobs:
       PKG_TEST_GROUP: "--test-group=all"
       PYCTDEV_ECOSYSTEM: "conda"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Fetch unshallow
         run: git fetch --prune --tags --unshallow -f
       - uses: actions/setup-python@v2
@@ -69,7 +69,7 @@ jobs:
       PIP_FORMATS: "sdist bdist_wheel"
       PYCTDEV_ECOSYSTEM: "pip"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Fetch unshallow
         run: git fetch --prune --tags --unshallow -f
       - uses: actions/setup-python@v2
