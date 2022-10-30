@@ -12,28 +12,31 @@ try:
     import tox.config as tox_config
 except:
     import os.path
-    for pkg in ('tox-3.0.0.zip', 'virtualenv-15.2.0.zip'):
-        sys.path.append(os.path.join(os.path.dirname(__file__),'_vendor',pkg))
+
+    for pkg in ("tox-3.0.0.zip", "virtualenv-15.2.0.zip"):
+        sys.path.append(os.path.join(os.path.dirname(__file__), "_vendor", pkg))
     import tox.config as tox_config
 
 try:
     import setuptools
     from setuptools._vendor.packaging.version import Version
+
     setuptools_version = Version(setuptools.__version__)
 except ImportError:
     setuptools_version = None
 
-toxconf = tox_config.parseconfig('tox')
+toxconf = tox_config.parseconfig("tox")
 # we later filter out any _onlytox commands...
 toxconf_pre = configparser.ConfigParser()
-toxconf_pre.read('tox.ini')
+toxconf_pre.read("tox.ini")
 
-onlytox = '{[_onlytox]commands}'
+onlytox = "{[_onlytox]commands}"
 
-def get_env(test_python,test_group,test_requires,test_what):
-    if test_python == '':
+
+def get_env(test_python, test_group, test_requires, test_what):
+    if test_python == "":
         test_python = getpy()
-    return "%s-%s-%s-%s"%(test_python,test_group,test_requires,test_what)
+    return "%s-%s-%s-%s" % (test_python, test_group, test_requires, test_what)
 
 
 def get_tox_python(env):
@@ -41,130 +44,142 @@ def get_tox_python(env):
         # TODO really doubt this is the right way
         return toxconf.envconfigs[env].basepython.split("python")[1]
     else:
-        raise ValueError("Could not find %s in tox.ini"%env)
+        raise ValueError("Could not find %s in tox.ini" % env)
+
 
 def get_tox_cmds(env):
     if env in toxconf.envconfigs:
-        toxpre = toxconf_pre['testenv']['commands'].splitlines()
+        toxpre = toxconf_pre["testenv"]["commands"].splitlines()
         # skip all "onlytox" commands
-        i = 0 if not toxpre[0].startswith(onlytox) else len(toxconf_pre['_onlytox']['commands'].splitlines())
+        i = (
+            0
+            if not toxpre[0].startswith(onlytox)
+            else len(toxconf_pre["_onlytox"]["commands"].splitlines())
+        )
         for c in toxpre[1::]:
-            assert not c.startswith(onlytox), "Bad tox config: only first command can be 'onlytox' skipped"
+            assert not c.startswith(
+                onlytox
+            ), "Bad tox config: only first command can be 'onlytox' skipped"
         cmds = []
         for cmd in toxconf.envconfigs[env].commands[i::]:
-            if len(cmd)>0:
+            if len(cmd) > 0:
                 # can't quote first on win (need to quote rest...a list would be better than string - should clean up
-                cmds.append("%s "%cmd[0] + " ".join(['"{0}"'.format(w) for w in cmd[1::]]))
+                cmds.append(
+                    "%s " % cmd[0] + " ".join(['"{0}"'.format(w) for w in cmd[1::]])
+                )
         return cmds
     else:
-        #raise ValueError("Could not find %s in tox.ini"%env)
-        return ["""python -c "print('Could not read """ + env + """ from tox.ini');import sys;sys.exit(1)" """]
+        # raise ValueError("Could not find %s in tox.ini"%env)
+        return [
+            """python -c "print('Could not read """
+            + env
+            + """ from tox.ini');import sys;sys.exit(1)" """
+        ]
 
-def get_tox_deps(env,hack_one=False):
+
+def get_tox_deps(env, hack_one=False):
     if env in toxconf.envconfigs:
         deps = toxconf.envconfigs[env].deps
         deps2use = []
         for d in deps:
-            if hack_one is False: # you are testing that dependencies were already specified correctly
-                if '.[' in d.name:
-                    pass # only tox dependencies - not from setup.py
-                elif d.name=='.':
-                    assert False # expecting this to never happen
+            if (
+                hack_one is False
+            ):  # you are testing that dependencies were already specified correctly
+                if ".[" in d.name:
+                    pass  # only tox dependencies - not from setup.py
+                elif d.name == ".":
+                    assert False  # expecting this to never happen
                 else:
                     deps2use.append(d.name)
             else:
-                if '.[' in d.name: # can't quite decide if this is the right thing to do (it's for supporting --test-requires on existing package)
-                    deps2use += _get_dependencies([x.strip() for x in deps[0].name[2:-1].split(',')])
-                    
-                elif d.name=='.':
-                    assert False # expecting this to never happen
+                if (
+                    ".[" in d.name
+                ):  # can't quite decide if this is the right thing to do (it's for supporting --test-requires on existing package)
+                    deps2use += _get_dependencies(
+                        [x.strip() for x in deps[0].name[2:-1].split(",")]
+                    )
+
+                elif d.name == ".":
+                    assert False  # expecting this to never happen
                 else:
                     deps2use.append(d.name)
 
-                
         return deps2use
-        
+
     else:
-        raise ValueError("Could not find %s in tox.ini"%env)
+        raise ValueError("Could not find %s in tox.ini" % env)
+
 
 _options_param = {
-    'name':'options',
-    'long':'options',
-    'short': 'o',
-    'type':list,
-    'default':[]
+    "name": "options",
+    "long": "options",
+    "short": "o",
+    "type": list,
+    "default": [],
 }
 
 # the hack for above default
 _options_param2 = {
-    'name':'options2',
-    'long':'options2',
-    'short': 'o2',
-    'type':list,
-    'default':[]
+    "name": "options2",
+    "long": "options2",
+    "short": "o2",
+    "type": list,
+    "default": [],
 }
 
 
 # TODO: very related to options_param :(
 # TODO: couldn't pip support this, or some kind of pattern matching?
 _all_extras_param = {
-    'name':'all_extras',
-    'long':'all-extras',
-    'type':bool,
-    'default':False
+    "name": "all_extras",
+    "long": "all-extras",
+    "type": bool,
+    "default": False,
 }
 
 test_python = {
-    'name':'test_python',
-    'long':'test-python',
-    'type':list,
-    'default':[]
+    "name": "test_python",
+    "long": "test-python",
+    "type": list,
+    "default": [],
 }
 
-test_group = {
-    'name':'test_group',
-    'long':'test-group',
-    'type':list,
-    'default':[]
-}
+test_group = {"name": "test_group", "long": "test-group", "type": list, "default": []}
 
 test_requires = {
-    'name':'test_requires',
-    'long':'test-requires',
-    'type':list,
-    'default':[]
+    "name": "test_requires",
+    "long": "test-requires",
+    "type": list,
+    "default": [],
 }
 
-test_what = {
-    'name':'test_what',
-    'long':'test-what',
-    'type':list,
-    'default':[]
-}
+test_what = {"name": "test_what", "long": "test-what", "type": list, "default": []}
 
 pkg_tests = {
-    'name':'pkg_tests',
-    'long':'pkg-tests',
-    'type':bool,
-    'default':True,
-    'inverse':'no-pkg-tests'
+    "name": "pkg_tests",
+    "long": "pkg-tests",
+    "type": bool,
+    "default": True,
+    "inverse": "no-pkg-tests",
 }
 
 
 def getpy():
-    return "py%s%s"%(sys.version_info[0:2])
+    return "py%s%s" % (sys.version_info[0:2])
 
-def test_matrix(test_python,test_group,test_requires,test_what):
+
+def test_matrix(test_python, test_group, test_requires, test_what):
     # sigh, defaults
-    test_python = [getpy()] if len(test_python)==0 else test_python
-    test_group = ['unit'] if len(test_group)==0 else test_group
-    test_requires = ['default'] if len(test_requires)==0 else test_requires
-    test_what = ['dev'] if len(test_what)==0 else test_what               
-    for combo in itertools.product(test_python,test_group,test_requires,test_what):
+    test_python = [getpy()] if len(test_python) == 0 else test_python
+    test_group = ["unit"] if len(test_group) == 0 else test_group
+    test_requires = ["default"] if len(test_requires) == 0 else test_requires
+    test_what = ["dev"] if len(test_what) == 0 else test_what
+    for combo in itertools.product(test_python, test_group, test_requires, test_what):
         yield combo
 
+
 def echo(msg):
-    return 'python -c "print(\'%s\')"'%msg
+    return "python -c \"print('%s')\"" % msg
 
 
 ##### only for conda really
@@ -176,15 +191,15 @@ def _get_setup_metadata():
     meta = None
     if os.path.exists("setup.cfg"):
         if setuptools_version is None:
-            raise ImportError('setuptools is not installed.')
-        if setuptools_version >= Version('61.0.0'):
+            raise ImportError("setuptools is not installed.")
+        if setuptools_version >= Version("61.0.0"):
             from setuptools.config.setupcfg import read_configuration
         else:
             from setuptools.config import read_configuration
         setupcfg = read_configuration("setup.cfg")
-        if 'options' in setupcfg:
-            if 'install_requires' in setupcfg['options']:
-                meta = setupcfg['options']
+        if "options" in setupcfg:
+            if "install_requires" in setupcfg["options"]:
+                meta = setupcfg["options"]
 
     if meta is None:
         try:
@@ -193,24 +208,27 @@ def _get_setup_metadata():
             try:
                 from setup import setup_args as meta
             except ImportError:
-                raise ValueError("Could not find dependencies in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)")
+                raise ValueError(
+                    "Could not find dependencies in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)"
+                )
 
     return meta
+
 
 def _get_setup_metadata2(k):
     meta = None
     if os.path.exists("setup.cfg"):
         if setuptools_version is None:
-            raise ImportError('setuptools is not installed.')
-        if setuptools_version >= Version('61.0.0'):
+            raise ImportError("setuptools is not installed.")
+        if setuptools_version >= Version("61.0.0"):
             from setuptools.config.setupcfg import read_configuration
         else:
             from setuptools.config import read_configuration
         setupcfg = read_configuration("setup.cfg")
-        if k in setupcfg['metadata']:
-            return setupcfg['metadata'][k]
-        elif k in setupcfg['options']:
-            return setupcfg['options'][k]
+        if k in setupcfg["metadata"]:
+            return setupcfg["metadata"][k]
+        elif k in setupcfg["options"]:
+            return setupcfg["options"][k]
 
     if meta is None:
         try:
@@ -219,7 +237,10 @@ def _get_setup_metadata2(k):
             try:
                 from setup import setup_args as meta
             except ImportError:
-                raise ValueError("Could not find %s in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)"%k)
+                raise ValueError(
+                    "Could not find %s in setup.cfg, and could not import setup metadata dict from setup.py (tried meta and setup_args)"
+                    % k
+                )
         return meta[k]
 
 
@@ -228,32 +249,35 @@ def _get_setup_metadata2(k):
 # travis? Translate from setup.py?  Read from meta.yaml? Install from
 # existing anaconda.org conda package and then remove --force?  Build
 # and install conda package then remove --force?
-def _get_dependencies(groups,all_extras=False):
+def _get_dependencies(groups, all_extras=False):
     """get dependencies from setup.cfg or otherwise setup.py"""
     meta = _get_setup_metadata()
     deps = []
     if all_extras:
-        extras = meta.get('extras_require',{})
+        extras = meta.get("extras_require", {})
         groups = set(groups).union(set(extras))
     for group in groups:
-        if group in ('install_requires','tests_require'):
-            deps += meta.get(group,[])
+        if group in ("install_requires", "tests_require"):
+            deps += meta.get(group, [])
         else:
             # TODO: it's ok to not fail for missing install_requires, tests_require, i.e. standard ones. Not ok to not fail for missing extras_require e.g. I try doit develop_install -o recommended but if recommended does not exist that should be an error
-            deps += meta.get('extras_require',{}).get(group,[])
+            deps += meta.get("extras_require", {}).get(group, [])
     return deps
 
-def get_dependencies(groups,all_extras=False):
-    return " ".join('"%s"'%dep for dep in _get_dependencies(groups,all_extras=all_extras))
+
+def get_dependencies(groups, all_extras=False):
+    return " ".join(
+        '"%s"' % dep for dep in _get_dependencies(groups, all_extras=all_extras)
+    )
 
 
 def get_buildreqs():
     buildreqs = []
-    if os.path.exists('pyproject.toml'):
-        with open('pyproject.toml', 'rb') as f:
+    if os.path.exists("pyproject.toml"):
+        with open("pyproject.toml", "rb") as f:
             pp = toml.load(f)
-        if 'build-system' in pp:
-            buildreqs += pp['build-system'].get("requires",[])
+        if "build-system" in pp:
+            buildreqs += pp["build-system"].get("requires", [])
     return buildreqs
 
 
@@ -264,8 +288,8 @@ def get_buildreqs():
 # of config reading.) Replace bit by bit and see what happens?
 def read_pins(f):
     if setuptools_version is None:
-        raise ImportError('setuptools is not installed.')
-    if setuptools_version >= Version('61.0.0'):
+        raise ImportError("setuptools is not installed.")
+    if setuptools_version >= Version("61.0.0"):
         from setuptools.config.setupcfg import ConfigHandler
     else:
         from setuptools.config import ConfigHandler
@@ -274,8 +298,8 @@ def read_pins(f):
     try:
         import configparser
     except ImportError:
-        import ConfigParser as configparser # python2 (also prevents dict-like access)
-    pyctdev_section = 'tool:pyctdev'
+        import ConfigParser as configparser  # python2 (also prevents dict-like access)
+    pyctdev_section = "tool:pyctdev"
     config = configparser.ConfigParser()
     config.read(f)
 
@@ -283,16 +307,17 @@ def read_pins(f):
         return {}
 
     try:
-        pins_raw = config.get(pyctdev_section,'pins')
+        pins_raw = config.get(pyctdev_section, "pins")
     except configparser.NoOptionError:
-        pins_raw = ''
-    
+        pins_raw = ""
+
     return ConfigHandler._parse_dict(pins_raw)
 
-def read_conda_packages(f,name):
+
+def read_conda_packages(f, name):
     if setuptools_version is None:
-        raise ImportError('setuptools is not installed.')
-    if setuptools_version >= Version('61.0.0'):
+        raise ImportError("setuptools is not installed.")
+    if setuptools_version >= Version("61.0.0"):
         from setuptools.config.setupcfg import ConfigHandler
     else:
         from setuptools.config import ConfigHandler
@@ -301,27 +326,27 @@ def read_conda_packages(f,name):
     try:
         import configparser
     except ImportError:
-        import ConfigParser as configparser # python2 (also prevents dict-like access)
+        import ConfigParser as configparser  # python2 (also prevents dict-like access)
     config = configparser.ConfigParser()
     config.read(f)
 
-    pyctdev_section = 'tool:pyctdev.conda'
-    
+    pyctdev_section = "tool:pyctdev.conda"
+
     if pyctdev_section not in config.sections():
         return []
 
     try:
-        packages_raw = config.get(pyctdev_section,'packages')
+        packages_raw = config.get(pyctdev_section, "packages")
     except configparser.NoOptionError:
-        packages_raw = ''
+        packages_raw = ""
 
     return ConfigHandler._parse_list(ConfigHandler._parse_dict(packages_raw)[name])
 
 
 def read_conda_namespace_map(f):
     if setuptools_version is None:
-        raise ImportError('setuptools is not installed.')
-    if setuptools_version >= Version('61.0.0'):
+        raise ImportError("setuptools is not installed.")
+    if setuptools_version >= Version("61.0.0"):
         from setuptools.config.setupcfg import ConfigHandler
     else:
         from setuptools.config import ConfigHandler
@@ -330,8 +355,8 @@ def read_conda_namespace_map(f):
     try:
         import configparser
     except ImportError:
-        import ConfigParser as configparser # python2 (also prevents dict-like access)
-    pyctdev_section = 'tool:pyctdev.conda'
+        import ConfigParser as configparser  # python2 (also prevents dict-like access)
+    pyctdev_section = "tool:pyctdev.conda"
     config = configparser.ConfigParser()
     config.read(f)
 
@@ -339,9 +364,8 @@ def read_conda_namespace_map(f):
         return {}
 
     try:
-        namespacemap_raw = config.get(pyctdev_section,'namespace_map')
+        namespacemap_raw = config.get(pyctdev_section, "namespace_map")
     except configparser.NoOptionError:
-        namespacemap_raw = ''
-    
-    return ConfigHandler._parse_dict(namespacemap_raw)
+        namespacemap_raw = ""
 
+    return ConfigHandler._parse_dict(namespacemap_raw)

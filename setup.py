@@ -6,25 +6,23 @@ from setuptools import setup
 import versioneer
 
 setup_args = dict(
-    name = 'pyctdev',
-    description = 'python packaging common tasks for developers',
+    name="pyctdev",
+    description="python packaging common tasks for developers",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    version = versioneer.get_version().lstrip('v'),
-    cmdclass = versioneer.get_cmdclass(),
-    license = 'BSD-3',
-    url = 'http://github.com/pyviz/pyctdev',
-    packages=['pyctdev'],
+    version=versioneer.get_version().lstrip("v"),
+    cmdclass=versioneer.get_cmdclass(),
+    license="BSD-3",
+    url="http://github.com/pyviz/pyctdev",
+    packages=["pyctdev"],
     python_requires=">=2.7",
-    include_package_data = True,
+    include_package_data=True,
     install_requires=[
         # otherwise py2 users will just get an error (should really
         # be fixed in doit)
-        'doit' if sys.version_info[0]>2 else 'doit <0.30',
-
+        "doit" if sys.version_info[0] > 2 else "doit <0.30",
         # doit requires cloudpickle but does not specify the dependency
-        'cloudpickle',
-
+        "cloudpickle",
         ## tox
         # because tox.ini is currently the master list of
         # tests/environments, some of tox is required - just the
@@ -35,27 +33,26 @@ setup_args = dict(
         # and just vendor them.
         #'tox'
         #'virtualenv'
-        'pluggy',   # for tox
-        'py',       # for tox
+        "pluggy",  # for tox
+        "py",  # for tox
         #'argparse', # for virtualenv
         ##
-
         # Pretty much part of every python distribution now anyway.
         # Use it e.g. to be able to read pyproject.toml
         # pinning to avoid https://github.com/pyviz/pyctdev/issues/12
-        'pip >=19.1.1',
+        "pip >=19.1.1",
         # Added to no longer depend on tomli vendored by pip.
-        'tomli',
+        "tomli",
     ],
     extras_require={
-        'tests': ['flake8'],
-        'ecosystem_pip': ['tox','twine','wheel'],
+        "tests": ["flake8"],
+        "ecosystem_pip": ["tox", "twine", "wheel"],
         # pins are supposed to be for when it became possible to
         # install them outside of root/base env, and when api appeared;
         # not sure exactly which versions
         # (actually, cb pin is for tested/known good version
-        'ecosystem_conda': ['conda >=4.4', 'conda-build >=3.10.1']
-    }
+        "ecosystem_conda": ["conda >=4.4", "conda-build >=3.10.1"],
+    },
 )
 
 if __name__ == "__main__":
