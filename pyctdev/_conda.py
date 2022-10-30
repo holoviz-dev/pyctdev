@@ -288,10 +288,8 @@ def _conda_install_build_runtime_extras(
     if len(deps) > 0:
         deps = " ".join('"%s"' % dep for dep in deps)
         # TODO and join the club?
-        e = "" if env_name_again == "" else "-n %s" % env_name_again
         cmd = (
             "%s install -y " % (conda_mode)
-            + e
             + " %s %s" % (" ".join(["-c %s" % c for c in channel]), deps)
         )
         print("Install build/runtime/extras dependencies with:", cmd)
