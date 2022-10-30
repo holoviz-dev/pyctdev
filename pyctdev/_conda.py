@@ -153,10 +153,46 @@ python_develop = "python -m pip install --no-deps --no-build-isolation -e ."
 from .util import _get_dependencies
 
 
+# TODO: python2conda or something, and would be nice to use param ;)
+def _join_the_club(dep):
+    # note: using conda's matchspec to read python package spec; should use
+    # fn from python packaging instead
+
+    # cb at least at 3.10.1 interprets square brackets as selectors
+    # even if not after a # and then silently drops...not sure what's
+    # accidental and what's deliberate difference between cb and
+    # conda. Meanwhile, I've been using the fact that e.g. conda
+    # install "dask[complete]" results in installing "dask" to
+    # implement the convention that conda packages contain everything
+    # i.e. any pip install x[option1,option2,...]  is covered by conda
+    # install x. see https://github.com/pyviz/pyct/issues/42
+    new = re.sub(r"\[.*?\]", "", dep)
+    # not much point warning only here, since it happens in other places too
+    # if new!=dep:warnings.warn("Changed your dep from %s to %s"%(dep,new))
+
+    # should be read just once rather than for each dep!
+    nsmap = read_conda_namespace_map("setup.cfg")
+
+    ms = MatchSpec(new)
+    out = "%s" % nsmap.get(ms.name, ms.name)
+    if ms.version is not None:
+        # why it doesn't include == already?
+        if "==" in new:
+            assert "===" not in new  # sorry
+            out += " =="
+        else:
+            out += " "
+        out += "%s" % ms.version
+    return out
+
+
+# Unused, it was useful when the build dependencies where first
+# installed part of `task_develop_install` before they were merged
+# with installing the runtime dependencies.
 def _conda_build_deps(channel, conda_mode):
-    buildreqs = get_buildreqs()
-    deps = " ".join('"%s"' % _join_the_club(dep) for dep in buildreqs)
+    buildreqs = _get_build_deps()
     if len(buildreqs) > 0:
+        deps = " ".join('"%s"' % dep for dep in buildreqs)
         cmd = "%s install -y %s %s" % (
             conda_mode,
             " ".join(["-c %s" % c for c in channel]),
@@ -166,6 +202,25 @@ def _conda_build_deps(channel, conda_mode):
         return cmd
     else:
         return echo("Skipping conda install (no build dependencies)")
+
+
+def _get_build_deps():
+    """Get the list of build dependencies."""
+    deps = get_buildreqs()
+    deps = [_join_the_club(dep) for dep in deps]
+    return deps
+
+
+def _get_dev_install_deps(no_pin_deps, options, all_extras):
+    """Get the list of runtime + extras dependencies."""
+    # TODO: list v string form for _pin
+    deps = _get_dependencies(["install_requires"] + options, all_extras=all_extras)
+    deps = [_join_the_club(d) for d in deps]
+
+    if len(deps) > 0:
+        deps = _pin(deps) if no_pin_deps is False else deps
+
+    return deps
 
 
 def _pin(deps):
@@ -197,12 +252,14 @@ def _pin(deps):
 def _conda_install_with_options(
     options, channel, env_name_again, no_pin_deps, all_extras, conda_mode
 ):
-    # TODO: list v string form for _pin
-    deps = _get_dependencies(["install_requires"] + options, all_extras=all_extras)
-    deps = [_join_the_club(d) for d in deps]
+
+    deps = _get_dev_install_deps(
+        no_pin_deps=no_pin_deps,
+        options=options,
+        all_extras=all_extras
+    )
 
     if len(deps) > 0:
-        deps = _pin(deps) if no_pin_deps is False else deps
         deps = " ".join('"%s"' % dep for dep in deps)
         # TODO and join the club?
         e = "" if env_name_again == "" else "-n %s" % env_name_again
@@ -217,13 +274,30 @@ def _conda_install_with_options(
         return echo("Skipping conda install (no dependencies)")
 
 
-# TODO: another parameter workaround
-def _conda_install_with_options_hacked(
+def _conda_install_build_runtime_extras(
     options, channel, no_pin_deps, all_extras, conda_mode
 ):
-    return _conda_install_with_options(
-        options, channel, "", no_pin_deps, all_extras, conda_mode
+    build_deps = _get_build_deps()
+    runtime_extras_deps = _get_dev_install_deps(
+        no_pin_deps=no_pin_deps,
+        options=options,
+        all_extras=all_extras,
     )
+    deps = build_deps + runtime_extras_deps
+
+    if len(deps) > 0:
+        deps = " ".join('"%s"' % dep for dep in deps)
+        # TODO and join the club?
+        e = "" if env_name_again == "" else "-n %s" % env_name_again
+        cmd = (
+            "%s install -y " % (conda_mode)
+            + e
+            + " %s %s" % (" ".join(["-c %s" % c for c in channel]), deps)
+        )
+        print("Install build/runtime/extras dependencies with:", cmd)
+        return cmd
+    else:
+        return echo("Skipping conda install (no dependencies)")
 
 
 ############################################################
@@ -518,38 +592,6 @@ def task_ecosystem_setup():
 ########## PACKAGING ##########
 
 recipe_param = {"name": "recipe", "long": "recipe", "type": str, "default": ""}
-
-# TODO: python2conda or something, and would be nice to use param ;)
-def _join_the_club(dep):
-    # note: using conda's matchspec to read python package spec; should use
-    # fn from python packaging instead
-
-    # cb at least at 3.10.1 interprets square brackets as selectors
-    # even if not after a # and then silently drops...not sure what's
-    # accidental and what's deliberate difference between cb and
-    # conda. Meanwhile, I've been using the fact that e.g. conda
-    # install "dask[complete]" results in installing "dask" to
-    # implement the convention that conda packages contain everything
-    # i.e. any pip install x[option1,option2,...]  is covered by conda
-    # install x. see https://github.com/pyviz/pyct/issues/42
-    new = re.sub(r"\[.*?\]", "", dep)
-    # not much point warning only here, since it happens in other places too
-    # if new!=dep:warnings.warn("Changed your dep from %s to %s"%(dep,new))
-
-    # should be read just once rather than for each dep!
-    nsmap = read_conda_namespace_map("setup.cfg")
-
-    ms = MatchSpec(new)
-    out = "%s" % nsmap.get(ms.name, ms.name)
-    if ms.version is not None:
-        # why it doesn't include == already?
-        if "==" in new:
-            assert "===" not in new  # sorry
-            out += " =="
-        else:
-            out += " "
-        out += "%s" % ms.version
-    return out
 
 
 # TODO: (almost) duplicates some bits of package_build
@@ -1099,8 +1141,7 @@ def task_develop_install():
     """
     return {
         "actions": [
-            CmdAction(_conda_build_deps),
-            CmdAction(_conda_install_with_options_hacked),
+            CmdAction(_conda_install_build_runtime_extras),
             python_develop,
         ],
         "params": [
