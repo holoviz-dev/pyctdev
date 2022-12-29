@@ -24,7 +24,7 @@ setup_args = dict(
         # doit requires cloudpickle but does not specify the dependency
         "cloudpickle",
         ## tox
-        # because tox.ini is currently the master list of
+        # because tox.ini is currently the main list of
         # tests/environments, some of tox is required - just the
         # config reading bit. But that's tied in with all of tox. And
         # tox is not in anaconda defaults. Further, tox and virtualenv
