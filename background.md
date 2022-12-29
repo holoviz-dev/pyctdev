@@ -226,7 +226,7 @@ dependencies, with all, with certain combinations, etc).
 
 Expressing the dependencies in one place should be a simplification.
 
-Went for setup.py. However, the master list could be stored in a
+Went for setup.py. However, the main list could be stored in a
 different place (e.g. a text file, or conda meta.yaml, or pipfile, or
 whatever). The main thing is having the dependencies expressed in one
 place.

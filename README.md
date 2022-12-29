@@ -396,7 +396,7 @@ Every (dev) release:
     to (test.pypi.org) pypi.org
 
 A release happens when a `vX.Y.Z` tag is pushed. Dev releases can
-either be defined as "every merge to master" (e.g. for a mature
+either be defined as "every merge to main" (e.g. for a mature
 project), or "every time a `vX.Y.ZaN` style tag is pushed (for a
 rapidly changing project).
 
@@ -413,8 +413,8 @@ Two main options:
      special post-release tags where we're fixing minor docs issues
      without changing code, which presumably must be tagged
      specially), with a separate dev website (default:
-     https://pyviz-docs.github.io/package-master) updated on every
-     push to master (or every time an alpha/beta/rc format tag is
+     https://pyviz-docs.github.io/package-main) updated on every
+     push to main (or every time an alpha/beta/rc format tag is
      pushed ?).
 
   2. Same as 1, but also archiving websites for each major release
