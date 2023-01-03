@@ -39,10 +39,12 @@ requirements:
 test:
   imports:
     - {{ pname }}
+  {%if need_tests_deps %}
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
     - "{{ dep }}"
     {% endfor %}
+  {% endif %}
 
 about:
   home: {{ sdata['url'] }}
