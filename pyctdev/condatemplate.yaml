@@ -27,12 +27,12 @@ requirements:
     - python {{ sdata.get('python_requires','') }}
 
     {% for dep in sdata.get('install_requires',[]) %}
-    - "{{ dep }}"
+    - "{{ namespace_map.get(dep, dep) }}"
     {% endfor %}
 
     {% for extra in extras %}
      {% for dep in sdata.get('extras_require',{}).get(extra,[]) %}
-    - "{{ dep }}"
+    - "{{ namespace_map.get(dep, dep) }}"
      {% endfor %}
     {% endfor %}
 
@@ -42,7 +42,7 @@ test:
   {%if need_tests_deps %}
   requires:
     {% for dep in sdata['extras_require']['tests'] %}
-    - "{{ dep }}"
+    - "{{ namespace_map.get(dep, dep) }}"
     {% endfor %}
   {% endif %}
 

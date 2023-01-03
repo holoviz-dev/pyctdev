@@ -756,6 +756,8 @@ def task_package_build():
             )
             f.write("{%% set builddeps = %s %%}\n" % buildeps)
             f.write("{%% set need_tests_deps = %s %%}\n" % pkg_tests)
+            namespace_map = read_conda_namespace_map("setup.cfg")
+            f.write("{%% set namespace_map = %s %%}\n" % namespace_map)
             f.write(r)
 
     def create_recipe_clobber(recipe, pin_deps_as_env, no_pin_deps, package_name):
