@@ -829,8 +829,6 @@ def task_package_build():
             cmd += (
                 " --clobber-file conda.recipe/%s/_pyctdev_recipe_clobber.yaml" % recipe
             )
-        print('START 4')
-        print(cmd)
         return cmd
 
     def thing2(
@@ -933,23 +931,16 @@ def task_package_build():
         "actions": [
             # 0. install build requirements (conda build doesn't support pyproject.toml/PEP518
             CmdAction(thing0),
-            'echo 1',
             create_base_recipe,
-            'echo 2',
             create_recipe_clobber,
-            'echo 3',
             # first build the package...
             CmdAction(thing),
-            'echo 4',
             "conda build purge",  # remove test/work intermediates (disk space on travis...but could potentially annoy someone as it'll remove other test/work intermediates too...)
-            'echo 5',
             # then test it...
             # (if test commands overlap what's in recipe, will be some
             #  repetition...they ran above, and they will run again...)
             create_recipe_append,
-            'echo 6',
             CmdAction(thing2),
-            'echo 7',
         ],
         "teardown": [remove_recipe_append_and_clobber],
         "params": [
