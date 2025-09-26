@@ -1,5 +1,10 @@
 # pyctdev: python packaging common tasks for developers
 
+> ⚠️ **Project Archived**
+>
+> This project is **no longer maintained and has been archived**. Consider using alternative projects like [pixi](https://github.com/prefix-dev/pixi).
+
+
 Tools (and documentation) to support common tasks across many similar
 projects, focusing on those making up [HoloViz.org](http://holoviz.org).
 
